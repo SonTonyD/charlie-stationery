@@ -1,0 +1,130 @@
+.builder-screen {
+  min-height: 100vh;
+  padding: 40px 20px 70px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: var(--dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.builder-header {
+  margin-bottom: 20px;
+}
+
+.builder-header h1 {
+  margin-bottom: 10px;
+}
+
+.builder-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.builder-summary > div {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 12px;
+  font-weight: 600;
+}
+
+.warning {
+  background: #fff4d6;
+  border: 1px solid #f3d37d;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.step-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+}
+
+.step-price {
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.product-card {
+  border: 2px solid transparent;
+  background: #f8f9ff;
+  border-radius: 16px;
+  padding: 12px;
+  text-align: left;
+  transition: 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+}
+
+.product-card.selected {
+  border-color: var(--primary);
+  background: #efe9ff;
+}
+
+.product-card img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.price {
+  display: inline-block;
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--primary);
+  border-radius: 30px;
+  text-decoration: none;
+  color: var(--dark);
+  font-weight: 600;
+  border: none;
+}
+
+.btn.btn-outline {
+  background: transparent;
+  border: 2px solid var(--primary);
+}
+
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions .btn {
+    width: 100%;
+  }
+}

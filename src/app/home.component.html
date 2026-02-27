@@ -1,0 +1,89 @@
+<section class="hero">
+  <div class="container hero-content">
+    <div class="hero-text">
+      <h1>Box Papeterie Coreenne a l unite</h1>
+      <p>
+        Decouvre nos box exclusives inspirees de Seoul. A offrir ou a t offrir.
+        Sans abonnement.
+      </p>
+      <div class="hero-actions">
+        <a href="#shop" class="btn">Voir les box</a>
+        <a routerLink="/personnaliser-box" class="btn btn-outline"
+          >Personnaliser sa box</a
+        >
+      </div>
+    </div>
+
+    <div class="hero-image">
+      <img src="/hero-image.png" alt="Cute Pastel Box" />
+    </div>
+  </div>
+</section>
+
+<section id="shop" [class.shop-visible]="shopVisible">
+  <div class="container">
+    <h2>Nos Box Disponibles</h2>
+
+    <div class="grid grid-3">
+      @for (box of boxes; track box.title) {
+        <div class="card">
+          <span class="badge">{{ box.badge }}</span>
+
+          <img [src]="box.image" alt="Box image" />
+
+          <h3>{{ box.title }}</h3>
+          <p>{{ box.description }}</p>
+
+          <div class="price">{{ box.price }}EUR</div>
+
+          <button class="btn">Ajouter au panier</button>
+
+          <div class="stock">Plus que {{ box.stock }} disponibles</div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>Avis Clients</h2>
+
+    <div class="reviews-grid">
+      @for (review of reviews; track review.author) {
+        <div class="card">
+          ⭐⭐⭐⭐⭐
+          <p>"{{ review.text }}" - {{ review.author }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>FAQ</h2>
+
+    @for (faq of faqs; track faq.question; let i = $index) {
+      <div class="faq-item">
+        <div class="faq-question" (click)="toggleFaq(i)">
+          {{ faq.question }}
+        </div>
+
+        <div class="faq-answer" [style.display]="faq.open ? 'block' : 'none'">
+          {{ faq.answer }}
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<footer>
+  Copyright 2026 Box Papeterie Coreenne | Paiement securise | Satisfait ou
+  rembourse 14 jours
+</footer>
+
+<div class="sticky-cta">
+  <a href="#shop" class="btn">Voir les box</a>
+  <a routerLink="/personnaliser-box" class="btn btn-outline">Personnaliser</a>
+</div>

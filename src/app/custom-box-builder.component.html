@@ -1,0 +1,68 @@
+<section class="builder-screen">
+  <div class="container">
+    <a routerLink="/" class="back-link">Retour a l'accueil</a>
+
+    <header class="builder-header">
+      <h1>Personnalise ta box</h1>
+      <p>
+        Choisis un article par etape. Le prix final reste fixe a
+        <strong>{{ fixedPrice }}EUR</strong>.
+      </p>
+    </header>
+
+    <div class="builder-summary">
+      <div>Etape {{ currentStepIndex + 1 }} / {{ steps.length }}</div>
+      <div>Selections: {{ completedSteps }} / {{ steps.length }}</div>
+      <div>Total courant: {{ selectedTotal }}EUR</div>
+    </div>
+
+    @if (stepAmountSum !== fixedPrice) {
+      <div class="warning">
+        Attention: la somme des etapes ({{ stepAmountSum }}EUR) ne correspond pas au prix fixe
+        ({{ fixedPrice }}EUR).
+      </div>
+    }
+
+    <section class="step-card">
+      <h2>{{ currentStep.title }}</h2>
+      <p class="step-price">Tous les produits de cette etape valent {{ currentStep.stepPrice }}EUR.</p>
+
+      <div class="grid grid-3">
+        @for (product of currentStep.products; track product.id) {
+          <button
+            type="button"
+            class="product-card"
+            [class.selected]="isSelected(product)"
+            (click)="selectProduct(product)"
+          >
+            <img [src]="product.image" [alt]="product.name" />
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+            <span class="price">{{ product.price }}EUR</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="btn btn-outline" (click)="goToPreviousStep()" [disabled]="currentStepIndex === 0">
+        Etape precedente
+      </button>
+
+      @if (!isLastStep) {
+        <button
+          type="button"
+          class="btn"
+          (click)="goToNextStep()"
+          [disabled]="!selectedByStep[currentStepIndex]"
+        >
+          Etape suivante
+        </button>
+      } @else {
+        <button type="button" class="btn" (click)="checkout()" [disabled]="!canCheckout">
+          Payer {{ fixedPrice }}EUR
+        </button>
+      }
+    </div>
+  </div>
+</section>
