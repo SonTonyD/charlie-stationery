@@ -18,7 +18,7 @@ export class AppComponent implements OnInit {
       description: 'Stickers, washi tapes et carnet pastel.',
       price: 18,
       stock: 23,
-      image: 'assets/box1.png',
+      image: '/box1.png',
     },
     {
       badge: 'Nouveauté',
@@ -26,7 +26,7 @@ export class AppComponent implements OnInit {
       description: 'Organisation & papeterie minimaliste coréenne.',
       price: 29,
       stock: 17,
-      image: 'assets/box2.png',
+      image: '/box1.png',
     },
     {
       badge: 'Édition Limitée',
@@ -34,7 +34,7 @@ export class AppComponent implements OnInit {
       description: 'Version premium avec accessoires exclusifs.',
       price: 40,
       stock: 9,
-      image: 'assets/box3.png',
+      image: '/box1.png',
     },
   ];
 
