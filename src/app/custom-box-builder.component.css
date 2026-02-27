@@ -79,15 +79,37 @@
   background: #efe9ff;
 }
 
+.product-card.out-of-stock {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+  transform: none;
+}
+
+.product-card.out-of-stock:hover {
+  transform: none;
+}
+
 .product-card img {
   width: 100%;
   border-radius: 12px;
   margin-bottom: 10px;
 }
 
-.price {
+.quantity {
   display: inline-block;
   margin-top: 8px;
+  font-weight: 700;
+}
+
+.stock-alert {
+  display: inline-block;
+  margin-top: 10px;
+  margin-left: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e63946;
+  color: #fff;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 

@@ -6,6 +6,7 @@ interface CustomBoxProduct {
   id: string;
   name: string;
   description: string;
+  quantity: number;
   price: number;
   image: string;
 }
@@ -34,14 +35,18 @@ export class CustomBoxBuilderComponent {
         {
           id: 'notebook-pastel',
           name: 'Carnet Pastel',
-          description: 'Carnet doux et leger, ideal pour les notes quotidiennes.',
+          description:
+            'Carnet doux et leger, ideal pour les notes quotidiennes.',
+          quantity: 1,
           price: 5,
           image: '/box1.png',
         },
         {
           id: 'notebook-grid',
           name: 'Carnet Quadrille',
-          description: 'Pages quadrillees pour le bullet journal et les etudes.',
+          description:
+            'Pages quadrillees pour le bullet journal et les etudes.',
+          quantity: 0,
           price: 5,
           image: '/box1.png',
         },
@@ -49,6 +54,7 @@ export class CustomBoxBuilderComponent {
           id: 'notebook-vintage',
           name: 'Carnet Vintage',
           description: 'Couverture kraft avec style minimaliste.',
+          quantity: 1,
           price: 5,
           image: '/box1.png',
         },
@@ -62,6 +68,7 @@ export class CustomBoxBuilderComponent {
           id: 'kit-journal',
           name: 'Kit Journal Premium',
           description: 'Set complet pour personnaliser tes pages.',
+          quantity: 1,
           price: 15,
           image: '/box1.png',
         },
@@ -69,6 +76,7 @@ export class CustomBoxBuilderComponent {
           id: 'kit-washi',
           name: 'Pack Washi Deluxe',
           description: 'Washi tapes haut de gamme et motifs exclusifs.',
+          quantity: 1,
           price: 15,
           image: '/box1.png',
         },
@@ -76,6 +84,7 @@ export class CustomBoxBuilderComponent {
           id: 'kit-stickers',
           name: 'Album Stickers Collector',
           description: 'Selection premium de stickers coreens.',
+          quantity: 1,
           price: 15,
           image: '/box1.png',
         },
@@ -89,6 +98,7 @@ export class CustomBoxBuilderComponent {
           id: 'pens-gel',
           name: 'Set Stylos Gel',
           description: 'Couleurs vives et ecriture fluide.',
+          quantity: 1,
           price: 10,
           image: '/box1.png',
         },
@@ -96,6 +106,7 @@ export class CustomBoxBuilderComponent {
           id: 'markers-soft',
           name: 'Set Surligneurs Soft',
           description: 'Palette pastel pour un rendu clean.',
+          quantity: 1,
           price: 10,
           image: '/box1.png',
         },
@@ -103,6 +114,7 @@ export class CustomBoxBuilderComponent {
           id: 'planner-tools',
           name: 'Outils Planner',
           description: 'Regle, pochoirs et accessoires de precision.',
+          quantity: 1,
           price: 10,
           image: '/box1.png',
         },
@@ -129,7 +141,10 @@ export class CustomBoxBuilderComponent {
   }
 
   get selectedTotal() {
-    return this.selectedByStep.reduce((sum, product) => sum + (product?.price ?? 0), 0);
+    return this.selectedByStep.reduce(
+      (sum, product) => sum + (product?.price ?? 0),
+      0,
+    );
   }
 
   get isConfigurationComplete() {
@@ -137,7 +152,9 @@ export class CustomBoxBuilderComponent {
   }
 
   get canCheckout() {
-    return this.isConfigurationComplete && this.selectedTotal === this.fixedPrice;
+    return (
+      this.isConfigurationComplete && this.selectedTotal === this.fixedPrice
+    );
   }
 
   get stepAmountSum() {
@@ -148,7 +165,15 @@ export class CustomBoxBuilderComponent {
     return this.selectedByStep[this.currentStepIndex]?.id === product.id;
   }
 
+  isOutOfStock(product: CustomBoxProduct) {
+    return product.quantity <= 0;
+  }
+
   selectProduct(product: CustomBoxProduct) {
+    if (this.isOutOfStock(product)) {
+      return;
+    }
+
     this.selectedByStep[this.currentStepIndex] = product;
   }
 

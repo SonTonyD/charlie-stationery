@@ -18,14 +18,16 @@
 
     @if (stepAmountSum !== fixedPrice) {
       <div class="warning">
-        Attention: la somme des etapes ({{ stepAmountSum }}EUR) ne correspond pas au prix fixe
-        ({{ fixedPrice }}EUR).
+        Attention: la somme des etapes ({{ stepAmountSum }}EUR) ne correspond
+        pas au prix fixe ({{ fixedPrice }}EUR).
       </div>
     }
 
     <section class="step-card">
       <h2>{{ currentStep.title }}</h2>
-      <p class="step-price">Tous les produits de cette etape valent {{ currentStep.stepPrice }}EUR.</p>
+      <p class="step-price">
+        Tous les produits de cette etape valent {{ currentStep.stepPrice }}EUR.
+      </p>
 
       <div class="grid grid-3">
         @for (product of currentStep.products; track product.id) {
@@ -33,19 +35,29 @@
             type="button"
             class="product-card"
             [class.selected]="isSelected(product)"
+            [class.out-of-stock]="isOutOfStock(product)"
+            [disabled]="isOutOfStock(product)"
             (click)="selectProduct(product)"
           >
             <img [src]="product.image" [alt]="product.name" />
             <h3>{{ product.name }}</h3>
             <p>{{ product.description }}</p>
-            <span class="price">{{ product.price }}EUR</span>
+            <span class="quantity">Quantite: {{ product.quantity }} </span>
+            @if (isOutOfStock(product)) {
+              <span class="stock-alert">Rupture de stock</span>
+            }
           </button>
         }
       </div>
     </section>
 
     <div class="actions">
-      <button type="button" class="btn btn-outline" (click)="goToPreviousStep()" [disabled]="currentStepIndex === 0">
+      <button
+        type="button"
+        class="btn btn-outline"
+        (click)="goToPreviousStep()"
+        [disabled]="currentStepIndex === 0"
+      >
         Etape precedente
       </button>
 
@@ -59,7 +71,12 @@
           Etape suivante
         </button>
       } @else {
-        <button type="button" class="btn" (click)="checkout()" [disabled]="!canCheckout">
+        <button
+          type="button"
+          class="btn"
+          (click)="checkout()"
+          [disabled]="!canCheckout"
+        >
           Payer {{ fixedPrice }}EUR
         </button>
       }
