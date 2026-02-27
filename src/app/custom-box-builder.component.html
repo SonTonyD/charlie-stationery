@@ -30,7 +30,7 @@
       </p>
 
       <div class="grid grid-3">
-        @for (product of currentStep.products; track product.id) {
+        @for (product of currentStepProducts; track product.id) {
           <button
             type="button"
             class="product-card"
@@ -39,6 +39,9 @@
             [disabled]="isOutOfStock(product)"
             (click)="selectProduct(product)"
           >
+            @if (isMysteryChoice(product)) {
+              <span class="mystery-badge">Choix mystere</span>
+            }
             <img [src]="product.image" [alt]="product.name" />
             <h3>{{ product.name }}</h3>
             <p>{{ product.description }}</p>

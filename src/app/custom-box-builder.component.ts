@@ -9,6 +9,7 @@ interface CustomBoxProduct {
   quantity: number;
   price: number;
   image: string;
+  isMysteryChoice?: boolean;
 }
 
 interface CustomBoxStep {
@@ -123,6 +124,19 @@ export class CustomBoxBuilderComponent {
   ];
 
   currentStepIndex = 0;
+  readonly mysteryChoicesByStep: CustomBoxProduct[] = this.steps.map(
+    (step, index) => ({
+      id: `mystery-step-${index + 1}`,
+      name: 'Choix mystere',
+      description:
+        'Laissez-nous vous surprendre avec un article présent dans la liste.',
+      quantity: 1,
+      price: step.stepPrice,
+      image: '/box1.png',
+      isMysteryChoice: true,
+    }),
+  );
+
   selectedByStep: Array<CustomBoxProduct | null> = Array.from(
     { length: this.steps.length },
     () => null,
@@ -130,6 +144,13 @@ export class CustomBoxBuilderComponent {
 
   get currentStep() {
     return this.steps[this.currentStepIndex];
+  }
+
+  get currentStepProducts() {
+    return [
+      ...this.currentStep.products,
+      this.mysteryChoicesByStep[this.currentStepIndex],
+    ];
   }
 
   get isLastStep() {
@@ -163,6 +184,10 @@ export class CustomBoxBuilderComponent {
 
   isSelected(product: CustomBoxProduct) {
     return this.selectedByStep[this.currentStepIndex]?.id === product.id;
+  }
+
+  isMysteryChoice(product: CustomBoxProduct) {
+    return Boolean(product.isMysteryChoice);
   }
 
   isOutOfStock(product: CustomBoxProduct) {
