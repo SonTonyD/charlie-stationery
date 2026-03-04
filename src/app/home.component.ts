@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Subscription } from '@supabase/supabase-js';
 import { AdminMockService } from './admin/admin-mock.service';
 import { AdminBox } from './admin/admin.models';
+import { SupabaseAuthService } from './supabase/auth.service';
 
 interface BoxItem {
   id: string;
@@ -31,9 +33,12 @@ interface Faq {
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   shopVisible = false;
   loadError = '';
+  isAuthenticated = false;
+
+  private authSubscription: Subscription | null = null;
 
   boxes: BoxItem[] = [];
 
@@ -65,10 +70,22 @@ export class HomeComponent implements OnInit {
     },
   ];
 
-  constructor(private readonly adminMockService: AdminMockService) {}
+  constructor(
+    private readonly adminMockService: AdminMockService,
+    private readonly authService: SupabaseAuthService,
+  ) {}
 
   async ngOnInit() {
+    await this.loadSession();
+    this.authSubscription = this.authService.onAuthStateChange((session) => {
+      this.isAuthenticated = !!session;
+    });
+
     await this.loadFrontOfficeBoxes();
+  }
+
+  ngOnDestroy() {
+    this.authSubscription?.unsubscribe();
   }
 
   toggleFaq(index: number) {
@@ -169,5 +186,14 @@ export class HomeComponent implements OnInit {
 
   private toMoney(value: number) {
     return Number(value.toFixed(2));
+  }
+
+  private async loadSession() {
+    try {
+      const session = await this.authService.getSession();
+      this.isAuthenticated = !!session;
+    } catch {
+      this.isAuthenticated = false;
+    }
   }
 }

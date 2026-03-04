@@ -11,6 +11,9 @@
         <a routerLink="/personnaliser-box" class="btn btn-outline"
           >Personnaliser sa box</a
         >
+        @if (isAuthenticated) {
+          <a routerLink="/admin" class="btn">Acceder au back office</a>
+        }
       </div>
     </div>
 
