@@ -23,6 +23,9 @@
 <section id="shop" [class.shop-visible]="shopVisible">
   <div class="container">
     <h2>Nos Box Disponibles</h2>
+    @if (loadError) {
+      <p>{{ loadError }}</p>
+    }
 
     <div class="grid grid-3">
       @for (box of boxes; track box.id) {

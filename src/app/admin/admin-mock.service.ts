@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AdminBox, AdminProduct } from './admin.models';
+import { supabase } from '../supabase/supabase.client';
 
 interface AdminProductPayload {
   name: string;
@@ -15,8 +16,6 @@ interface AdminBoxPayload {
 
 @Injectable({ providedIn: 'root' })
 export class AdminMockService {
-  private readonly storageKey = 'charlies-stationery-admin-state-v1';
-
   private readonly defaultProducts: AdminProduct[] = [
     {
       id: 'prd-1',
@@ -85,65 +84,112 @@ export class AdminMockService {
     },
   ];
 
-  private products: AdminProduct[] = [];
-  private boxes: AdminBox[] = [];
+  private hasSeeded = false;
 
-  constructor() {
-    this.hydrateState();
-  }
+  async getProducts() {
+    await this.ensureSeedData();
 
-  getProducts() {
-    return this.products.map((product) => ({ ...product }));
-  }
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, purchase_unit_price, default_sale_price, stock_quantity')
+      .order('name', { ascending: true });
 
-  getBoxes() {
-    return this.boxes.map((box) => ({
-      ...box,
-      items: box.items.map((item) => ({ ...item })),
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((product) => ({
+      id: product.id,
+      name: product.name,
+      purchaseUnitPrice: this.toMoney(Number(product.purchase_unit_price) || 0),
+      defaultSalePrice: this.toMoney(Number(product.default_sale_price) || 0),
+      stockQuantity: Math.max(0, Math.floor(Number(product.stock_quantity) || 0)),
     }));
   }
 
-  createProduct(payload: AdminProductPayload) {
+  async getBoxes() {
+    await this.ensureSeedData();
+
+    const { data, error } = await supabase
+      .from('boxes')
+      .select(
+        'id, name, description, show_on_front_office, box_items(product_id, quantity, sale_price)',
+      )
+      .order('name', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((box) => ({
+      id: box.id,
+      name: box.name,
+      description: box.description ?? '',
+      showOnFrontOffice: Boolean(box.show_on_front_office),
+      items: (box.box_items ?? []).map((item) => ({
+        productId: item.product_id,
+        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+        salePrice: this.toMoney(Number(item.sale_price) || 0),
+      })),
+    }));
+  }
+
+  async createProduct(payload: AdminProductPayload) {
     const product: AdminProduct = {
       id: this.generateId('prd'),
       ...payload,
       stockQuantity: 0,
     };
-    this.products = [...this.products, product];
-    this.persistState();
+
+    const { error } = await supabase.from('products').insert({
+      id: product.id,
+      name: product.name,
+      purchase_unit_price: product.purchaseUnitPrice,
+      default_sale_price: product.defaultSalePrice,
+      stock_quantity: product.stockQuantity,
+    });
+
+    if (error) {
+      throw error;
+    }
+
     return { ...product };
   }
 
-  updateProduct(productId: string, payload: AdminProductPayload) {
-    this.products = this.products.map((product) =>
-      product.id === productId
-        ? {
-            id: productId,
-            ...payload,
-            stockQuantity: product.stockQuantity,
-          }
-        : product,
-    );
-    this.persistState();
+  async updateProduct(productId: string, payload: AdminProductPayload) {
+    const { error } = await supabase
+      .from('products')
+      .update({
+        name: payload.name,
+        purchase_unit_price: payload.purchaseUnitPrice,
+        default_sale_price: payload.defaultSalePrice,
+      })
+      .eq('id', productId);
+
+    if (error) {
+      throw error;
+    }
   }
 
-  updateProductStock(productId: string, stockQuantity: number) {
-    this.products = this.products.map((product) =>
-      product.id === productId ? { ...product, stockQuantity } : product,
-    );
-    this.persistState();
+  async updateProductStock(productId: string, stockQuantity: number) {
+    const { error } = await supabase
+      .from('products')
+      .update({ stock_quantity: stockQuantity })
+      .eq('id', productId);
+
+    if (error) {
+      throw error;
+    }
   }
 
-  deleteProduct(productId: string) {
-    this.products = this.products.filter((product) => product.id !== productId);
-    this.boxes = this.boxes.map((box) => ({
-      ...box,
-      items: box.items.filter((item) => item.productId !== productId),
-    }));
-    this.persistState();
+  async deleteProduct(productId: string) {
+    const { error } = await supabase.from('products').delete().eq('id', productId);
+    if (error) {
+      throw error;
+    }
   }
 
-  createBox(payload: AdminBoxPayload) {
+  async createBox(payload: AdminBoxPayload) {
     const box: AdminBox = {
       id: this.generateId('box'),
       name: payload.name,
@@ -151,159 +197,200 @@ export class AdminMockService {
       showOnFrontOffice: payload.showOnFrontOffice ?? false,
       items: [],
     };
-    this.boxes = [...this.boxes, box];
-    this.persistState();
+
+    const { error } = await supabase.from('boxes').insert({
+      id: box.id,
+      name: box.name,
+      description: box.description,
+      show_on_front_office: box.showOnFrontOffice,
+    });
+
+    if (error) {
+      throw error;
+    }
+
     return { ...box, items: [] };
   }
 
-  updateBox(
+  async updateBox(
     boxId: string,
     payload: Pick<AdminBox, 'name' | 'description' | 'showOnFrontOffice'>,
   ) {
-    this.boxes = this.boxes.map((box) =>
-      box.id === boxId ? { ...box, ...payload } : box,
-    );
-    this.persistState();
+    const { error } = await supabase
+      .from('boxes')
+      .update({
+        name: payload.name,
+        description: payload.description,
+        show_on_front_office: payload.showOnFrontOffice,
+      })
+      .eq('id', boxId);
+
+    if (error) {
+      throw error;
+    }
   }
 
-  deleteBox(boxId: string) {
-    this.boxes = this.boxes.filter((box) => box.id !== boxId);
-    this.persistState();
+  async deleteBox(boxId: string) {
+    const { error } = await supabase.from('boxes').delete().eq('id', boxId);
+    if (error) {
+      throw error;
+    }
   }
 
-  addProductToBox(boxId: string, productId: string) {
-    const product = this.products.find((item) => item.id === productId);
+  async addProductToBox(boxId: string, productId: string) {
+    const products = await this.getProducts();
+    const product = products.find((item) => item.id === productId);
     if (!product) {
       return;
     }
 
-    this.boxes = this.boxes.map((box) => {
-      if (box.id !== boxId) {
-        return box;
-      }
+    const { data: existing, error: existingError } = await supabase
+      .from('box_items')
+      .select('quantity')
+      .eq('box_id', boxId)
+      .eq('product_id', productId)
+      .maybeSingle();
 
-      const existingItem = box.items.find(
-        (item) => item.productId === productId,
-      );
-      if (existingItem) {
-        return {
-          ...box,
-          items: box.items.map((item) =>
-            item.productId === productId
-              ? { ...item, quantity: item.quantity + 1 }
-              : item,
-          ),
-        };
-      }
+    if (existingError) {
+      throw existingError;
+    }
 
-      return {
-        ...box,
-        items: [
-          ...box.items,
-          { productId, quantity: 1, salePrice: product.defaultSalePrice },
-        ],
-      };
+    if (existing) {
+      const { error } = await supabase
+        .from('box_items')
+        .update({ quantity: existing.quantity + 1 })
+        .eq('box_id', boxId)
+        .eq('product_id', productId);
+
+      if (error) {
+        throw error;
+      }
+      return;
+    }
+
+    const { error } = await supabase.from('box_items').insert({
+      box_id: boxId,
+      product_id: productId,
+      quantity: 1,
+      sale_price: product.defaultSalePrice,
     });
-    this.persistState();
+
+    if (error) {
+      throw error;
+    }
   }
 
-  updateBoxItem(
+  async updateBoxItem(
     boxId: string,
     productId: string,
     payload: { quantity?: number; salePrice?: number },
   ) {
-    this.boxes = this.boxes.map((box) =>
-      box.id === boxId
-        ? {
-            ...box,
-            items: box.items.map((item) =>
-              item.productId === productId ? { ...item, ...payload } : item,
-            ),
-          }
-        : box,
-    );
-    this.persistState();
-  }
+    const updatePayload: { quantity?: number; sale_price?: number } = {};
+    if (typeof payload.quantity === 'number') {
+      updatePayload.quantity = payload.quantity;
+    }
+    if (typeof payload.salePrice === 'number') {
+      updatePayload.sale_price = payload.salePrice;
+    }
 
-  removeProductFromBox(boxId: string, productId: string) {
-    this.boxes = this.boxes.map((box) =>
-      box.id === boxId
-        ? {
-            ...box,
-            items: box.items.filter((item) => item.productId !== productId),
-          }
-        : box,
-    );
-    this.persistState();
-  }
+    const { error } = await supabase
+      .from('box_items')
+      .update(updatePayload)
+      .eq('box_id', boxId)
+      .eq('product_id', productId);
 
-  private generateId(prefix: string) {
-    return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
-  }
-
-  private hydrateState() {
-    try {
-      const rawState = localStorage.getItem(this.storageKey);
-      if (!rawState) {
-        this.resetToDefaultState();
-        return;
-      }
-
-      const parsed = JSON.parse(rawState) as {
-        products?: AdminProduct[];
-        boxes?: AdminBox[];
-      };
-
-      const parsedProducts = Array.isArray(parsed.products) ? parsed.products : [];
-      const parsedBoxes = Array.isArray(parsed.boxes) ? parsed.boxes : [];
-
-      this.products = parsedProducts.map((product) => ({
-        ...product,
-        stockQuantity: Math.max(0, Math.floor(Number(product.stockQuantity) || 0)),
-      }));
-      this.boxes = parsedBoxes.map((box) => ({
-        ...box,
-        showOnFrontOffice: Boolean(box.showOnFrontOffice),
-        items: Array.isArray(box.items)
-          ? box.items.map((item) => ({
-              ...item,
-              quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
-              salePrice: this.toMoney(Number(item.salePrice) || 0),
-            }))
-          : [],
-      }));
-
-      if (this.products.length === 0) {
-        this.products = this.defaultProducts.map((product) => ({ ...product }));
-      }
-      if (this.boxes.length === 0) {
-        this.boxes = this.defaultBoxes.map((box) => ({
-          ...box,
-          items: box.items.map((item) => ({ ...item })),
-        }));
-      }
-    } catch {
-      this.resetToDefaultState();
+    if (error) {
+      throw error;
     }
   }
 
-  private resetToDefaultState() {
-    this.products = this.defaultProducts.map((product) => ({ ...product }));
-    this.boxes = this.defaultBoxes.map((box) => ({
-      ...box,
-      items: box.items.map((item) => ({ ...item })),
-    }));
-    this.persistState();
+  async removeProductFromBox(boxId: string, productId: string) {
+    const { error } = await supabase
+      .from('box_items')
+      .delete()
+      .eq('box_id', boxId)
+      .eq('product_id', productId);
+
+    if (error) {
+      throw error;
+    }
   }
 
-  private persistState() {
-    localStorage.setItem(
-      this.storageKey,
-      JSON.stringify({
-        products: this.products,
-        boxes: this.boxes,
-      }),
+  private generateId(prefix: string) {
+    if ('randomUUID' in crypto) {
+      return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+    }
+    return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  private async ensureSeedData() {
+    if (this.hasSeeded) {
+      return;
+    }
+
+    const { count, error } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true });
+
+    if (error) {
+      throw error;
+    }
+
+    if ((count ?? 0) > 0) {
+      this.hasSeeded = true;
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      return;
+    }
+
+    const { error: productsError } = await supabase.from('products').insert(
+      this.defaultProducts.map((product) => ({
+        id: product.id,
+        name: product.name,
+        purchase_unit_price: product.purchaseUnitPrice,
+        default_sale_price: product.defaultSalePrice,
+        stock_quantity: product.stockQuantity,
+      })),
     );
+
+    if (productsError) {
+      throw productsError;
+    }
+
+    const { error: boxesError } = await supabase.from('boxes').insert(
+      this.defaultBoxes.map((box) => ({
+        id: box.id,
+        name: box.name,
+        description: box.description,
+        show_on_front_office: box.showOnFrontOffice,
+      })),
+    );
+
+    if (boxesError) {
+      throw boxesError;
+    }
+
+    const { error: boxItemsError } = await supabase.from('box_items').insert(
+      this.defaultBoxes.flatMap((box) =>
+        box.items.map((item) => ({
+          box_id: box.id,
+          product_id: item.productId,
+          quantity: item.quantity,
+          sale_price: item.salePrice,
+        })),
+      ),
+    );
+
+    if (boxItemsError) {
+      throw boxItemsError;
+    }
+
+    this.hasSeeded = true;
   }
 
   private toMoney(value: number) {

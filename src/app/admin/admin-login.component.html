@@ -1,0 +1,40 @@
+<main class="login-page">
+  <section class="login-card">
+    <h1>Connexion Admin</h1>
+    <p>Connectez-vous pour acceder au back office.</p>
+
+    @if (errorMessage) {
+      <p class="error">{{ errorMessage }}</p>
+    }
+
+    <form (ngSubmit)="login()">
+      <label>
+        Email
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          autocomplete="email"
+          required
+        />
+      </label>
+
+      <label>
+        Mot de passe
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          autocomplete="current-password"
+          required
+        />
+      </label>
+
+      <button type="submit" [disabled]="isLoading">
+        {{ isLoading ? "Connexion..." : "Se connecter" }}
+      </button>
+    </form>
+
+    <a routerLink="/">Retour au site</a>
+  </section>
+</main>

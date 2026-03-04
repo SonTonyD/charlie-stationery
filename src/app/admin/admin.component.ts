@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AdminMockService } from './admin-mock.service';
 import { AdminBox, AdminProduct, BoxProductLine } from './admin.models';
+import { SupabaseAuthService } from '../supabase/auth.service';
 
 type AdminTab = 'products' | 'boxes' | 'stocks' | 'restock';
 
@@ -39,8 +40,11 @@ interface StockBoxAvailability {
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit, OnDestroy {
   activeTab: AdminTab = 'products';
+  isLoading = true;
+  errorMessage = '';
+  currentUserEmail = '';
 
   products: AdminProduct[] = [];
   boxes: AdminBox[] = [];
@@ -64,13 +68,35 @@ export class AdminComponent {
   };
   addProductId = '';
   restockTargets: Record<string, number> = {};
+  private authSubscription: { unsubscribe: () => void } | null = null;
 
-  constructor(private readonly adminMockService: AdminMockService) {
-    this.refreshAll();
+  constructor(
+    private readonly adminMockService: AdminMockService,
+    private readonly authService: SupabaseAuthService,
+    private readonly router: Router,
+  ) {}
 
-    if (this.boxes.length > 0) {
-      this.selectBox(this.boxes[0].id);
+  async ngOnInit() {
+    await this.refreshAll();
+
+    this.authSubscription = this.authService.onAuthStateChange((session) => {
+      if (!session) {
+        void this.router.navigateByUrl('/admin/login');
+        return;
+      }
+      this.currentUserEmail = session.user.email ?? '';
+    });
+
+    try {
+      const session = await this.authService.getSession();
+      this.currentUserEmail = session?.user.email ?? '';
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
     }
+  }
+
+  ngOnDestroy() {
+    this.authSubscription?.unsubscribe();
   }
 
   get selectedBox() {
@@ -93,13 +119,14 @@ export class AdminComponent {
     return this.restockTargets[boxId] ?? 0;
   }
 
-  updateProductStock(productId: string, value: number) {
+  async updateProductStock(productId: string, value: number) {
     const stockQuantity = Math.max(0, Math.floor(Number(value) || 0));
-    this.adminMockService.updateProductStock(productId, stockQuantity);
-    this.refreshAll();
+    await this.runAction(() =>
+      this.adminMockService.updateProductStock(productId, stockQuantity),
+    );
   }
 
-  saveProduct() {
+  async saveProduct() {
     const payload = {
       name: this.productForm.name.trim(),
       purchaseUnitPrice: this.toMoney(this.productForm.purchaseUnitPrice),
@@ -111,13 +138,14 @@ export class AdminComponent {
     }
 
     if (this.editingProductId) {
-      this.adminMockService.updateProduct(this.editingProductId, payload);
+      await this.runAction(() =>
+        this.adminMockService.updateProduct(this.editingProductId!, payload),
+      );
     } else {
-      this.adminMockService.createProduct(payload);
+      await this.runAction(() => this.adminMockService.createProduct(payload));
     }
 
     this.resetProductForm();
-    this.refreshAll();
   }
 
   editProduct(product: AdminProduct) {
@@ -129,19 +157,18 @@ export class AdminComponent {
     };
   }
 
-  deleteProduct(productId: string) {
-    this.adminMockService.deleteProduct(productId);
+  async deleteProduct(productId: string) {
+    await this.runAction(() => this.adminMockService.deleteProduct(productId));
     if (this.editingProductId === productId) {
       this.resetProductForm();
     }
-    this.refreshAll();
   }
 
   cancelProductEdit() {
     this.resetProductForm();
   }
 
-  createBox() {
+  async createBox() {
     const payload = {
       name: this.newBoxForm.name.trim(),
       description: this.newBoxForm.description.trim(),
@@ -151,10 +178,17 @@ export class AdminComponent {
       return;
     }
 
-    const newBox = this.adminMockService.createBox(payload);
-    this.newBoxForm = { name: '', description: '' };
-    this.refreshAll();
-    this.selectBox(newBox.id);
+    this.errorMessage = '';
+    this.isLoading = true;
+    try {
+      const newBox = await this.adminMockService.createBox(payload);
+      this.newBoxForm = { name: '', description: '' };
+      await this.refreshAll();
+      this.selectBox(newBox.id);
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
+      this.isLoading = false;
+    }
   }
 
   selectBox(boxId: string) {
@@ -168,7 +202,7 @@ export class AdminComponent {
     this.addProductId = '';
   }
 
-  saveBoxMeta() {
+  async saveBoxMeta() {
     if (!this.selectedBoxId) {
       return;
     }
@@ -183,13 +217,13 @@ export class AdminComponent {
       return;
     }
 
-    this.adminMockService.updateBox(this.selectedBoxId, payload);
-    this.refreshAll();
+    await this.runAction(() =>
+      this.adminMockService.updateBox(this.selectedBoxId!, payload),
+    );
   }
 
-  deleteBox(boxId: string) {
-    this.adminMockService.deleteBox(boxId);
-    this.refreshAll();
+  async deleteBox(boxId: string) {
+    await this.runAction(() => this.adminMockService.deleteBox(boxId));
 
     if (this.selectedBoxId === boxId) {
       if (this.boxes.length > 0) {
@@ -205,65 +239,67 @@ export class AdminComponent {
     }
   }
 
-  toggleSelectedBoxFrontOfficeVisibility() {
+  async toggleSelectedBoxFrontOfficeVisibility() {
     const box = this.selectedBox;
     if (!box) {
       return;
     }
 
-    this.adminMockService.updateBox(box.id, {
-      name: box.name,
-      description: box.description,
-      showOnFrontOffice: !box.showOnFrontOffice,
-    });
-    this.refreshAll();
+    await this.runAction(() =>
+      this.adminMockService.updateBox(box.id, {
+        name: box.name,
+        description: box.description,
+        showOnFrontOffice: !box.showOnFrontOffice,
+      }),
+    );
     this.selectBox(box.id);
   }
 
-  addProductToSelectedBox() {
+  async addProductToSelectedBox() {
     if (!this.selectedBoxId || !this.addProductId) {
       return;
     }
 
-    this.adminMockService.addProductToBox(
-      this.selectedBoxId,
-      this.addProductId,
+    await this.runAction(() =>
+      this.adminMockService.addProductToBox(this.selectedBoxId!, this.addProductId),
     );
-    this.refreshAll();
     this.addProductId = '';
   }
 
-  updateBoxItemQuantity(item: BoxProductLine, value: number) {
+  async updateBoxItemQuantity(item: BoxProductLine, value: number) {
     if (!this.selectedBoxId) {
       return;
     }
 
     const quantity = Math.max(1, Math.floor(Number(value) || 1));
-    this.adminMockService.updateBoxItem(this.selectedBoxId, item.productId, {
-      quantity,
-    });
-    this.refreshAll();
+    await this.runAction(() =>
+      this.adminMockService.updateBoxItem(this.selectedBoxId!, item.productId, {
+        quantity,
+      }),
+    );
   }
 
-  updateBoxItemSalePrice(item: BoxProductLine, value: number) {
+  async updateBoxItemSalePrice(item: BoxProductLine, value: number) {
     if (!this.selectedBoxId) {
       return;
     }
 
     const salePrice = Math.max(0, this.toMoney(Number(value) || 0));
-    this.adminMockService.updateBoxItem(this.selectedBoxId, item.productId, {
-      salePrice,
-    });
-    this.refreshAll();
+    await this.runAction(() =>
+      this.adminMockService.updateBoxItem(this.selectedBoxId!, item.productId, {
+        salePrice,
+      }),
+    );
   }
 
-  removeProductFromSelectedBox(productId: string) {
+  async removeProductFromSelectedBox(productId: string) {
     if (!this.selectedBoxId) {
       return;
     }
 
-    this.adminMockService.removeProductFromBox(this.selectedBoxId, productId);
-    this.refreshAll();
+    await this.runAction(() =>
+      this.adminMockService.removeProductFromBox(this.selectedBoxId!, productId),
+    );
   }
 
   getProductById(productId: string) {
@@ -473,10 +509,37 @@ export class AdminComponent {
     );
   }
 
-  private refreshAll() {
-    this.products = this.adminMockService.getProducts();
-    this.boxes = this.adminMockService.getBoxes();
+  async signOut() {
+    try {
+      await this.authService.signOut();
+      await this.router.navigateByUrl('/admin/login');
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
+    }
+  }
+
+  private async refreshAll() {
+    this.isLoading = true;
+    this.errorMessage = '';
+    try {
+      const [products, boxes] = await Promise.all([
+        this.adminMockService.getProducts(),
+        this.adminMockService.getBoxes(),
+      ]);
+      this.products = products;
+      this.boxes = boxes;
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
+      this.products = [];
+      this.boxes = [];
+    } finally {
+      this.isLoading = false;
+    }
+
     this.synchronizeRestockTargets();
+    if (!this.selectedBoxId && this.boxes.length > 0) {
+      this.selectBox(this.boxes[0].id);
+    }
   }
 
   private resetProductForm() {
@@ -510,5 +573,29 @@ export class AdminComponent {
       synchronized[box.id] = this.getRestockTarget(box.id);
     }
     this.restockTargets = synchronized;
+  }
+
+  private async runAction(action: () => Promise<unknown>) {
+    this.errorMessage = '';
+    this.isLoading = true;
+    try {
+      await action();
+      await this.refreshAll();
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
+      this.isLoading = false;
+    }
+  }
+
+  private formatError(error: unknown) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof error.message === 'string'
+    ) {
+      return error.message;
+    }
+    return 'Une erreur est survenue.';
   }
 }

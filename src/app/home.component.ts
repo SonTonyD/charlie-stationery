@@ -33,6 +33,7 @@ interface Faq {
 })
 export class HomeComponent implements OnInit {
   shopVisible = false;
+  loadError = '';
 
   boxes: BoxItem[] = [];
 
@@ -66,8 +67,8 @@ export class HomeComponent implements OnInit {
 
   constructor(private readonly adminMockService: AdminMockService) {}
 
-  ngOnInit() {
-    this.loadFrontOfficeBoxes();
+  async ngOnInit() {
+    await this.loadFrontOfficeBoxes();
   }
 
   toggleFaq(index: number) {
@@ -112,21 +113,30 @@ export class HomeComponent implements OnInit {
     setTimeout(() => ripple.remove(), 800);
   }
 
-  private loadFrontOfficeBoxes() {
-    const products = this.adminMockService.getProducts();
-    const productById = new Map(products.map((product) => [product.id, product]));
-    const frontBoxes = this.adminMockService
-      .getBoxes()
-      .filter((box) => box.showOnFrontOffice);
+  private async loadFrontOfficeBoxes() {
+    this.loadError = '';
+    try {
+      const [products, boxes] = await Promise.all([
+        this.adminMockService.getProducts(),
+        this.adminMockService.getBoxes(),
+      ]);
+      const productById = new Map(
+        products.map((product) => [product.id, product]),
+      );
+      const frontBoxes = boxes.filter((box) => box.showOnFrontOffice);
 
-    this.boxes = frontBoxes.map((box) => ({
-      id: box.id,
-      name: box.name,
-      description: box.description,
-      price: this.getBoxSaleTotal(box),
-      stock: this.getBoxAvailableQuantity(box, productById),
-      image: '/box1.png',
-    }));
+      this.boxes = frontBoxes.map((box) => ({
+        id: box.id,
+        name: box.name,
+        description: box.description,
+        price: this.getBoxSaleTotal(box),
+        stock: this.getBoxAvailableQuantity(box, productById),
+        image: '/box1.png',
+      }));
+    } catch {
+      this.boxes = [];
+      this.loadError = 'Les box ne sont pas disponibles pour le moment.';
+    }
   }
 
   private getBoxSaleTotal(box: AdminBox) {

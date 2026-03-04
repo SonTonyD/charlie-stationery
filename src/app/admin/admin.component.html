@@ -3,9 +3,27 @@
     <div>
       <h1>Back Office</h1>
       <p>Gestion du referentiel produits, composition des box et marge.</p>
+      @if (currentUserEmail) {
+        <small>Connecte: {{ currentUserEmail }}</small>
+      }
     </div>
-    <a class="back-link" routerLink="/">Retour au site</a>
+    <div class="actions-inline">
+      <button type="button" class="btn-ghost" (click)="signOut()">
+        Se deconnecter
+      </button>
+      <a class="back-link" routerLink="/">Retour au site</a>
+    </div>
   </header>
+
+  @if (errorMessage) {
+    <p class="negative">{{ errorMessage }}</p>
+  }
+
+  @if (isLoading) {
+    <section class="panel">
+      <p>Chargement des donnees...</p>
+    </section>
+  } @else {
 
   <section class="admin-tabs">
     <button
@@ -539,5 +557,6 @@
         }
       }
     </section>
+  }
   }
 </main>
