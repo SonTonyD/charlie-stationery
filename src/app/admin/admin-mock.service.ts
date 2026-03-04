@@ -42,6 +42,26 @@ export class AdminMockService {
         { productId: 'prd-4', quantity: 3, salePrice: 2.8 },
       ],
     },
+    {
+      id: 'box-2',
+      name: 'Box Petite',
+      description: 'Format compact pour petits cadeaux du quotidien.',
+      items: [
+        { productId: 'prd-1', quantity: 1, salePrice: 4.2 },
+        { productId: 'prd-2', quantity: 2, salePrice: 2.2 },
+        { productId: 'prd-3', quantity: 2, salePrice: 1.1 },
+      ],
+    },
+    {
+      id: 'box-3',
+      name: 'Box Fashion',
+      description: 'Selection tendance orientee accessoires et deco.',
+      items: [
+        { productId: 'prd-2', quantity: 3, salePrice: 2.5 },
+        { productId: 'prd-3', quantity: 4, salePrice: 1.3 },
+        { productId: 'prd-4', quantity: 2, salePrice: 3.1 },
+      ],
+    },
   ];
 
   getProducts() {

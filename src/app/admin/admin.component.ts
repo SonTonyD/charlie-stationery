@@ -4,7 +4,25 @@ import { FormsModule } from '@angular/forms';
 import { AdminMockService } from './admin-mock.service';
 import { AdminBox, AdminProduct, BoxProductLine } from './admin.models';
 
-type AdminTab = 'products' | 'boxes';
+type AdminTab = 'products' | 'boxes' | 'restock';
+
+interface RestockBoxSummary {
+  boxId: string;
+  boxName: string;
+  targetQuantity: number;
+  purchaseTotal: number;
+  saleTotal: number;
+  marginTotal: number;
+}
+
+interface RestockProductLine {
+  productId: string;
+  productName: string;
+  requiredQuantity: number;
+  purchaseTotal: number;
+  saleTotal: number;
+  marginTotal: number;
+}
 
 @Component({
   selector: 'app-admin',
@@ -36,6 +54,7 @@ export class AdminComponent {
     description: '',
   };
   addProductId = '';
+  restockTargets: Record<string, number> = {};
 
   constructor(private readonly adminMockService: AdminMockService) {
     this.refreshAll();
@@ -51,6 +70,18 @@ export class AdminComponent {
 
   setActiveTab(tab: AdminTab) {
     this.activeTab = tab;
+  }
+
+  setRestockTarget(boxId: string, value: number) {
+    const quantity = Math.max(0, Math.floor(Number(value) || 0));
+    this.restockTargets = {
+      ...this.restockTargets,
+      [boxId]: quantity,
+    };
+  }
+
+  getRestockTarget(boxId: string) {
+    return this.restockTargets[boxId] ?? 0;
   }
 
   saveProduct() {
@@ -228,30 +259,133 @@ export class AdminComponent {
     if (!this.selectedBox) {
       return 0;
     }
-    return this.toMoney(
-      this.selectedBox.items.reduce((sum, item) => sum + this.getLineCost(item), 0),
-    );
+    return this.getBoxPurchaseTotal(this.selectedBox);
   }
 
   getBoxSalesTotal() {
     if (!this.selectedBox) {
       return 0;
     }
-    return this.toMoney(
-      this.selectedBox.items.reduce(
-        (sum, item) => sum + this.getLineSales(item),
-        0,
-      ),
-    );
+    return this.getBoxSaleTotal(this.selectedBox);
   }
 
   getBoxMarginTotal() {
     return this.toMoney(this.getBoxSalesTotal() - this.getBoxCostTotal());
   }
 
+  getRestockBoxSummaries() {
+    return this.boxes
+      .map((box) => {
+        const targetQuantity = this.getRestockTarget(box.id);
+        const purchaseTotal = this.toMoney(
+          this.getBoxPurchaseTotal(box) * targetQuantity,
+        );
+        const saleTotal = this.toMoney(this.getBoxSaleTotal(box) * targetQuantity);
+        const marginTotal = this.toMoney(saleTotal - purchaseTotal);
+
+        return {
+          boxId: box.id,
+          boxName: box.name,
+          targetQuantity,
+          purchaseTotal,
+          saleTotal,
+          marginTotal,
+        } satisfies RestockBoxSummary;
+      })
+      .filter((summary) => summary.targetQuantity > 0);
+  }
+
+  getRestockProductLines() {
+    const linesByProduct = new Map<string, RestockProductLine>();
+
+    for (const box of this.boxes) {
+      const targetQuantity = this.getRestockTarget(box.id);
+      if (targetQuantity <= 0) {
+        continue;
+      }
+
+      for (const item of box.items) {
+        const product = this.getProductById(item.productId);
+        if (!product) {
+          continue;
+        }
+
+        const requiredQuantity = item.quantity * targetQuantity;
+        const purchaseTotal = this.toMoney(
+          product.purchaseUnitPrice * requiredQuantity,
+        );
+        const saleTotal = this.toMoney(item.salePrice * requiredQuantity);
+        const existing = linesByProduct.get(item.productId);
+
+        if (existing) {
+          linesByProduct.set(item.productId, {
+            ...existing,
+            requiredQuantity: existing.requiredQuantity + requiredQuantity,
+            purchaseTotal: this.toMoney(existing.purchaseTotal + purchaseTotal),
+            saleTotal: this.toMoney(existing.saleTotal + saleTotal),
+            marginTotal: this.toMoney(
+              existing.marginTotal + (saleTotal - purchaseTotal),
+            ),
+          });
+        } else {
+          linesByProduct.set(item.productId, {
+            productId: product.id,
+            productName: product.name,
+            requiredQuantity,
+            purchaseTotal,
+            saleTotal,
+            marginTotal: this.toMoney(saleTotal - purchaseTotal),
+          });
+        }
+      }
+    }
+
+    return [...linesByProduct.values()].sort((a, b) =>
+      a.productName.localeCompare(b.productName),
+    );
+  }
+
+  getRestockTotalBoxes() {
+    return this.boxes.reduce(
+      (sum, box) => sum + this.getRestockTarget(box.id),
+      0,
+    );
+  }
+
+  getRestockPurchaseTotal() {
+    return this.toMoney(
+      this.getRestockBoxSummaries().reduce(
+        (sum, boxSummary) => sum + boxSummary.purchaseTotal,
+        0,
+      ),
+    );
+  }
+
+  getRestockSaleTotal() {
+    return this.toMoney(
+      this.getRestockBoxSummaries().reduce(
+        (sum, boxSummary) => sum + boxSummary.saleTotal,
+        0,
+      ),
+    );
+  }
+
+  getRestockMarginTotal() {
+    return this.toMoney(this.getRestockSaleTotal() - this.getRestockPurchaseTotal());
+  }
+
+  getRestockMarginRate() {
+    const saleTotal = this.getRestockSaleTotal();
+    if (saleTotal <= 0) {
+      return 0;
+    }
+    return this.toMoney((this.getRestockMarginTotal() / saleTotal) * 100);
+  }
+
   private refreshAll() {
     this.products = this.adminMockService.getProducts();
     this.boxes = this.adminMockService.getBoxes();
+    this.synchronizeRestockTargets();
   }
 
   private resetProductForm() {
@@ -265,5 +399,25 @@ export class AdminComponent {
 
   private toMoney(value: number) {
     return Number(value.toFixed(2));
+  }
+
+  private getBoxPurchaseTotal(box: AdminBox) {
+    return this.toMoney(
+      box.items.reduce((sum, item) => sum + this.getLineCost(item), 0),
+    );
+  }
+
+  private getBoxSaleTotal(box: AdminBox) {
+    return this.toMoney(
+      box.items.reduce((sum, item) => sum + this.getLineSales(item), 0),
+    );
+  }
+
+  private synchronizeRestockTargets() {
+    const synchronized: Record<string, number> = {};
+    for (const box of this.boxes) {
+      synchronized[box.id] = this.getRestockTarget(box.id);
+    }
+    this.restockTargets = synchronized;
   }
 }

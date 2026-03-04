@@ -22,6 +22,13 @@
     >
       Box
     </button>
+    <button
+      type="button"
+      [class.active]="activeTab === 'restock'"
+      (click)="setActiveTab('restock')"
+    >
+      Renouvellement
+    </button>
   </section>
 
   @if (activeTab === 'products') {
@@ -105,7 +112,7 @@
         </table>
       </div>
     </section>
-  } @else {
+  } @else if (activeTab === 'boxes') {
     <section class="boxes-layout">
       <aside class="panel">
         <h2>Boxes</h2>
@@ -287,6 +294,126 @@
           <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
         }
       </section>
+    </section>
+  } @else {
+    <section class="panel restock-panel">
+      <div class="restock-head">
+        <div>
+          <h2>Simulation de renouvellement</h2>
+          <p>
+            Indique le nombre de box a remettre en stock pour obtenir le besoin
+            d'achat, la vente potentielle et la marge estimee.
+          </p>
+        </div>
+      </div>
+
+      @if (boxes.length === 0) {
+        <p>Aucune box disponible. Cree d'abord une box dans l'onglet Box.</p>
+      } @else {
+        <div class="restock-inputs">
+          @for (box of boxes; track box.id) {
+            <label class="restock-box-input">
+              <span>{{ box.name }}</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                [ngModel]="getRestockTarget(box.id)"
+                (ngModelChange)="setRestockTarget(box.id, $event)"
+                name="restock-{{ box.id }}"
+              />
+            </label>
+          }
+        </div>
+
+        <div class="summary restock-summary">
+          <div class="summary-item">
+            <span>Nombre total de box</span>
+            <strong>{{ getRestockTotalBoxes() }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Achat total estime</span>
+            <strong>{{ getRestockPurchaseTotal() | number: '1.2-2' }} EUR</strong>
+          </div>
+          <div class="summary-item">
+            <span>Vente potentielle totale</span>
+            <strong>{{ getRestockSaleTotal() | number: '1.2-2' }} EUR</strong>
+          </div>
+          <div class="summary-item">
+            <span>Marge estimee</span>
+            <strong [class.negative]="getRestockMarginTotal() < 0">
+              {{ getRestockMarginTotal() | number: '1.2-2' }} EUR
+            </strong>
+          </div>
+          <div class="summary-item">
+            <span>Taux de marge estime</span>
+            <strong [class.negative]="getRestockMarginRate() < 0">
+              {{ getRestockMarginRate() | number: '1.2-2' }} %
+            </strong>
+          </div>
+        </div>
+
+        @if (getRestockBoxSummaries().length > 0) {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Box</th>
+                  <th>Quantite cible</th>
+                  <th>Cout d'achat</th>
+                  <th>Vente potentielle</th>
+                  <th>Marge estimee</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (summary of getRestockBoxSummaries(); track summary.boxId) {
+                  <tr>
+                    <td>{{ summary.boxName }}</td>
+                    <td>{{ summary.targetQuantity }}</td>
+                    <td>{{ summary.purchaseTotal | number: '1.2-2' }} EUR</td>
+                    <td>{{ summary.saleTotal | number: '1.2-2' }} EUR</td>
+                    <td [class.negative]="summary.marginTotal < 0">
+                      {{ summary.marginTotal | number: '1.2-2' }} EUR
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produit a acheter</th>
+                  <th>Quantite requise</th>
+                  <th>Cout d'achat total</th>
+                  <th>Vente potentielle</th>
+                  <th>Marge estimee</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (line of getRestockProductLines(); track line.productId) {
+                  <tr>
+                    <td>{{ line.productName }}</td>
+                    <td>{{ line.requiredQuantity }}</td>
+                    <td>{{ line.purchaseTotal | number: '1.2-2' }} EUR</td>
+                    <td>{{ line.saleTotal | number: '1.2-2' }} EUR</td>
+                    <td [class.negative]="line.marginTotal < 0">
+                      {{ line.marginTotal | number: '1.2-2' }} EUR
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="restock-empty">
+            Saisis une quantite superieure a 0 sur au moins une box pour lancer
+            la simulation.
+          </p>
+        }
+      }
     </section>
   }
 </main>
