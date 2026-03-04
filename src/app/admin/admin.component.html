@@ -1,0 +1,292 @@
+<main class="admin-page">
+  <header class="admin-header">
+    <div>
+      <h1>Back Office</h1>
+      <p>Gestion du referentiel produits, composition des box et marge.</p>
+    </div>
+    <a class="back-link" href="/">Retour au site</a>
+  </header>
+
+  <section class="admin-tabs">
+    <button
+      type="button"
+      [class.active]="activeTab === 'products'"
+      (click)="setActiveTab('products')"
+    >
+      Produits
+    </button>
+    <button
+      type="button"
+      [class.active]="activeTab === 'boxes'"
+      (click)="setActiveTab('boxes')"
+    >
+      Box
+    </button>
+  </section>
+
+  @if (activeTab === 'products') {
+    <section class="panel">
+      <h2>Referentiel Produits</h2>
+      <form class="form-grid" (ngSubmit)="saveProduct()">
+        <label>
+          Nom
+          <input
+            type="text"
+            name="productName"
+            [(ngModel)]="productForm.name"
+            required
+          />
+        </label>
+        <label>
+          Prix achat unitaire
+          <input
+            type="number"
+            name="purchasePrice"
+            [(ngModel)]="productForm.purchaseUnitPrice"
+            min="0"
+            step="0.01"
+            required
+          />
+        </label>
+        <label>
+          Prix vente defaut
+          <input
+            type="number"
+            name="salePrice"
+            [(ngModel)]="productForm.defaultSalePrice"
+            min="0"
+            step="0.01"
+            required
+          />
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn-primary">
+            {{ editingProductId ? 'Mettre a jour' : 'Ajouter' }}
+          </button>
+          @if (editingProductId) {
+            <button type="button" class="btn-ghost" (click)="cancelProductEdit()">
+              Annuler
+            </button>
+          }
+        </div>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Achat unitaire</th>
+              <th>Vente defaut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of products; track product.id) {
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.purchaseUnitPrice | number: '1.2-2' }} EUR</td>
+                <td>{{ product.defaultSalePrice | number: '1.2-2' }} EUR</td>
+                <td class="actions-inline">
+                  <button type="button" class="btn-ghost" (click)="editProduct(product)">
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-danger"
+                    (click)="deleteProduct(product.id)"
+                  >
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  } @else {
+    <section class="boxes-layout">
+      <aside class="panel">
+        <h2>Boxes</h2>
+        <form class="form-grid" (ngSubmit)="createBox()">
+          <label>
+            Nom
+            <input
+              type="text"
+              name="newBoxName"
+              [(ngModel)]="newBoxForm.name"
+              required
+            />
+          </label>
+          <label>
+            Description
+            <textarea
+              rows="3"
+              name="newBoxDescription"
+              [(ngModel)]="newBoxForm.description"
+            ></textarea>
+          </label>
+          <button class="btn-primary" type="submit">Creer une box</button>
+        </form>
+
+        <div class="box-list">
+          @for (box of boxes; track box.id) {
+            <button
+              type="button"
+              class="box-list-item"
+              [class.selected]="selectedBoxId === box.id"
+              (click)="selectBox(box.id)"
+            >
+              <span>{{ box.name }}</span>
+              <small>{{ box.items.length }} article(s)</small>
+            </button>
+          }
+        </div>
+      </aside>
+
+      <section class="panel box-editor">
+        @if (selectedBox) {
+          <div class="box-header">
+            <h2>Edition box</h2>
+            <button
+              type="button"
+              class="btn-danger"
+              (click)="deleteBox(selectedBox.id)"
+            >
+              Supprimer la box
+            </button>
+          </div>
+
+          <form class="form-grid box-meta" (ngSubmit)="saveBoxMeta()">
+            <label>
+              Nom
+              <input
+                type="text"
+                name="selectedBoxName"
+                [(ngModel)]="selectedBoxForm.name"
+              />
+            </label>
+            <label>
+              Description
+              <textarea
+                rows="3"
+                name="selectedBoxDescription"
+                [(ngModel)]="selectedBoxForm.description"
+              ></textarea>
+            </label>
+            <button class="btn-primary" type="submit">Sauvegarder</button>
+          </form>
+
+          <div class="add-row">
+            <select name="addProductId" [(ngModel)]="addProductId">
+              <option value="">Ajouter un produit existant</option>
+              @for (product of products; track product.id) {
+                <option [value]="product.id">{{ product.name }}</option>
+              }
+            </select>
+            <button
+              class="btn-primary"
+              type="button"
+              (click)="addProductToSelectedBox()"
+            >
+              Ajouter
+            </button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Achat</th>
+                  <th>Vente box</th>
+                  <th>Quantite</th>
+                  <th>Cout ligne</th>
+                  <th>Vente ligne</th>
+                  <th>Marge ligne</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of selectedBox.items; track item.productId) {
+                  <tr>
+                    <td>{{ getProductById(item.productId)?.name }}</td>
+                    <td>
+                      {{
+                        getProductById(item.productId)?.purchaseUnitPrice
+                          | number: '1.2-2'
+                      }}
+                      EUR
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        [ngModel]="item.salePrice"
+                        (ngModelChange)="updateBoxItemSalePrice(item, $event)"
+                        name="sale-{{ item.productId }}"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        [ngModel]="item.quantity"
+                        (ngModelChange)="updateBoxItemQuantity(item, $event)"
+                        name="qty-{{ item.productId }}"
+                      />
+                    </td>
+                    <td>{{ getLineCost(item) | number: '1.2-2' }} EUR</td>
+                    <td>{{ getLineSales(item) | number: '1.2-2' }} EUR</td>
+                    <td
+                      [class.negative]="getLineMargin(item) < 0"
+                      [class.positive]="getLineMargin(item) >= 0"
+                    >
+                      {{ getLineMargin(item) | number: '1.2-2' }} EUR
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        class="btn-ghost"
+                        (click)="removeProductFromSelectedBox(item.productId)"
+                      >
+                        Retirer
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="8">Aucun produit dans cette box.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="summary">
+            <div class="summary-item">
+              <span>Cout total</span>
+              <strong>{{ getBoxCostTotal() | number: '1.2-2' }} EUR</strong>
+            </div>
+            <div class="summary-item">
+              <span>Vente totale</span>
+              <strong>{{ getBoxSalesTotal() | number: '1.2-2' }} EUR</strong>
+            </div>
+            <div class="summary-item">
+              <span>Marge totale</span>
+              <strong [class.negative]="getBoxMarginTotal() < 0">
+                {{ getBoxMarginTotal() | number: '1.2-2' }} EUR
+              </strong>
+            </div>
+          </div>
+        } @else {
+          <h2>Aucune box selectionnee</h2>
+          <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
+        }
+      </section>
+    </section>
+  }
+</main>
