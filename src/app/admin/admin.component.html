@@ -24,539 +24,544 @@
       <p>Chargement des donnees...</p>
     </section>
   } @else {
-
-  <section class="admin-tabs">
-    <button
-      type="button"
-      [class.active]="activeTab === 'products'"
-      (click)="setActiveTab('products')"
-    >
-      Produits
-    </button>
-    <button
-      type="button"
-      [class.active]="activeTab === 'boxes'"
-      (click)="setActiveTab('boxes')"
-    >
-      Box
-    </button>
-    <button
-      type="button"
-      [class.active]="activeTab === 'stocks'"
-      (click)="setActiveTab('stocks')"
-    >
-      Stocks
-    </button>
-    <button
-      type="button"
-      [class.active]="activeTab === 'restock'"
-      (click)="setActiveTab('restock')"
-    >
-      Renouvellement
-    </button>
-  </section>
-
-  @if (activeTab === "products") {
-    <section class="panel">
-      <h2>Referentiel Produits</h2>
-      <form class="form-grid" (ngSubmit)="saveProduct()">
-        <label>
-          Nom
-          <input
-            type="text"
-            name="productName"
-            [(ngModel)]="productForm.name"
-            required
-          />
-        </label>
-        <label>
-          Prix achat unitaire
-          <input
-            type="number"
-            name="purchasePrice"
-            [(ngModel)]="productForm.purchaseUnitPrice"
-            min="0"
-            step="0.01"
-            required
-          />
-        </label>
-        <label>
-          Prix vente defaut
-          <input
-            type="number"
-            name="salePrice"
-            [(ngModel)]="productForm.defaultSalePrice"
-            min="0"
-            step="0.01"
-            required
-          />
-        </label>
-        <div class="actions">
-          <button type="submit" class="btn-primary">
-            {{ editingProductId ? "Mettre a jour" : "Ajouter" }}
-          </button>
-          @if (editingProductId) {
-            <button
-              type="button"
-              class="btn-ghost"
-              (click)="cancelProductEdit()"
-            >
-              Annuler
-            </button>
-          }
-        </div>
-      </form>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Achat unitaire</th>
-              <th>Vente defaut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (product of products; track product.id) {
-              <tr>
-                <td>{{ product.name }}</td>
-                <td>{{ product.purchaseUnitPrice | number: "1.2-2" }} EUR</td>
-                <td>{{ product.defaultSalePrice | number: "1.2-2" }} EUR</td>
-                <td class="actions-inline">
-                  <button
-                    type="button"
-                    class="btn-ghost"
-                    (click)="editProduct(product)"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-danger"
-                    (click)="deleteProduct(product.id)"
-                  >
-                    Supprimer
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+    <section class="admin-tabs">
+      <button
+        type="button"
+        [class.active]="activeTab === 'products'"
+        (click)="setActiveTab('products')"
+      >
+        Produits
+      </button>
+      <button
+        type="button"
+        [class.active]="activeTab === 'boxes'"
+        (click)="setActiveTab('boxes')"
+      >
+        Box
+      </button>
+      <button
+        type="button"
+        [class.active]="activeTab === 'stocks'"
+        (click)="setActiveTab('stocks')"
+      >
+        Stocks
+      </button>
+      <button
+        type="button"
+        [class.active]="activeTab === 'restock'"
+        (click)="setActiveTab('restock')"
+      >
+        Renouvellement
+      </button>
     </section>
-  } @else if (activeTab === "boxes") {
-    <section class="boxes-layout">
-      <aside class="panel">
-        <h2>Boxes</h2>
-        <form class="form-grid" (ngSubmit)="createBox()">
+
+    @if (activeTab === "products") {
+      <section class="panel">
+        <h2>Referentiel Produits</h2>
+        <form class="form-grid" (ngSubmit)="saveProduct()">
           <label>
             Nom
             <input
               type="text"
-              name="newBoxName"
-              [(ngModel)]="newBoxForm.name"
+              name="productName"
+              [(ngModel)]="productForm.name"
               required
             />
           </label>
           <label>
-            Description
-            <textarea
-              rows="3"
-              name="newBoxDescription"
-              [(ngModel)]="newBoxForm.description"
-            ></textarea>
+            Prix achat unitaire
+            <input
+              type="number"
+              name="purchasePrice"
+              [(ngModel)]="productForm.purchaseUnitPrice"
+              min="0"
+              step="0.01"
+              required
+            />
           </label>
-          <button class="btn-primary" type="submit">Creer une box</button>
+          <label>
+            Prix vente defaut
+            <input
+              type="number"
+              name="salePrice"
+              [(ngModel)]="productForm.defaultSalePrice"
+              min="0"
+              step="0.01"
+              required
+            />
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn-primary">
+              {{ editingProductId ? "Mettre a jour" : "Ajouter" }}
+            </button>
+            @if (editingProductId) {
+              <button
+                type="button"
+                class="btn-ghost"
+                (click)="cancelProductEdit()"
+              >
+                Annuler
+              </button>
+            }
+          </div>
         </form>
 
-        <div class="box-list">
-          @for (box of boxes; track box.id) {
-            <button
-              type="button"
-              class="box-list-item"
-              [class.selected]="selectedBoxId === box.id"
-              (click)="selectBox(box.id)"
-            >
-              <span>{{ box.name }}</span>
-              <small>{{ box.items.length }} article(s)</small>
-            </button>
-          }
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Achat unitaire</th>
+                <th>Vente defaut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of products; track product.id) {
+                <tr>
+                  <td>{{ product.name }}</td>
+                  <td>{{ product.purchaseUnitPrice | number: "1.2-2" }} EUR</td>
+                  <td>{{ product.defaultSalePrice | number: "1.2-2" }} EUR</td>
+                  <td class="actions-inline">
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="editProduct(product)"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-danger"
+                      (click)="deleteProduct(product.id)"
+                    >
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
-      </aside>
-
-      <section class="panel box-editor">
-        @if (selectedBox) {
-          <div class="box-header">
-            <h2>Edition box</h2>
-            <button
-              type="button"
-              class="btn-danger"
-              (click)="deleteBox(selectedBox.id)"
-            >
-              Supprimer la box
-            </button>
-          </div>
-
-          <form class="form-grid box-meta" (ngSubmit)="saveBoxMeta()">
+      </section>
+    } @else if (activeTab === "boxes") {
+      <section class="boxes-layout">
+        <aside class="panel">
+          <h2>Boxes</h2>
+          <form class="form-grid" (ngSubmit)="createBox()">
             <label>
               Nom
               <input
                 type="text"
-                name="selectedBoxName"
-                [(ngModel)]="selectedBoxForm.name"
+                name="newBoxName"
+                [(ngModel)]="newBoxForm.name"
+                required
               />
             </label>
             <label>
               Description
               <textarea
                 rows="3"
-                name="selectedBoxDescription"
-                [(ngModel)]="selectedBoxForm.description"
+                name="newBoxDescription"
+                [(ngModel)]="newBoxForm.description"
               ></textarea>
             </label>
-            <button
-              class="btn-ghost"
-              type="button"
-              (click)="toggleSelectedBoxFrontOfficeVisibility()"
-            >
-              {{
-                selectedBoxForm.showOnFrontOffice
-                  ? "Masquer du front office"
-                  : "Afficher sur le front office"
-              }}
-            </button>
-            <button class="btn-primary" type="submit">Sauvegarder</button>
+            <button class="btn-primary" type="submit">Creer une box</button>
           </form>
 
-          <div class="add-row">
-            <select name="addProductId" [(ngModel)]="addProductId">
-              <option value="">Ajouter un produit existant</option>
-              @for (product of products; track product.id) {
-                <option [value]="product.id">{{ product.name }}</option>
-              }
-            </select>
-            <button
-              class="btn-primary"
-              type="button"
-              (click)="addProductToSelectedBox()"
-            >
-              Ajouter
-            </button>
+          <div class="box-list">
+            @for (box of boxes; track box.id) {
+              <button
+                type="button"
+                class="box-list-item"
+                [class.selected]="selectedBoxId === box.id"
+                (click)="selectBox(box.id)"
+              >
+                <span>{{ box.name }}</span>
+                <small>{{ box.items.length }} article(s)</small>
+              </button>
+            }
           </div>
+        </aside>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Produit</th>
-                  <th>Achat</th>
-                  <th>Vente box</th>
-                  <th>Quantite</th>
-                  <th>Cout ligne</th>
-                  <th>Vente ligne</th>
-                  <th>Marge ligne</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (item of selectedBox.items; track item.productId) {
-                  <tr>
-                    <td>{{ getProductById(item.productId)?.name }}</td>
-                    <td>
-                      {{
-                        getProductById(item.productId)?.purchaseUnitPrice
-                          | number: "1.2-2"
-                      }}
-                      EUR
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        [ngModel]="item.salePrice"
-                        (ngModelChange)="updateBoxItemSalePrice(item, $event)"
-                        name="sale-{{ item.productId }}"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        [ngModel]="item.quantity"
-                        (ngModelChange)="updateBoxItemQuantity(item, $event)"
-                        name="qty-{{ item.productId }}"
-                      />
-                    </td>
-                    <td>{{ getLineCost(item) | number: "1.2-2" }} EUR</td>
-                    <td>{{ getLineSales(item) | number: "1.2-2" }} EUR</td>
-                    <td
-                      [class.negative]="getLineMargin(item) < 0"
-                      [class.positive]="getLineMargin(item) >= 0"
-                    >
-                      {{ getLineMargin(item) | number: "1.2-2" }} EUR
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        class="btn-ghost"
-                        (click)="removeProductFromSelectedBox(item.productId)"
-                      >
-                        Retirer
-                      </button>
-                    </td>
-                  </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="8">Aucun produit dans cette box.</td>
-                  </tr>
+        <section class="panel box-editor">
+          @if (selectedBox) {
+            <div class="box-header">
+              <h2>Edition box</h2>
+              <button
+                type="button"
+                class="btn-danger"
+                (click)="deleteBox(selectedBox.id)"
+              >
+                Supprimer la box
+              </button>
+            </div>
+
+            <form class="form-grid box-meta" (ngSubmit)="saveBoxMeta()">
+              <label>
+                Nom
+                <input
+                  type="text"
+                  name="selectedBoxName"
+                  [(ngModel)]="selectedBoxForm.name"
+                />
+              </label>
+              <label>
+                Description
+                <textarea
+                  rows="3"
+                  name="selectedBoxDescription"
+                  [(ngModel)]="selectedBoxForm.description"
+                ></textarea>
+              </label>
+              <button
+                class="btn-ghost"
+                type="button"
+                (click)="toggleSelectedBoxFrontOfficeVisibility()"
+              >
+                {{
+                  selectedBoxForm.showOnFrontOffice
+                    ? "Masquer du front office"
+                    : "Afficher sur le front office"
+                }}
+              </button>
+              <button class="btn-primary" type="submit">Sauvegarder</button>
+            </form>
+
+            <div class="add-row">
+              <select name="addProductId" [(ngModel)]="addProductId">
+                <option value="">Ajouter un produit existant</option>
+                @for (product of products; track product.id) {
+                  <option [value]="product.id">{{ product.name }}</option>
                 }
-              </tbody>
-            </table>
+              </select>
+              <button
+                class="btn-primary"
+                type="button"
+                (click)="addProductToSelectedBox()"
+              >
+                Ajouter
+              </button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Produit</th>
+                    <th>Achat</th>
+                    <th>Vente box</th>
+                    <th>Quantite</th>
+                    <th>Cout ligne</th>
+                    <th>Vente ligne</th>
+                    <th>Marge ligne</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of selectedBox.items; track item.productId) {
+                    <tr>
+                      <td>{{ getProductById(item.productId)?.name }}</td>
+                      <td>
+                        {{
+                          getProductById(item.productId)?.purchaseUnitPrice
+                            | number: "1.2-2"
+                        }}
+                        EUR
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          [ngModel]="item.salePrice"
+                          [ngModelOptions]="{ updateOn: 'blur' }"
+                          (ngModelChange)="updateBoxItemSalePrice(item, $event)"
+                          name="sale-{{ item.productId }}"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          [ngModel]="item.quantity"
+                          [ngModelOptions]="{ updateOn: 'blur' }"
+                          (ngModelChange)="updateBoxItemQuantity(item, $event)"
+                          name="qty-{{ item.productId }}"
+                        />
+                      </td>
+                      <td>{{ getLineCost(item) | number: "1.2-2" }} EUR</td>
+                      <td>{{ getLineSales(item) | number: "1.2-2" }} EUR</td>
+                      <td
+                        [class.negative]="getLineMargin(item) < 0"
+                        [class.positive]="getLineMargin(item) >= 0"
+                      >
+                        {{ getLineMargin(item) | number: "1.2-2" }} EUR
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="btn-ghost"
+                          (click)="removeProductFromSelectedBox(item.productId)"
+                        >
+                          Retirer
+                        </button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="8">Aucun produit dans cette box.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="summary">
+              <div class="summary-item">
+                <span>Cout total</span>
+                <strong>{{ getBoxCostTotal() | number: "1.2-2" }} EUR</strong>
+              </div>
+              <div class="summary-item">
+                <span>Vente totale</span>
+                <strong>{{ getBoxSalesTotal() | number: "1.2-2" }} EUR</strong>
+              </div>
+              <div class="summary-item">
+                <span>Marge totale</span>
+                <strong [class.negative]="getBoxMarginTotal() < 0">
+                  {{ getBoxMarginTotal() | number: "1.2-2" }} EUR
+                </strong>
+              </div>
+            </div>
+          } @else {
+            <h2>Aucune box selectionnee</h2>
+            <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
+          }
+        </section>
+      </section>
+    } @else if (activeTab === "stocks") {
+      <section class="panel stock-panel">
+        <div class="stock-head">
+          <div>
+            <h2>Gestion des stocks</h2>
+            <p>
+              Met a jour les quantites disponibles et vois le nombre de box
+              vendables instantanement.
+            </p>
+          </div>
+        </div>
+
+        <div class="summary stock-summary">
+          <div class="summary-item">
+            <span>Produits suivis</span>
+            <strong>{{ products.length }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Unites en stock</span>
+            <strong>{{ getTotalStockUnits() }}</strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Stock disponible</th>
+                <th>Maj rapide</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of products; track product.id) {
+                <tr>
+                  <td>{{ product.name }}</td>
+                  <td>{{ product.stockQuantity }}</td>
+                  <td>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      [ngModel]="product.stockQuantity"
+                      [ngModelOptions]="{ updateOn: 'blur' }"
+                      (ngModelChange)="updateProductStock(product.id, $event)"
+                      name="stock-{{ product.id }}"
+                    />
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">Aucun produit disponible.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap stock-box-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Box</th>
+                <th>Disponible a la vente</th>
+                <th>Produit(s) limitant(s)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (
+                availability of getStockBoxAvailabilities();
+                track availability.boxId
+              ) {
+                <tr>
+                  <td>{{ availability.boxName }}</td>
+                  <td>
+                    <strong>{{ availability.availableQuantity }}</strong>
+                  </td>
+                  <td>
+                    @if (availability.limitingProducts.length > 0) {
+                      {{ availability.limitingProducts.join(", ") }}
+                    } @else {
+                      Non applicable (box vide)
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">Aucune box configuree.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    } @else {
+      <section class="panel restock-panel">
+        <div class="restock-head">
+          <div>
+            <h2>Simulation de renouvellement</h2>
+            <p>
+              Indique le nombre de box a remettre en stock pour obtenir le
+              besoin d'achat, la vente potentielle et la marge estimee.
+            </p>
+          </div>
+        </div>
+
+        @if (boxes.length === 0) {
+          <p>Aucune box disponible. Cree d'abord une box dans l'onglet Box.</p>
+        } @else {
+          <div class="restock-inputs">
+            @for (box of boxes; track box.id) {
+              <label class="restock-box-input">
+                <span>{{ box.name }}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [ngModel]="getRestockTarget(box.id)"
+                  (ngModelChange)="setRestockTarget(box.id, $event)"
+                  name="restock-{{ box.id }}"
+                />
+              </label>
+            }
           </div>
 
-          <div class="summary">
+          <div class="summary restock-summary">
             <div class="summary-item">
-              <span>Cout total</span>
-              <strong>{{ getBoxCostTotal() | number: "1.2-2" }} EUR</strong>
+              <span>Nombre total de box</span>
+              <strong>{{ getRestockTotalBoxes() }}</strong>
             </div>
             <div class="summary-item">
-              <span>Vente totale</span>
-              <strong>{{ getBoxSalesTotal() | number: "1.2-2" }} EUR</strong>
+              <span>Achat total estime</span>
+              <strong
+                >{{ getRestockPurchaseTotal() | number: "1.2-2" }} EUR</strong
+              >
             </div>
             <div class="summary-item">
-              <span>Marge totale</span>
-              <strong [class.negative]="getBoxMarginTotal() < 0">
-                {{ getBoxMarginTotal() | number: "1.2-2" }} EUR
+              <span>Vente potentielle totale</span>
+              <strong>{{ getRestockSaleTotal() | number: "1.2-2" }} EUR</strong>
+            </div>
+            <div class="summary-item">
+              <span>Marge estimee</span>
+              <strong [class.negative]="getRestockMarginTotal() < 0">
+                {{ getRestockMarginTotal() | number: "1.2-2" }} EUR
+              </strong>
+            </div>
+            <div class="summary-item">
+              <span>Taux de marge estime</span>
+              <strong [class.negative]="getRestockMarginRate() < 0">
+                {{ getRestockMarginRate() | number: "1.2-2" }} %
               </strong>
             </div>
           </div>
-        } @else {
-          <h2>Aucune box selectionnee</h2>
-          <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
+
+          @if (getRestockBoxSummaries().length > 0) {
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Box</th>
+                    <th>Quantite cible</th>
+                    <th>Cout d'achat</th>
+                    <th>Vente potentielle</th>
+                    <th>Marge estimee</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (
+                    summary of getRestockBoxSummaries();
+                    track summary.boxId
+                  ) {
+                    <tr>
+                      <td>{{ summary.boxName }}</td>
+                      <td>{{ summary.targetQuantity }}</td>
+                      <td>{{ summary.purchaseTotal | number: "1.2-2" }} EUR</td>
+                      <td>{{ summary.saleTotal | number: "1.2-2" }} EUR</td>
+                      <td [class.negative]="summary.marginTotal < 0">
+                        {{ summary.marginTotal | number: "1.2-2" }} EUR
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Produit a acheter</th>
+                    <th>Quantite requise</th>
+                    <th>Cout d'achat total</th>
+                    <th>Vente potentielle</th>
+                    <th>Marge estimee</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (
+                    line of getRestockProductLines();
+                    track line.productId
+                  ) {
+                    <tr>
+                      <td>{{ line.productName }}</td>
+                      <td>{{ line.requiredQuantity }}</td>
+                      <td>{{ line.purchaseTotal | number: "1.2-2" }} EUR</td>
+                      <td>{{ line.saleTotal | number: "1.2-2" }} EUR</td>
+                      <td [class.negative]="line.marginTotal < 0">
+                        {{ line.marginTotal | number: "1.2-2" }} EUR
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="restock-empty">
+              Saisis une quantite superieure a 0 sur au moins une box pour
+              lancer la simulation.
+            </p>
+          }
         }
       </section>
-    </section>
-  } @else if (activeTab === "stocks") {
-    <section class="panel stock-panel">
-      <div class="stock-head">
-        <div>
-          <h2>Gestion des stocks</h2>
-          <p>
-            Met a jour les quantites disponibles et vois le nombre de box
-            vendables instantanement.
-          </p>
-        </div>
-      </div>
-
-      <div class="summary stock-summary">
-        <div class="summary-item">
-          <span>Produits suivis</span>
-          <strong>{{ products.length }}</strong>
-        </div>
-        <div class="summary-item">
-          <span>Unites en stock</span>
-          <strong>{{ getTotalStockUnits() }}</strong>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Stock disponible</th>
-              <th>Maj rapide</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (product of products; track product.id) {
-              <tr>
-                <td>{{ product.name }}</td>
-                <td>{{ product.stockQuantity }}</td>
-                <td>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    [ngModel]="product.stockQuantity"
-                    (ngModelChange)="updateProductStock(product.id, $event)"
-                    name="stock-{{ product.id }}"
-                  />
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="3">Aucun produit disponible.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="table-wrap stock-box-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Box</th>
-              <th>Disponible a la vente</th>
-              <th>Produit(s) limitant(s)</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (
-              availability of getStockBoxAvailabilities();
-              track availability.boxId
-            ) {
-              <tr>
-                <td>{{ availability.boxName }}</td>
-                <td>
-                  <strong>{{ availability.availableQuantity }}</strong>
-                </td>
-                <td>
-                  @if (availability.limitingProducts.length > 0) {
-                    {{ availability.limitingProducts.join(", ") }}
-                  } @else {
-                    Non applicable (box vide)
-                  }
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="3">Aucune box configuree.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </section>
-  } @else {
-    <section class="panel restock-panel">
-      <div class="restock-head">
-        <div>
-          <h2>Simulation de renouvellement</h2>
-          <p>
-            Indique le nombre de box a remettre en stock pour obtenir le besoin
-            d'achat, la vente potentielle et la marge estimee.
-          </p>
-        </div>
-      </div>
-
-      @if (boxes.length === 0) {
-        <p>Aucune box disponible. Cree d'abord une box dans l'onglet Box.</p>
-      } @else {
-        <div class="restock-inputs">
-          @for (box of boxes; track box.id) {
-            <label class="restock-box-input">
-              <span>{{ box.name }}</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                [ngModel]="getRestockTarget(box.id)"
-                (ngModelChange)="setRestockTarget(box.id, $event)"
-                name="restock-{{ box.id }}"
-              />
-            </label>
-          }
-        </div>
-
-        <div class="summary restock-summary">
-          <div class="summary-item">
-            <span>Nombre total de box</span>
-            <strong>{{ getRestockTotalBoxes() }}</strong>
-          </div>
-          <div class="summary-item">
-            <span>Achat total estime</span>
-            <strong
-              >{{ getRestockPurchaseTotal() | number: "1.2-2" }} EUR</strong
-            >
-          </div>
-          <div class="summary-item">
-            <span>Vente potentielle totale</span>
-            <strong>{{ getRestockSaleTotal() | number: "1.2-2" }} EUR</strong>
-          </div>
-          <div class="summary-item">
-            <span>Marge estimee</span>
-            <strong [class.negative]="getRestockMarginTotal() < 0">
-              {{ getRestockMarginTotal() | number: "1.2-2" }} EUR
-            </strong>
-          </div>
-          <div class="summary-item">
-            <span>Taux de marge estime</span>
-            <strong [class.negative]="getRestockMarginRate() < 0">
-              {{ getRestockMarginRate() | number: "1.2-2" }} %
-            </strong>
-          </div>
-        </div>
-
-        @if (getRestockBoxSummaries().length > 0) {
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Box</th>
-                  <th>Quantite cible</th>
-                  <th>Cout d'achat</th>
-                  <th>Vente potentielle</th>
-                  <th>Marge estimee</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (
-                  summary of getRestockBoxSummaries();
-                  track summary.boxId
-                ) {
-                  <tr>
-                    <td>{{ summary.boxName }}</td>
-                    <td>{{ summary.targetQuantity }}</td>
-                    <td>{{ summary.purchaseTotal | number: "1.2-2" }} EUR</td>
-                    <td>{{ summary.saleTotal | number: "1.2-2" }} EUR</td>
-                    <td [class.negative]="summary.marginTotal < 0">
-                      {{ summary.marginTotal | number: "1.2-2" }} EUR
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Produit a acheter</th>
-                  <th>Quantite requise</th>
-                  <th>Cout d'achat total</th>
-                  <th>Vente potentielle</th>
-                  <th>Marge estimee</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (line of getRestockProductLines(); track line.productId) {
-                  <tr>
-                    <td>{{ line.productName }}</td>
-                    <td>{{ line.requiredQuantity }}</td>
-                    <td>{{ line.purchaseTotal | number: "1.2-2" }} EUR</td>
-                    <td>{{ line.saleTotal | number: "1.2-2" }} EUR</td>
-                    <td [class.negative]="line.marginTotal < 0">
-                      {{ line.marginTotal | number: "1.2-2" }} EUR
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        } @else {
-          <p class="restock-empty">
-            Saisis une quantite superieure a 0 sur au moins une box pour lancer
-            la simulation.
-          </p>
-        }
-      }
-    </section>
-  }
+    }
   }
 </main>
