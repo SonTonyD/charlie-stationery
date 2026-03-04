@@ -4,7 +4,7 @@
       <h1>Back Office</h1>
       <p>Gestion du referentiel produits, composition des box et marge.</p>
     </div>
-    <a class="back-link" href="/">Retour au site</a>
+    <a class="back-link" routerLink="/">Retour au site</a>
   </header>
 
   <section class="admin-tabs">
@@ -197,6 +197,17 @@
                 [(ngModel)]="selectedBoxForm.description"
               ></textarea>
             </label>
+            <button
+              class="btn-ghost"
+              type="button"
+              (click)="toggleSelectedBoxFrontOfficeVisibility()"
+            >
+              {{
+                selectedBoxForm.showOnFrontOffice
+                  ? "Masquer du front office"
+                  : "Afficher sur le front office"
+              }}
+            </button>
             <button class="btn-primary" type="submit">Sauvegarder</button>
           </form>
 

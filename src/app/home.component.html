@@ -25,21 +25,21 @@
     <h2>Nos Box Disponibles</h2>
 
     <div class="grid grid-3">
-      @for (box of boxes; track box.title) {
-        <div class="card">
-          <span class="badge">{{ box.badge }}</span>
+      @for (box of boxes; track box.id) {
+        <div class="card box-card">
+          <img class="box-image" [src]="box.image" alt="Box image" />
 
-          <img [src]="box.image" alt="Box image" />
-
-          <h3>{{ box.title }}</h3>
+          <h3>{{ box.name }}</h3>
           <p>{{ box.description }}</p>
 
-          <div class="price">{{ box.price }}EUR</div>
+          <div class="price">{{ box.price | number: "1.2-2" }}EUR</div>
 
           <button class="btn">Ajouter au panier</button>
 
           <div class="stock">Plus que {{ box.stock }} disponibles</div>
         </div>
+      } @empty {
+        <p>Aucune box n'est affichee sur le front office pour le moment.</p>
       }
     </div>
   </div>

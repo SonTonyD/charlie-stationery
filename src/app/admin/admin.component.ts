@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AdminMockService } from './admin-mock.service';
 import { AdminBox, AdminProduct, BoxProductLine } from './admin.models';
 
@@ -34,7 +35,7 @@ interface StockBoxAvailability {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
@@ -59,6 +60,7 @@ export class AdminComponent {
   selectedBoxForm = {
     name: '',
     description: '',
+    showOnFrontOffice: false,
   };
   addProductId = '';
   restockTargets: Record<string, number> = {};
@@ -161,6 +163,7 @@ export class AdminComponent {
     this.selectedBoxForm = {
       name: box?.name ?? '',
       description: box?.description ?? '',
+      showOnFrontOffice: box?.showOnFrontOffice ?? false,
     };
     this.addProductId = '';
   }
@@ -173,6 +176,7 @@ export class AdminComponent {
     const payload = {
       name: this.selectedBoxForm.name.trim(),
       description: this.selectedBoxForm.description.trim(),
+      showOnFrontOffice: this.selectedBoxForm.showOnFrontOffice,
     };
 
     if (!payload.name) {
@@ -192,9 +196,28 @@ export class AdminComponent {
         this.selectBox(this.boxes[0].id);
       } else {
         this.selectedBoxId = null;
-        this.selectedBoxForm = { name: '', description: '' };
+        this.selectedBoxForm = {
+          name: '',
+          description: '',
+          showOnFrontOffice: false,
+        };
       }
     }
+  }
+
+  toggleSelectedBoxFrontOfficeVisibility() {
+    const box = this.selectedBox;
+    if (!box) {
+      return;
+    }
+
+    this.adminMockService.updateBox(box.id, {
+      name: box.name,
+      description: box.description,
+      showOnFrontOffice: !box.showOnFrontOffice,
+    });
+    this.refreshAll();
+    this.selectBox(box.id);
   }
 
   addProductToSelectedBox() {

@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AdminMockService } from './admin/admin-mock.service';
+import { AdminBox } from './admin/admin.models';
 
 interface BoxItem {
-  badge: string;
-  title: string;
+  id: string;
+  name: string;
   description: string;
   price: number;
   stock: number;
@@ -32,32 +34,7 @@ interface Faq {
 export class HomeComponent implements OnInit {
   shopVisible = false;
 
-  boxes: BoxItem[] = [
-    {
-      badge: 'Best Seller',
-      title: 'Cute Pastel Box',
-      description: 'Stickers, washi tapes et carnet pastel.',
-      price: 18,
-      stock: 23,
-      image: '/box1.png',
-    },
-    {
-      badge: 'Nouveaute',
-      title: 'Study Girl Box',
-      description: 'Organisation et papeterie minimaliste coreenne.',
-      price: 29,
-      stock: 17,
-      image: '/box1.png',
-    },
-    {
-      badge: 'Edition Limitee',
-      title: 'Deluxe Kawaii Box',
-      description: 'Version premium avec accessoires exclusifs.',
-      price: 40,
-      stock: 9,
-      image: '/box1.png',
-    },
-  ];
+  boxes: BoxItem[] = [];
 
   reviews: Review[] = [
     {
@@ -87,14 +64,10 @@ export class HomeComponent implements OnInit {
     },
   ];
 
+  constructor(private readonly adminMockService: AdminMockService) {}
+
   ngOnInit() {
-    setInterval(() => {
-      this.boxes.forEach((box) => {
-        if (box.stock > 5) {
-          box.stock--;
-        }
-      });
-    }, 10000);
+    this.loadFrontOfficeBoxes();
   }
 
   toggleFaq(index: number) {
@@ -137,5 +110,54 @@ export class HomeComponent implements OnInit {
     document.body.appendChild(ripple);
 
     setTimeout(() => ripple.remove(), 800);
+  }
+
+  private loadFrontOfficeBoxes() {
+    const products = this.adminMockService.getProducts();
+    const productById = new Map(products.map((product) => [product.id, product]));
+    const frontBoxes = this.adminMockService
+      .getBoxes()
+      .filter((box) => box.showOnFrontOffice);
+
+    this.boxes = frontBoxes.map((box) => ({
+      id: box.id,
+      name: box.name,
+      description: box.description,
+      price: this.getBoxSaleTotal(box),
+      stock: this.getBoxAvailableQuantity(box, productById),
+      image: '/box1.png',
+    }));
+  }
+
+  private getBoxSaleTotal(box: AdminBox) {
+    return this.toMoney(
+      box.items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0),
+    );
+  }
+
+  private getBoxAvailableQuantity(
+    box: AdminBox,
+    productById: Map<string, { stockQuantity: number }>,
+  ) {
+    if (box.items.length === 0) {
+      return 0;
+    }
+
+    let maxBoxes = Number.POSITIVE_INFINITY;
+
+    for (const item of box.items) {
+      const product = productById.get(item.productId);
+      const itemCapacity =
+        !product || item.quantity <= 0
+          ? 0
+          : Math.floor(product.stockQuantity / item.quantity);
+      maxBoxes = Math.min(maxBoxes, itemCapacity);
+    }
+
+    return Number.isFinite(maxBoxes) ? maxBoxes : 0;
+  }
+
+  private toMoney(value: number) {
+    return Number(value.toFixed(2));
   }
 }
