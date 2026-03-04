@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminMockService } from './admin-mock.service';
 import { AdminBox, AdminProduct, BoxProductLine } from './admin.models';
 
-type AdminTab = 'products' | 'boxes' | 'restock';
+type AdminTab = 'products' | 'boxes' | 'stocks' | 'restock';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -22,6 +22,13 @@ interface RestockProductLine {
   purchaseTotal: number;
   saleTotal: number;
   marginTotal: number;
+}
+
+interface StockBoxAvailability {
+  boxId: string;
+  boxName: string;
+  availableQuantity: number;
+  limitingProducts: string[];
 }
 
 @Component({
@@ -82,6 +89,12 @@ export class AdminComponent {
 
   getRestockTarget(boxId: string) {
     return this.restockTargets[boxId] ?? 0;
+  }
+
+  updateProductStock(productId: string, value: number) {
+    const stockQuantity = Math.max(0, Math.floor(Number(value) || 0));
+    this.adminMockService.updateProductStock(productId, stockQuantity);
+    this.refreshAll();
   }
 
   saveProduct() {
@@ -189,7 +202,10 @@ export class AdminComponent {
       return;
     }
 
-    this.adminMockService.addProductToBox(this.selectedBoxId, this.addProductId);
+    this.adminMockService.addProductToBox(
+      this.selectedBoxId,
+      this.addProductId,
+    );
     this.refreshAll();
     this.addProductId = '';
   }
@@ -280,7 +296,9 @@ export class AdminComponent {
         const purchaseTotal = this.toMoney(
           this.getBoxPurchaseTotal(box) * targetQuantity,
         );
-        const saleTotal = this.toMoney(this.getBoxSaleTotal(box) * targetQuantity);
+        const saleTotal = this.toMoney(
+          this.getBoxSaleTotal(box) * targetQuantity,
+        );
         const marginTotal = this.toMoney(saleTotal - purchaseTotal);
 
         return {
@@ -371,7 +389,9 @@ export class AdminComponent {
   }
 
   getRestockMarginTotal() {
-    return this.toMoney(this.getRestockSaleTotal() - this.getRestockPurchaseTotal());
+    return this.toMoney(
+      this.getRestockSaleTotal() - this.getRestockPurchaseTotal(),
+    );
   }
 
   getRestockMarginRate() {
@@ -380,6 +400,54 @@ export class AdminComponent {
       return 0;
     }
     return this.toMoney((this.getRestockMarginTotal() / saleTotal) * 100);
+  }
+
+  getStockBoxAvailabilities() {
+    return this.boxes.map((box) => {
+      if (box.items.length === 0) {
+        return {
+          boxId: box.id,
+          boxName: box.name,
+          availableQuantity: 0,
+          limitingProducts: [],
+        } satisfies StockBoxAvailability;
+      }
+
+      let maxBoxes = Number.POSITIVE_INFINITY;
+      let limitingProductIds = new Set<string>();
+
+      for (const item of box.items) {
+        const product = this.getProductById(item.productId);
+        const itemCapacity =
+          !product || item.quantity <= 0
+            ? 0
+            : Math.floor(product.stockQuantity / item.quantity);
+
+        if (itemCapacity < maxBoxes) {
+          maxBoxes = itemCapacity;
+          limitingProductIds = new Set<string>([item.productId]);
+        } else if (itemCapacity === maxBoxes) {
+          limitingProductIds.add(item.productId);
+        }
+      }
+
+      return {
+        boxId: box.id,
+        boxName: box.name,
+        availableQuantity: Number.isFinite(maxBoxes) ? maxBoxes : 0,
+        limitingProducts: [...limitingProductIds]
+          .map((id) => this.getProductById(id)?.name)
+          .filter((name): name is string => !!name)
+          .sort((a, b) => a.localeCompare(b)),
+      } satisfies StockBoxAvailability;
+    });
+  }
+
+  getTotalStockUnits() {
+    return this.products.reduce(
+      (sum, product) => sum + product.stockQuantity,
+      0,
+    );
   }
 
   private refreshAll() {

@@ -227,6 +227,23 @@ td {
   color: #4b5563;
 }
 
+.stock-head p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.stock-summary {
+  margin-bottom: 14px;
+}
+
+.stock-panel input[type='number'] {
+  width: 120px;
+}
+
+.stock-box-table {
+  margin-top: 14px;
+}
+
 .restock-inputs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

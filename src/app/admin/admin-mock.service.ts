@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { AdminBox, AdminProduct } from './admin.models';
 
+interface AdminProductPayload {
+  name: string;
+  purchaseUnitPrice: number;
+  defaultSalePrice: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminMockService {
   private products: AdminProduct[] = [
@@ -9,24 +15,28 @@ export class AdminMockService {
       name: 'Cahier Pastel',
       purchaseUnitPrice: 2.1,
       defaultSalePrice: 4.5,
+      stockQuantity: 14,
     },
     {
       id: 'prd-2',
       name: 'Stylo Gel',
       purchaseUnitPrice: 0.8,
       defaultSalePrice: 2.4,
+      stockQuantity: 20,
     },
     {
       id: 'prd-3',
       name: 'Sticker Kawaii',
       purchaseUnitPrice: 0.3,
       defaultSalePrice: 1.2,
+      stockQuantity: 40,
     },
     {
       id: 'prd-4',
       name: 'Magnet',
       purchaseUnitPrice: 1.1,
       defaultSalePrice: 2.8,
+      stockQuantity: 11,
     },
   ];
 
@@ -75,15 +85,31 @@ export class AdminMockService {
     }));
   }
 
-  createProduct(payload: Omit<AdminProduct, 'id'>) {
-    const product: AdminProduct = { id: this.generateId('prd'), ...payload };
+  createProduct(payload: AdminProductPayload) {
+    const product: AdminProduct = {
+      id: this.generateId('prd'),
+      ...payload,
+      stockQuantity: 0,
+    };
     this.products = [...this.products, product];
     return { ...product };
   }
 
-  updateProduct(productId: string, payload: Omit<AdminProduct, 'id'>) {
+  updateProduct(productId: string, payload: AdminProductPayload) {
     this.products = this.products.map((product) =>
-      product.id === productId ? { id: productId, ...payload } : product,
+      product.id === productId
+        ? {
+            id: productId,
+            ...payload,
+            stockQuantity: product.stockQuantity,
+          }
+        : product,
+    );
+  }
+
+  updateProductStock(productId: string, stockQuantity: number) {
+    this.products = this.products.map((product) =>
+      product.id === productId ? { ...product, stockQuantity } : product,
     );
   }
 
@@ -127,7 +153,9 @@ export class AdminMockService {
         return box;
       }
 
-      const existingItem = box.items.find((item) => item.productId === productId);
+      const existingItem = box.items.find(
+        (item) => item.productId === productId,
+      );
       if (existingItem) {
         return {
           ...box,

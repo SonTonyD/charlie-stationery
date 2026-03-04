@@ -24,6 +24,13 @@
     </button>
     <button
       type="button"
+      [class.active]="activeTab === 'stocks'"
+      (click)="setActiveTab('stocks')"
+    >
+      Stocks
+    </button>
+    <button
+      type="button"
       [class.active]="activeTab === 'restock'"
       (click)="setActiveTab('restock')"
     >
@@ -31,7 +38,7 @@
     </button>
   </section>
 
-  @if (activeTab === 'products') {
+  @if (activeTab === "products") {
     <section class="panel">
       <h2>Referentiel Produits</h2>
       <form class="form-grid" (ngSubmit)="saveProduct()">
@@ -68,10 +75,14 @@
         </label>
         <div class="actions">
           <button type="submit" class="btn-primary">
-            {{ editingProductId ? 'Mettre a jour' : 'Ajouter' }}
+            {{ editingProductId ? "Mettre a jour" : "Ajouter" }}
           </button>
           @if (editingProductId) {
-            <button type="button" class="btn-ghost" (click)="cancelProductEdit()">
+            <button
+              type="button"
+              class="btn-ghost"
+              (click)="cancelProductEdit()"
+            >
               Annuler
             </button>
           }
@@ -92,10 +103,14 @@
             @for (product of products; track product.id) {
               <tr>
                 <td>{{ product.name }}</td>
-                <td>{{ product.purchaseUnitPrice | number: '1.2-2' }} EUR</td>
-                <td>{{ product.defaultSalePrice | number: '1.2-2' }} EUR</td>
+                <td>{{ product.purchaseUnitPrice | number: "1.2-2" }} EUR</td>
+                <td>{{ product.defaultSalePrice | number: "1.2-2" }} EUR</td>
                 <td class="actions-inline">
-                  <button type="button" class="btn-ghost" (click)="editProduct(product)">
+                  <button
+                    type="button"
+                    class="btn-ghost"
+                    (click)="editProduct(product)"
+                  >
                     Modifier
                   </button>
                   <button
@@ -112,7 +127,7 @@
         </table>
       </div>
     </section>
-  } @else if (activeTab === 'boxes') {
+  } @else if (activeTab === "boxes") {
     <section class="boxes-layout">
       <aside class="panel">
         <h2>Boxes</h2>
@@ -222,7 +237,7 @@
                     <td>
                       {{
                         getProductById(item.productId)?.purchaseUnitPrice
-                          | number: '1.2-2'
+                          | number: "1.2-2"
                       }}
                       EUR
                     </td>
@@ -246,13 +261,13 @@
                         name="qty-{{ item.productId }}"
                       />
                     </td>
-                    <td>{{ getLineCost(item) | number: '1.2-2' }} EUR</td>
-                    <td>{{ getLineSales(item) | number: '1.2-2' }} EUR</td>
+                    <td>{{ getLineCost(item) | number: "1.2-2" }} EUR</td>
+                    <td>{{ getLineSales(item) | number: "1.2-2" }} EUR</td>
                     <td
                       [class.negative]="getLineMargin(item) < 0"
                       [class.positive]="getLineMargin(item) >= 0"
                     >
-                      {{ getLineMargin(item) | number: '1.2-2' }} EUR
+                      {{ getLineMargin(item) | number: "1.2-2" }} EUR
                     </td>
                     <td>
                       <button
@@ -276,16 +291,16 @@
           <div class="summary">
             <div class="summary-item">
               <span>Cout total</span>
-              <strong>{{ getBoxCostTotal() | number: '1.2-2' }} EUR</strong>
+              <strong>{{ getBoxCostTotal() | number: "1.2-2" }} EUR</strong>
             </div>
             <div class="summary-item">
               <span>Vente totale</span>
-              <strong>{{ getBoxSalesTotal() | number: '1.2-2' }} EUR</strong>
+              <strong>{{ getBoxSalesTotal() | number: "1.2-2" }} EUR</strong>
             </div>
             <div class="summary-item">
               <span>Marge totale</span>
               <strong [class.negative]="getBoxMarginTotal() < 0">
-                {{ getBoxMarginTotal() | number: '1.2-2' }} EUR
+                {{ getBoxMarginTotal() | number: "1.2-2" }} EUR
               </strong>
             </div>
           </div>
@@ -294,6 +309,99 @@
           <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
         }
       </section>
+    </section>
+  } @else if (activeTab === "stocks") {
+    <section class="panel stock-panel">
+      <div class="stock-head">
+        <div>
+          <h2>Gestion des stocks</h2>
+          <p>
+            Met a jour les quantites disponibles et vois le nombre de box
+            vendables instantanement.
+          </p>
+        </div>
+      </div>
+
+      <div class="summary stock-summary">
+        <div class="summary-item">
+          <span>Produits suivis</span>
+          <strong>{{ products.length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Unites en stock</span>
+          <strong>{{ getTotalStockUnits() }}</strong>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Stock disponible</th>
+              <th>Maj rapide</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of products; track product.id) {
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.stockQuantity }}</td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [ngModel]="product.stockQuantity"
+                    (ngModelChange)="updateProductStock(product.id, $event)"
+                    name="stock-{{ product.id }}"
+                  />
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">Aucun produit disponible.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap stock-box-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Box</th>
+              <th>Disponible a la vente</th>
+              <th>Produit(s) limitant(s)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (
+              availability of getStockBoxAvailabilities();
+              track availability.boxId
+            ) {
+              <tr>
+                <td>{{ availability.boxName }}</td>
+                <td>
+                  <strong>{{ availability.availableQuantity }}</strong>
+                </td>
+                <td>
+                  @if (availability.limitingProducts.length > 0) {
+                    {{ availability.limitingProducts.join(", ") }}
+                  } @else {
+                    Non applicable (box vide)
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">Aucune box configuree.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </section>
   } @else {
     <section class="panel restock-panel">
@@ -333,22 +441,24 @@
           </div>
           <div class="summary-item">
             <span>Achat total estime</span>
-            <strong>{{ getRestockPurchaseTotal() | number: '1.2-2' }} EUR</strong>
+            <strong
+              >{{ getRestockPurchaseTotal() | number: "1.2-2" }} EUR</strong
+            >
           </div>
           <div class="summary-item">
             <span>Vente potentielle totale</span>
-            <strong>{{ getRestockSaleTotal() | number: '1.2-2' }} EUR</strong>
+            <strong>{{ getRestockSaleTotal() | number: "1.2-2" }} EUR</strong>
           </div>
           <div class="summary-item">
             <span>Marge estimee</span>
             <strong [class.negative]="getRestockMarginTotal() < 0">
-              {{ getRestockMarginTotal() | number: '1.2-2' }} EUR
+              {{ getRestockMarginTotal() | number: "1.2-2" }} EUR
             </strong>
           </div>
           <div class="summary-item">
             <span>Taux de marge estime</span>
             <strong [class.negative]="getRestockMarginRate() < 0">
-              {{ getRestockMarginRate() | number: '1.2-2' }} %
+              {{ getRestockMarginRate() | number: "1.2-2" }} %
             </strong>
           </div>
         </div>
@@ -366,14 +476,17 @@
                 </tr>
               </thead>
               <tbody>
-                @for (summary of getRestockBoxSummaries(); track summary.boxId) {
+                @for (
+                  summary of getRestockBoxSummaries();
+                  track summary.boxId
+                ) {
                   <tr>
                     <td>{{ summary.boxName }}</td>
                     <td>{{ summary.targetQuantity }}</td>
-                    <td>{{ summary.purchaseTotal | number: '1.2-2' }} EUR</td>
-                    <td>{{ summary.saleTotal | number: '1.2-2' }} EUR</td>
+                    <td>{{ summary.purchaseTotal | number: "1.2-2" }} EUR</td>
+                    <td>{{ summary.saleTotal | number: "1.2-2" }} EUR</td>
                     <td [class.negative]="summary.marginTotal < 0">
-                      {{ summary.marginTotal | number: '1.2-2' }} EUR
+                      {{ summary.marginTotal | number: "1.2-2" }} EUR
                     </td>
                   </tr>
                 }
@@ -397,10 +510,10 @@
                   <tr>
                     <td>{{ line.productName }}</td>
                     <td>{{ line.requiredQuantity }}</td>
-                    <td>{{ line.purchaseTotal | number: '1.2-2' }} EUR</td>
-                    <td>{{ line.saleTotal | number: '1.2-2' }} EUR</td>
+                    <td>{{ line.purchaseTotal | number: "1.2-2" }} EUR</td>
+                    <td>{{ line.saleTotal | number: "1.2-2" }} EUR</td>
                     <td [class.negative]="line.marginTotal < 0">
-                      {{ line.marginTotal | number: '1.2-2' }} EUR
+                      {{ line.marginTotal | number: "1.2-2" }} EUR
                     </td>
                   </tr>
                 }

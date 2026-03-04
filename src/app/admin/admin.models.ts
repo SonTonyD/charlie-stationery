@@ -3,6 +3,7 @@ export interface AdminProduct {
   name: string;
   purchaseUnitPrice: number;
   defaultSalePrice: number;
+  stockQuantity: number;
 }
 
 export interface BoxProductLine {
