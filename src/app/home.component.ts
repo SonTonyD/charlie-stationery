@@ -148,7 +148,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         description: box.description,
         price: this.getBoxSaleTotal(box),
         stock: this.getBoxAvailableQuantity(box, productById),
-        image: '/box1.png',
+        image: box.imageUrl || '/alien-box.jpeg',
       }));
     } catch {
       this.boxes = [];

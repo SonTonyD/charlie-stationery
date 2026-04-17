@@ -60,10 +60,12 @@ export class AdminComponent implements OnInit, OnDestroy {
   newBoxForm = {
     name: '',
     description: '',
+    imageUrl: '/alien-box.jpeg',
   };
   selectedBoxForm = {
     name: '',
     description: '',
+    imageUrl: '/alien-box.jpeg',
     showOnFrontOffice: false,
   };
   addProductId = '';
@@ -172,6 +174,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.newBoxForm.name.trim(),
       description: this.newBoxForm.description.trim(),
+      imageUrl: this.normalizeImageUrl(this.newBoxForm.imageUrl),
     };
 
     if (!payload.name) {
@@ -182,7 +185,11 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     try {
       const newBox = await this.adminMockService.createBox(payload);
-      this.newBoxForm = { name: '', description: '' };
+      this.newBoxForm = {
+        name: '',
+        description: '',
+        imageUrl: '/alien-box.jpeg',
+      };
       await this.refreshAll();
       this.selectBox(newBox.id);
     } catch (error) {
@@ -197,6 +204,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectedBoxForm = {
       name: box?.name ?? '',
       description: box?.description ?? '',
+      imageUrl: box?.imageUrl ?? '/alien-box.jpeg',
       showOnFrontOffice: box?.showOnFrontOffice ?? false,
     };
     this.addProductId = '';
@@ -210,6 +218,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.selectedBoxForm.name.trim(),
       description: this.selectedBoxForm.description.trim(),
+      imageUrl: this.normalizeImageUrl(this.selectedBoxForm.imageUrl),
       showOnFrontOffice: this.selectedBoxForm.showOnFrontOffice,
     };
 
@@ -233,6 +242,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         this.selectedBoxForm = {
           name: '',
           description: '',
+          imageUrl: '/alien-box.jpeg',
           showOnFrontOffice: false,
         };
       }
@@ -249,6 +259,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.adminMockService.updateBox(box.id, {
         name: box.name,
         description: box.description,
+        imageUrl: box.imageUrl,
         showOnFrontOffice: !box.showOnFrontOffice,
       }),
     );
@@ -553,6 +564,10 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   private toMoney(value: number) {
     return Number(value.toFixed(2));
+  }
+
+  private normalizeImageUrl(imageUrl: string) {
+    return imageUrl.trim() || '/alien-box.jpeg';
   }
 
   private getBoxPurchaseTotal(box: AdminBox) {

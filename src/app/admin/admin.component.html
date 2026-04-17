@@ -166,6 +166,15 @@
                 [(ngModel)]="newBoxForm.description"
               ></textarea>
             </label>
+            <label>
+              Image
+              <input
+                type="text"
+                name="newBoxImageUrl"
+                [(ngModel)]="newBoxForm.imageUrl"
+                placeholder="/alien-box.jpeg ou https://..."
+              />
+            </label>
             <button class="btn-primary" type="submit">Creer une box</button>
           </form>
 
@@ -214,6 +223,23 @@
                   [(ngModel)]="selectedBoxForm.description"
                 ></textarea>
               </label>
+              <label>
+                Image
+                <input
+                  type="text"
+                  name="selectedBoxImageUrl"
+                  [(ngModel)]="selectedBoxForm.imageUrl"
+                  placeholder="/alien-box.jpeg ou https://..."
+                />
+              </label>
+              @if (selectedBoxForm.imageUrl) {
+                <div class="box-image-preview">
+                  <img
+                    [src]="selectedBoxForm.imageUrl"
+                    [alt]="selectedBoxForm.name || 'Image de la box'"
+                  />
+                </div>
+              }
               <button
                 class="btn-ghost"
                 type="button"

@@ -11,9 +11,13 @@ create table if not exists public.boxes (
   id text primary key,
   name text not null,
   description text not null default '',
+  image_url text not null default '/alien-box.jpeg',
   show_on_front_office boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+alter table public.boxes
+add column if not exists image_url text not null default '/alien-box.jpeg';
 
 create table if not exists public.box_items (
   box_id text not null references public.boxes(id) on delete cascade,

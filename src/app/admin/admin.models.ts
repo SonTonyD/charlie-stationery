@@ -16,6 +16,7 @@ export interface AdminBox {
   id: string;
   name: string;
   description: string;
+  imageUrl: string;
   showOnFrontOffice: boolean;
   items: BoxProductLine[];
 }

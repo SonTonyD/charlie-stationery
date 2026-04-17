@@ -11,6 +11,7 @@ interface AdminProductPayload {
 interface AdminBoxPayload {
   name: string;
   description: string;
+  imageUrl?: string;
   showOnFrontOffice?: boolean;
 }
 
@@ -52,6 +53,7 @@ export class AdminMockService {
       id: 'box-1',
       name: 'Box Premium',
       description: 'Selection premium orientee ecriture et deco.',
+      imageUrl: '/alien-box.jpeg',
       showOnFrontOffice: true,
       items: [
         { productId: 'prd-1', quantity: 3, salePrice: 4.5 },
@@ -64,6 +66,7 @@ export class AdminMockService {
       id: 'box-2',
       name: 'Box Petite',
       description: 'Format compact pour petits cadeaux du quotidien.',
+      imageUrl: '/alien-box.jpeg',
       showOnFrontOffice: false,
       items: [
         { productId: 'prd-1', quantity: 1, salePrice: 4.2 },
@@ -75,6 +78,7 @@ export class AdminMockService {
       id: 'box-3',
       name: 'Box Fashion',
       description: 'Selection tendance orientee accessoires et deco.',
+      imageUrl: '/alien-box.jpeg',
       showOnFrontOffice: false,
       items: [
         { productId: 'prd-2', quantity: 3, salePrice: 2.5 },
@@ -113,7 +117,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, show_on_front_office, box_items(product_id, quantity, sale_price)',
+        'id, name, description, image_url, show_on_front_office, box_items(product_id, quantity, sale_price)',
       )
       .order('name', { ascending: true });
 
@@ -125,6 +129,7 @@ export class AdminMockService {
       id: box.id,
       name: box.name,
       description: box.description ?? '',
+      imageUrl: box.image_url || '/alien-box.jpeg',
       showOnFrontOffice: Boolean(box.show_on_front_office),
       items: (box.box_items ?? []).map((item) => ({
         productId: item.product_id,
@@ -194,6 +199,7 @@ export class AdminMockService {
       id: this.generateId('box'),
       name: payload.name,
       description: payload.description,
+      imageUrl: payload.imageUrl || '/alien-box.jpeg',
       showOnFrontOffice: payload.showOnFrontOffice ?? false,
       items: [],
     };
@@ -202,6 +208,7 @@ export class AdminMockService {
       id: box.id,
       name: box.name,
       description: box.description,
+      image_url: box.imageUrl,
       show_on_front_office: box.showOnFrontOffice,
     });
 
@@ -214,13 +221,14 @@ export class AdminMockService {
 
   async updateBox(
     boxId: string,
-    payload: Pick<AdminBox, 'name' | 'description' | 'showOnFrontOffice'>,
+    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice'>,
   ) {
     const { error } = await supabase
       .from('boxes')
       .update({
         name: payload.name,
         description: payload.description,
+        image_url: payload.imageUrl || '/alien-box.jpeg',
         show_on_front_office: payload.showOnFrontOffice,
       })
       .eq('id', boxId);
@@ -367,6 +375,7 @@ export class AdminMockService {
         id: box.id,
         name: box.name,
         description: box.description,
+        image_url: box.imageUrl,
         show_on_front_office: box.showOnFrontOffice,
       })),
     );
