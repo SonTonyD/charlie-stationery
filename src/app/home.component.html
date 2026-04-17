@@ -40,7 +40,20 @@
 
           <div class="price">{{ box.price | number: "1.2-2" }}EUR</div>
 
-          <button class="btn">Ajouter au panier</button>
+          <button
+            class="btn"
+            type="button"
+            [disabled]="box.stock <= 0 || checkoutBoxId === box.id"
+            (click)="buyBox(box.id)"
+          >
+            {{
+              checkoutBoxId === box.id
+                ? "Redirection..."
+                : box.stock <= 0
+                  ? "Indisponible"
+                  : "Acheter"
+            }}
+          </button>
 
           <div class="stock">Plus que {{ box.stock }} disponibles</div>
         </div>

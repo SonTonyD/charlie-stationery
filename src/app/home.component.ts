@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Subscription } from '@supabase/supabase-js';
 import { AdminMockService } from './admin/admin-mock.service';
 import { AdminBox } from './admin/admin.models';
+import { supabase } from './supabase/supabase.client';
 import { SupabaseAuthService } from './supabase/auth.service';
 
 interface BoxItem {
@@ -37,6 +38,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   shopVisible = false;
   loadError = '';
   isAuthenticated = false;
+  checkoutBoxId: string | null = null;
 
   private authSubscription: Subscription | null = null;
 
@@ -90,6 +92,31 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   toggleFaq(index: number) {
     this.faqs[index].open = !this.faqs[index].open;
+  }
+
+  async buyBox(boxId: string) {
+    this.loadError = '';
+    this.checkoutBoxId = boxId;
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'create-checkout-session',
+        {
+          body: { boxId },
+        },
+      );
+
+      if (error || !data?.url) {
+        this.loadError = 'Le paiement est indisponible pour le moment.';
+        return;
+      }
+
+      window.location.assign(data.url);
+    } catch {
+      this.loadError = 'Le paiement est indisponible pour le moment.';
+    } finally {
+      this.checkoutBoxId = null;
+    }
   }
 
   @HostListener('window:scroll')
