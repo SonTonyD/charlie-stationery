@@ -31,7 +31,7 @@ body::before {
   inset: 0;
   z-index: -2;
 
-  background-image: url("/background-image.png");
+  background-image: url("/background-image-2.jpeg");
   background-repeat: no-repeat;
   background-position: right bottom; /* ancre le coin bas-droit */
   background-size: cover; /* pas de déformation */
