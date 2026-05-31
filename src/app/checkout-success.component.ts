@@ -30,7 +30,7 @@ import { RouterLink } from '@angular/router';
         padding: 12px 24px;
         background: var(--primary);
         border-radius: 30px;
-        color: var(--dark);
+        color: #ffffff;
         font-weight: 600;
         text-decoration: none;
       }

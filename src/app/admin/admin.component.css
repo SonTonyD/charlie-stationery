@@ -2,7 +2,7 @@
   max-width: 1450px;
   margin: 0 auto;
   padding: 32px 20px 56px;
-  color: #1f2937;
+  color: #686868;
 }
 
 .admin-header {
@@ -19,7 +19,7 @@
 
 .admin-header p {
   margin: 0;
-  color: #4b5563;
+  color: #686868;
 }
 
 .back-link {
@@ -52,7 +52,7 @@
 
 .admin-tabs button.active {
   background: #e9eefc;
-  color: #1e3a8a;
+  color: #ffffff;
 }
 
 .panel {
@@ -80,7 +80,7 @@
   flex-direction: column;
   gap: 6px;
   font-size: 0.92rem;
-  color: #374151;
+  color: #686868;
 }
 
 input,
@@ -117,12 +117,12 @@ select {
 
 .btn-ghost {
   background: #eef2ff;
-  color: #1e3a8a;
+  color: #ffffff;
 }
 
 .btn-danger {
   background: #fee2e2;
-  color: #991b1b;
+  color: #ffffff;
 }
 
 .table-wrap {
@@ -238,12 +238,12 @@ td {
 
 .restock-head p {
   margin: 0;
-  color: #4b5563;
+  color: #686868;
 }
 
 .stock-head p {
   margin: 0;
-  color: #4b5563;
+  color: #686868;
 }
 
 .stock-summary {
@@ -277,7 +277,7 @@ td {
 
 .restock-box-input span {
   font-size: 0.92rem;
-  color: #374151;
+  color: #686868;
 }
 
 .restock-summary {

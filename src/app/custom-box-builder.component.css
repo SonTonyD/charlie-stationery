@@ -1,6 +1,7 @@
 .builder-screen {
   min-height: 100vh;
   padding: 40px 20px 70px;
+  color: #686868;
 }
 
 .back-link {
@@ -137,7 +138,7 @@
   background: var(--primary);
   border-radius: 30px;
   text-decoration: none;
-  color: var(--dark);
+  color: #ffffff;
   font-weight: 600;
   border: none;
 }
