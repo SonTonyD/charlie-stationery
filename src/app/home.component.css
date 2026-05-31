@@ -2,6 +2,12 @@
   cursor: pointer;
 }
 
+.heading-emoji {
+  display: inline-block;
+  margin-left: 0.35rem;
+  text-decoration: none;
+}
+
 .btn {
   display: inline-block;
   padding: 12px 24px;
