@@ -30,6 +30,11 @@
     @if (loadError) {
       <p>{{ loadError }}</p>
     }
+    <div class="cart-link-row">
+      <a routerLink="/panier" class="cart-link">
+        Voir le panier ({{ cartItemCount }})
+      </a>
+    </div>
 
     <div class="grid grid-3">
       @for (box of boxes; track box.id) {
@@ -41,20 +46,35 @@
 
           <div class="price">{{ box.price | number: "1.2-2" }}EUR</div>
 
-          <button
-            class="btn"
-            type="button"
-            [disabled]="box.stock <= 0 || checkoutBoxId === box.id"
-            (click)="buyBox(box.id)"
-          >
-            {{
-              checkoutBoxId === box.id
-                ? "Redirection..."
-                : box.stock <= 0
-                  ? "Indisponible"
-                  : "Acheter"
-            }}
-          </button>
+          <div class="box-actions">
+            <button
+              class="btn"
+              type="button"
+              [disabled]="box.stock <= 0 || checkoutBoxId === box.id"
+              (click)="buyBox(box.id)"
+            >
+              {{
+                checkoutBoxId === box.id
+                  ? "Redirection..."
+                  : box.stock <= 0
+                    ? "Indisponible"
+                    : "Acheter"
+              }}
+            </button>
+
+            <button
+              class="btn btn-cart"
+              type="button"
+              [disabled]="box.stock <= 0"
+              (click)="addToCart(box)"
+            >
+              {{
+                addedCartBoxId === box.id
+                  ? "Ajoute au panier"
+                  : "Ajouter au panier"
+              }}
+            </button>
+          </div>
 
           <div class="stock">Plus que {{ box.stock }} disponibles</div>
         </div>
@@ -105,5 +125,5 @@
 
 <div class="sticky-cta">
   <a href="#shop" class="btn">Voir les box</a>
-  <a routerLink="/personnaliser-box" class="btn btn-outline">Personnaliser</a>
+  <a routerLink="/panier" class="btn btn-outline">Panier ({{ cartItemCount }})</a>
 </div>

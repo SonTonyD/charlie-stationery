@@ -37,67 +37,144 @@ Deno.serve(async (request) => {
     });
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    const { boxId } = await request.json();
+    const body = await request.json();
+    const checkoutItems = normalizeCheckoutItems(body);
 
-    if (!boxId || typeof boxId !== 'string') {
-      return jsonResponse({ error: 'boxId is required' }, 400);
+    if (checkoutItems.length === 0) {
+      return jsonResponse({ error: 'At least one checkout item is required' }, 400);
     }
 
-    const { data: box, error } = await supabase
+    const boxIds = checkoutItems.map((item) => item.boxId);
+    const quantityByBoxId = new Map(
+      checkoutItems.map((item) => [item.boxId, item.quantity]),
+    );
+
+    const { data: boxes, error } = await supabase
       .from('boxes')
       .select(
         'id, name, description, image_url, show_on_front_office, box_items(quantity, sale_price)',
       )
-      .eq('id', boxId)
-      .maybeSingle();
+      .in('id', boxIds);
 
     if (error) {
       throw error;
     }
 
-    if (!box || !box.show_on_front_office) {
-      return jsonResponse({ error: 'Box not available' }, 404);
+    if (!boxes || boxes.length !== checkoutItems.length) {
+      return jsonResponse({ error: 'One or more boxes are not available' }, 404);
     }
 
-    const price = (box.box_items ?? []).reduce(
-      (sum, item) => sum + Number(item.sale_price ?? 0) * Number(item.quantity ?? 0),
-      0,
-    );
-    const unitAmount = Math.round(price * 100);
+    const lineItems = boxes.map((box) => {
+      if (!box.show_on_front_office) {
+        throw new CheckoutValidationError('Box not available', 404);
+      }
 
-    if (unitAmount <= 0) {
-      return jsonResponse({ error: 'Box price is invalid' }, 400);
+      const price = (box.box_items ?? []).reduce(
+        (sum, item) => sum + Number(item.sale_price ?? 0) * Number(item.quantity ?? 0),
+        0,
+      );
+      const unitAmount = Math.round(price * 100);
+
+      if (unitAmount <= 0) {
+        throw new CheckoutValidationError('Box price is invalid', 400);
+      }
+
+      return {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: box.name,
+            description: box.description || undefined,
+            images: box.image_url?.startsWith('http') ? [box.image_url] : undefined,
+          },
+          unit_amount: unitAmount,
+        },
+        quantity: quantityByBoxId.get(box.id) ?? 1,
+      };
+    });
+
+    const metadata: Record<string, string> = {
+      box_ids: checkoutItems.map((item) => item.boxId).join(','),
+      quantities: checkoutItems.map((item) => String(item.quantity)).join(','),
+    };
+
+    if (checkoutItems.length === 1) {
+      metadata.box_id = checkoutItems[0].boxId;
     }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: box.name,
-              description: box.description || undefined,
-              images: box.image_url?.startsWith('http') ? [box.image_url] : undefined,
-            },
-            unit_amount: unitAmount,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout/cancel`,
-      metadata: {
-        box_id: box.id,
-      },
+      metadata,
     });
 
     return jsonResponse({ url: session.url });
   } catch (error) {
+    if (error instanceof CheckoutValidationError) {
+      return jsonResponse({ error: error.message }, error.status);
+    }
+
     console.error(error);
     return jsonResponse({ error: 'Unable to create checkout session' }, 500);
   }
 });
+
+function normalizeCheckoutItems(body: unknown) {
+  if (!body || typeof body !== 'object') {
+    return [];
+  }
+
+  if (
+    'boxId' in body &&
+    typeof body.boxId === 'string' &&
+    body.boxId.trim()
+  ) {
+    return [{ boxId: body.boxId.trim(), quantity: 1 }];
+  }
+
+  if (!('items' in body) || !Array.isArray(body.items)) {
+    return [];
+  }
+
+  const quantityByBoxId = new Map<string, number>();
+
+  for (const item of body.items) {
+    if (
+      !item ||
+      typeof item !== 'object' ||
+      !('boxId' in item) ||
+      typeof item.boxId !== 'string'
+    ) {
+      continue;
+    }
+
+    const boxId = item.boxId.trim();
+    const quantity =
+      'quantity' in item ? Math.max(1, Math.floor(Number(item.quantity) || 1)) : 1;
+
+    if (!boxId) {
+      continue;
+    }
+
+    quantityByBoxId.set(boxId, (quantityByBoxId.get(boxId) ?? 0) + quantity);
+  }
+
+  return [...quantityByBoxId.entries()].map(([boxId, quantity]) => ({
+    boxId,
+    quantity,
+  }));
+}
+
+class CheckoutValidationError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {

@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Subscription } from '@supabase/supabase-js';
+import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
+import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
 import { AdminBox } from './admin/admin.models';
+import { CartService } from './cart.service';
 import { supabase } from './supabase/supabase.client';
 import { SupabaseAuthService } from './supabase/auth.service';
 
@@ -39,9 +41,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   loadError = '';
   isAuthenticated = false;
   checkoutBoxId: string | null = null;
+  addedCartBoxId: string | null = null;
+  cartItemCount = 0;
 
   private readonly baseDevicePixelRatio = window.devicePixelRatio || 1;
-  private authSubscription: Subscription | null = null;
+  private authSubscription: SupabaseSubscription | null = null;
+  private cartSubscription: Subscription | null = null;
   private scrollAnimationFrameId: number | null = null;
 
   boxes: BoxItem[] = [];
@@ -76,6 +81,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly adminMockService: AdminMockService,
+    private readonly cartService: CartService,
     private readonly authService: SupabaseAuthService,
   ) {}
 
@@ -85,12 +91,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.authSubscription = this.authService.onAuthStateChange((session) => {
       this.isAuthenticated = !!session;
     });
+    this.cartItemCount = this.cartService.getTotalQuantity();
+    this.cartSubscription = this.cartService.items$.subscribe(() => {
+      this.cartItemCount = this.cartService.getTotalQuantity();
+    });
 
     await this.loadFrontOfficeBoxes();
   }
 
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
+    this.cartSubscription?.unsubscribe();
     if (this.scrollAnimationFrameId !== null) {
       cancelAnimationFrame(this.scrollAnimationFrameId);
     }
@@ -123,6 +134,27 @@ export class HomeComponent implements OnInit, OnDestroy {
     } finally {
       this.checkoutBoxId = null;
     }
+  }
+
+  addToCart(box: BoxItem) {
+    if (box.stock <= 0) {
+      return;
+    }
+
+    this.cartService.addItem({
+      boxId: box.id,
+      name: box.name,
+      description: box.description,
+      image: box.image,
+      unitPrice: box.price,
+    });
+    this.addedCartBoxId = box.id;
+
+    setTimeout(() => {
+      if (this.addedCartBoxId === box.id) {
+        this.addedCartBoxId = null;
+      }
+    }, 1600);
   }
 
   @HostListener('window:scroll')

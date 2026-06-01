@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CartService } from './cart.service';
 
 @Component({
   selector: 'app-checkout-success',
@@ -37,4 +38,10 @@ import { RouterLink } from '@angular/router';
     `,
   ],
 })
-export class CheckoutSuccessComponent {}
+export class CheckoutSuccessComponent implements OnInit {
+  constructor(private readonly cartService: CartService) {}
+
+  ngOnInit() {
+    this.cartService.clearAfterSuccessfulCheckout();
+  }
+}

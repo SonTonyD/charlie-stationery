@@ -1,0 +1,77 @@
+<main class="cart-page">
+  <section class="cart-hero">
+    <a routerLink="/" fragment="shop" class="back-link">Retour aux box</a>
+    <h1>Panier</h1>
+    <p>
+      Vérifiez les articles de votre panier avant de finaliser votre commande.
+      Vous pourrez ensuite renseigner vos informations de livraison et procéder
+      au paiement en toute sécurité.
+    </p>
+  </section>
+
+  @if (errorMessage) {
+    <p class="cart-error">{{ errorMessage }}</p>
+  }
+
+  @if (items.length > 0) {
+    <section class="cart-layout">
+      <div class="cart-lines">
+        @for (item of items; track item.boxId) {
+          <article class="cart-line">
+            <img [src]="item.image" [alt]="item.name" />
+
+            <div class="cart-line-main">
+              <h2>{{ item.name }}</h2>
+              <p>{{ item.description }}</p>
+              <strong>{{ item.unitPrice | number: "1.2-2" }}EUR</strong>
+            </div>
+
+            <div class="quantity-controls" aria-label="Quantite">
+              <button type="button" (click)="decrement(item.boxId)">-</button>
+              <span>{{ item.quantity }}</span>
+              <button type="button" (click)="increment(item.boxId)">+</button>
+            </div>
+
+            <div class="line-total">
+              {{ getLineTotal(item) | number: "1.2-2" }}EUR
+            </div>
+
+            <button
+              class="remove-button"
+              type="button"
+              (click)="removeItem(item.boxId)"
+            >
+              Supprimer
+            </button>
+          </article>
+        }
+      </div>
+
+      <aside class="cart-summary">
+        <h2>Total</h2>
+        <div class="summary-row">
+          <span>Articles</span>
+          <strong>{{ totalQuantity }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Total</span>
+          <strong>{{ totalPrice | number: "1.2-2" }}EUR</strong>
+        </div>
+        <button
+          class="checkout-button"
+          type="button"
+          [disabled]="!canCheckout"
+          (click)="checkout()"
+        >
+          {{ isCheckingOut ? "Redirection..." : "Passer au paiement" }}
+        </button>
+      </aside>
+    </section>
+  } @else {
+    <section class="empty-cart">
+      <h2>Le panier est vide</h2>
+      <p>Ajoute une box depuis la boutique avant de lancer la mission.</p>
+      <a routerLink="/" fragment="shop" class="checkout-button">Voir les box</a>
+    </section>
+  }
+</main>

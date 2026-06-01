@@ -34,6 +34,21 @@
   border-color: var(--primary);
 }
 
+.cart-link-row {
+  margin: -22px 0 28px;
+  text-align: right;
+}
+
+.cart-link {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -93,6 +108,17 @@
   font-size: 1.5rem;
   font-weight: bold;
   margin: 10px 0;
+}
+
+.box-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.box-actions .btn {
+  width: 100%;
+  padding-inline: 12px;
 }
 
 .badge {
