@@ -212,7 +212,8 @@
   max-width: calc(450px * var(--hero-scale));
   height: auto;
   border-radius: calc(800px * var(--hero-scale));
-  box-shadow: 0 calc(20px * var(--hero-scale)) calc(40px * var(--hero-scale)) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 calc(20px * var(--hero-scale)) calc(40px * var(--hero-scale))
+    rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -237,9 +238,18 @@
 }
 
 .reviews-grid {
+  --review-star-color: #c18dd8;
+
   display: grid;
   gap: 25px;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.review-stars {
+  margin-bottom: 12px;
+  color: var(--review-star-color);
+  font-size: 1.25rem;
+  letter-spacing: 2px;
 }
 
 @media (max-width: 768px) {

@@ -72,7 +72,7 @@
     <div class="reviews-grid">
       @for (review of reviews; track review.author) {
         <div class="card">
-          ⭐⭐⭐⭐⭐
+          <div class="review-stars">★★★★★</div>
           <p>"{{ review.text }}" - {{ review.author }}</p>
         </div>
       }
