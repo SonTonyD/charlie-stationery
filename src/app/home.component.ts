@@ -42,6 +42,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private readonly baseDevicePixelRatio = window.devicePixelRatio || 1;
   private authSubscription: Subscription | null = null;
+  private scrollAnimationFrameId: number | null = null;
 
   boxes: BoxItem[] = [];
 
@@ -90,6 +91,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
+    if (this.scrollAnimationFrameId !== null) {
+      cancelAnimationFrame(this.scrollAnimationFrameId);
+    }
   }
 
   toggleFaq(index: number) {
@@ -123,45 +127,20 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   @HostListener('window:scroll')
   onScroll() {
-    const progress = Math.min(1, window.scrollY / window.innerHeight);
-
-    const hero = document.querySelector('.hero') as HTMLElement | null;
-    const shop = document.querySelector('#shop') as HTMLElement | null;
-
-    if (!hero) {
+    if (this.scrollAnimationFrameId !== null) {
       return;
     }
 
-    const eased = 1 - Math.pow(1 - progress, 3);
-    hero.style.transform = `translate3d(${eased * 70}vw, 0, 0)`;
-    hero.style.opacity = (1 - eased).toString();
-
-    this.shopVisible = progress > 0.2;
-
-    if (shop) {
-      const shopProgress = Math.max(0, (progress - 0.15) / 0.55);
-      shop.style.opacity = shopProgress.toString();
-      shop.style.transform = `translate3d(0, ${(1 - shopProgress) * 18}px, 0)`;
-    }
+    this.scrollAnimationFrameId = requestAnimationFrame(() => {
+      this.scrollAnimationFrameId = null;
+      this.updateHeroScrollAnimation();
+    });
   }
 
   @HostListener('window:resize')
   onResize() {
     this.updateHeroZoomCompensation();
-  }
-
-  @HostListener('document:mousemove', ['$event'])
-  onMouseMove(event: MouseEvent) {
-    const ripple = document.createElement('div');
-    ripple.classList.add('ripple');
-
-    ripple.style.left = `${event.clientX}px`;
-    ripple.style.top = `${event.clientY}px`;
-    ripple.style.border = '2px solid rgba(200,182,255,0.4)';
-
-    document.body.appendChild(ripple);
-
-    setTimeout(() => ripple.remove(), 800);
+    this.updateHeroScrollAnimation();
   }
 
   private async loadFrontOfficeBoxes() {
@@ -242,5 +221,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     const zoomScale = Math.max(0.5, Math.min(2, 1 / browserZoom));
 
     hero.style.setProperty('--hero-zoom-scale', zoomScale.toString());
+  }
+
+  private updateHeroScrollAnimation() {
+    const hero = document.querySelector('.hero') as HTMLElement | null;
+    if (!hero) {
+      return;
+    }
+
+    const progress = Math.min(1, window.scrollY / window.innerHeight);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const shouldShowShop = progress > 0.2;
+
+    hero.style.setProperty('--hero-scroll-progress', eased.toString());
+
+    if (this.shopVisible !== shouldShowShop) {
+      this.shopVisible = shouldShowShop;
+    }
   }
 }

@@ -133,6 +133,7 @@
 .hero {
   --hero-scale: 1;
   --hero-zoom-scale: 1;
+  --hero-scroll-progress: 0;
 
   min-height: 100svh;
   min-height: 100vh;
@@ -153,7 +154,10 @@
   inset: 0;
   z-index: 0;
   background: url("/background-hero-image.png") center / cover no-repeat;
-  opacity: 1;
+  opacity: calc(1 - var(--hero-scroll-progress));
+  transform: translate3d(calc(var(--hero-scroll-progress) * 70vw), 0, 0);
+  transform-origin: center;
+  will-change: transform, opacity;
 }
 
 .hero-content {
@@ -165,8 +169,11 @@
   margin: auto;
   position: relative;
   z-index: 1;
-  transform: scale(var(--hero-zoom-scale));
+  opacity: calc(1 - var(--hero-scroll-progress));
+  transform: scale(var(--hero-zoom-scale))
+    translate3d(calc(var(--hero-scroll-progress) * 70vw), 0, 0);
   transform-origin: center;
+  will-change: transform, opacity;
 }
 
 .hero-text {
@@ -216,20 +223,16 @@
 #shop {
   position: relative;
   z-index: 1;
-  margin-top: -40px;
+  margin-top: 0;
   padding-top: 80px;
   background: transparent;
   border: none;
   border-radius: 28px 28px 0 0;
-  transform: translate3d(0, 18px, 0);
   opacity: 0;
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
+  transition: opacity 0.25s ease;
 }
 
 #shop.shop-visible {
-  transform: translate3d(0, 0, 0);
   opacity: 1;
 }
 
@@ -237,29 +240,6 @@
   display: grid;
   gap: 25px;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-}
-
-.ripple {
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  animation: ripple-animation 0.8s ease-out forwards;
-  z-index: 9999;
-}
-
-@keyframes ripple-animation {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 0.4;
-  }
-
-  100% {
-    width: 60px;
-    height: 60px;
-    opacity: 0;
-  }
 }
 
 @media (max-width: 768px) {
@@ -282,7 +262,6 @@
   #shop {
     margin-top: 0;
     padding-top: 60px;
-    transform: none;
     opacity: 1;
     transition: none;
   }
