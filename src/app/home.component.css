@@ -122,11 +122,14 @@
 }
 
 .hero {
+  --hero-scale: 1;
+  --hero-zoom-scale: 1;
+
   min-height: 100svh;
   min-height: 100vh;
   display: flex;
   align-items: center;
-  padding: clamp(70px, 8vh, 110px) 20px;
+  padding: calc(90px * var(--hero-scale)) 20px;
   will-change: transform, opacity;
   transform: translate3d(0, 0, 0);
   opacity: 1;
@@ -148,11 +151,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 50px;
-  max-width: 1200px;
+  gap: calc(50px * var(--hero-scale));
+  max-width: calc(1200px * var(--hero-scale));
   margin: auto;
   position: relative;
   z-index: 1;
+  transform: scale(var(--hero-zoom-scale));
+  transform-origin: center;
 }
 
 .hero-text {
@@ -160,13 +165,25 @@
 }
 
 .hero-text h1 {
-  font-size: 2.8rem;
-  margin-bottom: 20px;
+  font-size: calc(45px * var(--hero-scale));
+  line-height: 1.12;
+  margin-bottom: calc(20px * var(--hero-scale));
 }
 
 .hero-text p {
-  font-size: 1.1rem;
-  margin-bottom: 30px;
+  font-size: calc(18px * var(--hero-scale));
+  line-height: 1.5;
+  margin-bottom: calc(30px * var(--hero-scale));
+}
+
+.hero .btn {
+  padding: calc(12px * var(--hero-scale)) calc(24px * var(--hero-scale));
+  border-radius: calc(30px * var(--hero-scale));
+  font-size: calc(16px * var(--hero-scale));
+}
+
+.hero-actions {
+  gap: calc(12px * var(--hero-scale));
 }
 
 .hero-image {
@@ -176,15 +193,15 @@
 
 .hero-image img {
   width: 100%;
-  max-width: 450px;
+  max-width: calc(450px * var(--hero-scale));
   height: auto;
-  border-radius: 800px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-radius: calc(800px * var(--hero-scale));
+  box-shadow: 0 calc(20px * var(--hero-scale)) calc(40px * var(--hero-scale)) rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
 .hero-image img:hover {
-  transform: translateY(-8px);
+  transform: translateY(calc(-8px * var(--hero-scale)));
 }
 
 #shop {
@@ -238,6 +255,8 @@
 
 @media (max-width: 768px) {
   .hero {
+    --hero-scale: 0.78;
+
     min-height: auto;
     display: block;
   }
@@ -247,13 +266,8 @@
     text-align: center;
   }
 
-  .hero-text h1 {
-    font-size: 2rem;
-  }
-
   .hero-image img {
-    max-width: 320px;
-    margin-top: 30px;
+    margin-top: calc(30px * var(--hero-scale));
   }
 
   #shop {
