@@ -30,11 +30,9 @@
     @if (loadError) {
       <p>{{ loadError }}</p>
     }
-    <div class="cart-link-row">
-      <a routerLink="/panier" class="cart-link">
-        Voir le panier ({{ cartItemCount }})
-      </a>
-    </div>
+    <a routerLink="/panier" class="cart-link">
+      Voir le panier ({{ cartItemCount }})
+    </a>
 
     <div class="grid grid-3">
       @for (box of boxes; track box.id) {

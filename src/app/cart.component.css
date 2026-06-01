@@ -92,11 +92,13 @@ section {
 .quantity-controls button {
   width: 34px;
   height: 34px;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--button-gradient);
   color: #ffffff;
   font-weight: 700;
+  text-shadow: var(--button-text-shadow);
+  box-shadow: 0 6px 14px rgba(122, 69, 198, 0.22);
 }
 
 .quantity-controls span,
@@ -105,12 +107,14 @@ section {
 }
 
 .remove-button {
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 999px;
   padding: 10px 14px;
-  background: #fee2e2;
+  background: linear-gradient(135deg, #f4a8c4 0%, #d95786 100%);
   color: #ffffff;
   font-weight: 700;
+  text-shadow: 0 1px 2px rgba(125, 35, 73, 0.35);
+  box-shadow: 0 8px 18px rgba(217, 87, 134, 0.22);
 }
 
 .cart-summary {
@@ -134,14 +138,26 @@ section {
   display: inline-block;
   width: 100%;
   margin-top: 12px;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
   padding: 12px 18px;
-  background: var(--primary);
+  background: var(--button-gradient);
   color: #ffffff;
   font-weight: 700;
+  text-shadow: var(--button-text-shadow);
+  box-shadow: var(--button-shadow);
   text-align: center;
   text-decoration: none;
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.checkout-button:hover {
+  background: var(--button-gradient-hover);
+  box-shadow: var(--button-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .checkout-button:disabled {

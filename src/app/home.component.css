@@ -11,17 +11,24 @@
 .btn {
   display: inline-block;
   padding: 12px 24px;
-  background: var(--primary);
+  background: var(--button-gradient);
   border-radius: 30px;
   text-decoration: none;
   color: #ffffff;
-  font-weight: 600;
-  transition: 0.3s;
-  border: 2px solid transparent;
+  font-weight: 700;
+  text-shadow: var(--button-text-shadow);
+  box-shadow: var(--button-shadow);
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.45);
 }
 
 .btn:hover {
-  background: var(--accent);
+  background: var(--button-gradient-hover);
+  box-shadow: var(--button-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .btn:disabled {
@@ -30,23 +37,30 @@
 }
 
 .btn.btn-outline {
-  background: transparent;
-  border-color: var(--primary);
-}
-
-.cart-link-row {
-  margin: -22px 0 28px;
-  text-align: right;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(143, 95, 215, 0.55);
+  backdrop-filter: blur(8px);
 }
 
 .cart-link {
-  display: inline-block;
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1000;
+  display: block;
   border-radius: 999px;
   padding: 10px 16px;
-  background: var(--primary);
+  background: var(--button-gradient);
   color: #ffffff;
   font-weight: 700;
+  text-shadow: var(--button-text-shadow);
+  box-shadow: var(--button-shadow);
   text-decoration: none;
+}
+
+.cart-link:hover {
+  background: var(--button-gradient-hover);
+  box-shadow: var(--button-shadow-hover);
 }
 
 .hero-actions {
