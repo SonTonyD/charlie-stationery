@@ -68,6 +68,11 @@
   font-size: 1.4rem;
 }
 
+.panel-intro {
+  margin: -6px 0 18px;
+  color: #6b7280;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -146,6 +151,33 @@ td {
 .actions-inline {
   display: flex;
   gap: 8px;
+}
+
+.event-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.event-description {
+  grid-column: span 2;
+}
+
+.checkbox-label {
+  align-self: end;
+  flex-direction: row !important;
+  align-items: center;
+  min-height: 42px;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+}
+
+.table-description {
+  display: block;
+  max-width: 460px;
+  margin-top: 4px;
+  color: #6b7280;
 }
 
 .boxes-layout {

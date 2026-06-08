@@ -20,3 +20,12 @@ export interface AdminBox {
   showOnFrontOffice: boolean;
   items: BoxProductLine[];
 }
+
+export interface AdminEvent {
+  id: string;
+  title: string;
+  description: string;
+  eventDate: string | null;
+  location: string;
+  showOnFrontOffice: boolean;
+}

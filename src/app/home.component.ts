@@ -1,13 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  NgZone,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
-import { AdminBox } from './admin/admin.models';
+import { AdminBox, AdminEvent } from './admin/admin.models';
 import { CartService } from './cart.service';
-import { supabase } from './supabase/supabase.client';
 import { SupabaseAuthService } from './supabase/auth.service';
+import { supabase } from './supabase/supabase.client';
 
 interface BoxItem {
   id: string;
@@ -43,13 +49,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   checkoutBoxId: string | null = null;
   addedCartBoxId: string | null = null;
   cartItemCount = 0;
+  activeUpcomingIndex = 0;
 
   private readonly baseDevicePixelRatio = window.devicePixelRatio || 1;
   private authSubscription: SupabaseSubscription | null = null;
   private cartSubscription: Subscription | null = null;
   private scrollAnimationFrameId: number | null = null;
+  private upcomingIntervalId: number | null = null;
 
   boxes: BoxItem[] = [];
+  events: AdminEvent[] = [];
 
   reviews: Review[] = [
     {
@@ -83,6 +92,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly adminMockService: AdminMockService,
     private readonly cartService: CartService,
     private readonly authService: SupabaseAuthService,
+    private readonly ngZone: NgZone,
   ) {}
 
   async ngOnInit() {
@@ -96,7 +106,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.cartItemCount = this.cartService.getTotalQuantity();
     });
 
-    await this.loadFrontOfficeBoxes();
+    await Promise.all([this.loadFrontOfficeBoxes(), this.loadUpcomingEvents()]);
   }
 
   ngOnDestroy() {
@@ -105,10 +115,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.scrollAnimationFrameId !== null) {
       cancelAnimationFrame(this.scrollAnimationFrameId);
     }
+    if (this.upcomingIntervalId !== null) {
+      window.clearInterval(this.upcomingIntervalId);
+    }
   }
 
   toggleFaq(index: number) {
     this.faqs[index].open = !this.faqs[index].open;
+  }
+
+  selectUpcoming(index: number) {
+    this.activeUpcomingIndex = index;
+    this.startUpcomingCarousel();
   }
 
   async buyBox(boxId: string) {
@@ -201,6 +219,41 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async loadUpcomingEvents() {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      this.events = (await this.adminMockService.getEvents()).filter(
+        (event) =>
+          event.showOnFrontOffice &&
+          (!event.eventDate ||
+            new Date(`${event.eventDate}T00:00:00`) >= today),
+      );
+      this.startUpcomingCarousel();
+    } catch {
+      this.events = [];
+    }
+  }
+
+  private startUpcomingCarousel() {
+    if (this.upcomingIntervalId !== null) {
+      window.clearInterval(this.upcomingIntervalId);
+      this.upcomingIntervalId = null;
+    }
+
+    if (this.events.length <= 1) {
+      this.activeUpcomingIndex = 0;
+      return;
+    }
+
+    this.upcomingIntervalId = window.setInterval(() => {
+      this.ngZone.run(() => {
+        this.activeUpcomingIndex =
+          (this.activeUpcomingIndex + 1) % this.events.length;
+      });
+    }, 5000);
+  }
+
   private getBoxSaleTotal(box: AdminBox) {
     return this.toMoney(
       box.items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0),
@@ -248,7 +301,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentDevicePixelRatio = window.devicePixelRatio || this.baseDevicePixelRatio;
+    const currentDevicePixelRatio =
+      window.devicePixelRatio || this.baseDevicePixelRatio;
     const browserZoom = currentDevicePixelRatio / this.baseDevicePixelRatio;
     const zoomScale = Math.max(0.5, Math.min(2, 1 / browserZoom));
 

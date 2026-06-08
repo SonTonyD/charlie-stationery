@@ -3,10 +3,15 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminMockService } from './admin-mock.service';
-import { AdminBox, AdminProduct, BoxProductLine } from './admin.models';
+import {
+  AdminBox,
+  AdminEvent,
+  AdminProduct,
+  BoxProductLine,
+} from './admin.models';
 import { SupabaseAuthService } from '../supabase/auth.service';
 
-type AdminTab = 'products' | 'boxes' | 'stocks' | 'restock';
+type AdminTab = 'products' | 'boxes' | 'events' | 'stocks' | 'restock';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -48,6 +53,7 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   products: AdminProduct[] = [];
   boxes: AdminBox[] = [];
+  events: AdminEvent[] = [];
 
   editingProductId: string | null = null;
   productForm = {
@@ -69,6 +75,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     showOnFrontOffice: false,
   };
   addProductId = '';
+  editingEventId: string | null = null;
+  eventForm = this.createEmptyEventForm();
   restockTargets: Record<string, number> = {};
   private authSubscription: { unsubscribe: () => void } | null = null;
 
@@ -164,6 +172,52 @@ export class AdminComponent implements OnInit, OnDestroy {
     if (this.editingProductId === productId) {
       this.resetProductForm();
     }
+  }
+
+  async saveEvent() {
+    const payload = {
+      title: this.eventForm.title.trim(),
+      description: this.eventForm.description.trim(),
+      eventDate: this.eventForm.eventDate || null,
+      location: this.eventForm.location.trim(),
+      showOnFrontOffice: this.eventForm.showOnFrontOffice,
+    };
+
+    if (!payload.title) {
+      return;
+    }
+
+    if (this.editingEventId) {
+      await this.runAction(() =>
+        this.adminMockService.updateEvent(this.editingEventId!, payload),
+      );
+    } else {
+      await this.runAction(() => this.adminMockService.createEvent(payload));
+    }
+    this.cancelEventEdit();
+  }
+
+  editEvent(event: AdminEvent) {
+    this.editingEventId = event.id;
+    this.eventForm = {
+      title: event.title,
+      description: event.description,
+      eventDate: event.eventDate ?? '',
+      location: event.location,
+      showOnFrontOffice: event.showOnFrontOffice,
+    };
+  }
+
+  async deleteEvent(eventId: string) {
+    await this.runAction(() => this.adminMockService.deleteEvent(eventId));
+    if (this.editingEventId === eventId) {
+      this.cancelEventEdit();
+    }
+  }
+
+  cancelEventEdit() {
+    this.editingEventId = null;
+    this.eventForm = this.createEmptyEventForm();
   }
 
   cancelProductEdit() {
@@ -533,16 +587,19 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      const [products, boxes] = await Promise.all([
+      const [products, boxes, events] = await Promise.all([
         this.adminMockService.getProducts(),
         this.adminMockService.getBoxes(),
+        this.adminMockService.getEvents(),
       ]);
       this.products = products;
       this.boxes = boxes;
+      this.events = events;
     } catch (error) {
       this.errorMessage = this.formatError(error);
       this.products = [];
       this.boxes = [];
+      this.events = [];
     } finally {
       this.isLoading = false;
     }
@@ -559,6 +616,16 @@ export class AdminComponent implements OnInit, OnDestroy {
       name: '',
       purchaseUnitPrice: 0,
       defaultSalePrice: 0,
+    };
+  }
+
+  private createEmptyEventForm() {
+    return {
+      title: '',
+      description: '',
+      eventDate: '',
+      location: '',
+      showOnFrontOffice: true,
     };
   }
 

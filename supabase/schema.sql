@@ -28,9 +28,23 @@ create table if not exists public.box_items (
   primary key (box_id, product_id)
 );
 
+create table if not exists public.events (
+  id text primary key,
+  title text not null,
+  description text not null default '',
+  event_date date,
+  location text not null default '',
+  show_on_front_office boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.events
+alter column event_date drop not null;
+
 alter table public.products enable row level security;
 alter table public.boxes enable row level security;
 alter table public.box_items enable row level security;
+alter table public.events enable row level security;
 
 drop policy if exists "products_select_public" on public.products;
 create policy "products_select_public"
@@ -72,6 +86,21 @@ using (true);
 drop policy if exists "box_items_write_authenticated" on public.box_items;
 create policy "box_items_write_authenticated"
 on public.box_items
+for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "events_select_public" on public.events;
+create policy "events_select_public"
+on public.events
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "events_write_authenticated" on public.events;
+create policy "events_write_authenticated"
+on public.events
 for all
 to authenticated
 using (true)

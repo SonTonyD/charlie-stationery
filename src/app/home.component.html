@@ -87,6 +87,57 @@
   </div>
 </section>
 
+@if (events.length > 0) {
+  <section class="upcoming-section" aria-labelledby="upcoming-title">
+    <div class="container">
+      <div class="upcoming-heading">
+        <span class="upcoming-kicker">Les prochaines nouvelles</span>
+        <h2 id="upcoming-title">Prchainement</h2>
+      </div>
+
+      <div class="upcoming-panel">
+        <div
+          class="upcoming-track"
+          [style.transform]="'translateX(-' + activeUpcomingIndex * 100 + '%)'"
+        >
+          @for (event of events; track event.id) {
+            <article class="upcoming-slide">
+              <div class="upcoming-meta">
+                @if (event.eventDate) {
+                  <time [attr.datetime]="event.eventDate">
+                    {{ event.eventDate | date: "dd.MM.yyyy" }}
+                  </time>
+                }
+                @if (event.location) {
+                  <span>{{ event.location }}</span>
+                }
+              </div>
+              <h3>{{ event.title }}</h3>
+              @if (event.description) {
+                <p>{{ event.description }}</p>
+              }
+            </article>
+          }
+        </div>
+      </div>
+
+      @if (events.length > 1) {
+        <div class="upcoming-dots" aria-label="Choisir une annonce">
+          @for (event of events; track event.id; let i = $index) {
+            <button
+              type="button"
+              [class.active]="activeUpcomingIndex === i"
+              [attr.aria-label]="'Afficher ' + event.title"
+              [attr.aria-current]="activeUpcomingIndex === i ? 'true' : null"
+              (click)="selectUpcoming(i)"
+            ></button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+}
+
 <section>
   <div class="container">
     <h2>Avis Clients <span class="heading-emoji">✏️</span></h2>
