@@ -104,9 +104,31 @@
   padding: 18px;
 }
 
+.card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.card-link:hover img {
+  transform: scale(1.05);
+}
+
+.card-link h3 {
+  transition: color 0.3s ease;
+}
+
+.card:hover .card-link h3 {
+  color: var(--primary-purple, #8f5fd7);
+}
+
 .box-image {
   max-height: 170px;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
 .box-card p {
@@ -171,7 +193,7 @@
 }
 
 .hero {
-  --hero-scale: 1;
+  --hero-scale: 1.25;
   --hero-zoom-scale: 1;
   --hero-scroll-progress: 0;
 

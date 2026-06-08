@@ -1,0 +1,207 @@
+<section class="box-detail">
+  <div class="container">
+    <!-- Navigation supérieure -->
+    <div class="breadcrumb">
+      <button class="link-btn" (click)="goBack()">← Retour à l'accueil</button>
+    </div>
+
+    <!-- Contenu de chargement -->
+    @if (isLoading) {
+      <div class="loading">
+        <p>Chargement des détails de la box...</p>
+      </div>
+    } @else if (loadError) {
+      <div class="error">
+        <p>{{ loadError }}</p>
+        <button class="btn" (click)="goBack()">Retour à l'accueil</button>
+      </div>
+    } @else if (box) {
+      <div class="detail-container">
+        <!-- Layout principal : Image + Description -->
+        <div class="detail-wrapper">
+          <!-- Galerie images à gauche -->
+          <div class="gallery-section">
+            <!-- Image principale -->
+            <div class="main-image-container">
+              <img [src]="box.image" [alt]="box.name" class="main-image" />
+            </div>
+            <!-- Galerie petites images -->
+            <div class="gallery-thumbnails">
+              <button
+                class="thumbnail"
+                [class.active]="selectedImageIndex === 0"
+                (click)="selectImage(0)"
+                [attr.aria-label]="'Image principale de ' + box.name"
+              >
+                <img [src]="box.image" [alt]="box.name" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Description et boutons à droite -->
+          <div class="info-section">
+            <h1>{{ box.name }}</h1>
+            <p class="description">{{ box.description }}</p>
+
+            <!-- Prix et stock -->
+            <div class="price-section">
+              <div class="price">{{ box.price | number: "1.2-2" }} EUR</div>
+              <div
+                class="stock"
+                [class.low-stock]="box.stock > 0 && box.stock <= 3"
+              >
+                @if (box.stock > 0) {
+                  <span class="stock-available"
+                    >✓ En stock ({{ box.stock }} disponibles)</span
+                  >
+                } @else {
+                  <span class="stock-unavailable">✗ Rupture de stock</span>
+                }
+              </div>
+            </div>
+
+            <!-- Messages de feedback -->
+            @if (loadError) {
+              <div class="error-message">{{ loadError }}</div>
+            }
+            @if (addedToCart) {
+              <div class="success-message">✓ Ajoutée au panier !</div>
+            }
+
+            <!-- Boutons d'action principaux -->
+            <div class="actions-primary">
+              <button
+                class="btn btn-primary"
+                [disabled]="box.stock <= 0 || checkoutInProgress"
+                (click)="buyBox()"
+              >
+                {{
+                  checkoutInProgress ? "Redirection..." : "Acheter maintenant"
+                }}
+              </button>
+
+              <button
+                class="btn primary"
+                [disabled]="box.stock <= 0"
+                (click)="addToCart()"
+              >
+                {{ addedToCart ? "✓ Ajoutée" : "Ajouter au panier" }}
+              </button>
+            </div>
+
+            <!-- Boutons d'action secondaires -->
+            <div class="actions-secondary">
+              <button class="link-btn" (click)="goBack()">
+                ← Continuer les achats
+              </button>
+              <button class="link-btn btn-cart" (click)="goToCart()">
+                Voir mon panier ({{ cartItemCount }}) →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Onglets -->
+        <div class="tabs-section">
+          <div class="tabs-header">
+            <button
+              class="tab-button"
+              [class.active]="activeTab === 'info'"
+              (click)="setActiveTab('info')"
+            >
+              Plus d'informations
+            </button>
+            <button
+              class="tab-button"
+              [class.active]="activeTab === 'specs'"
+              (click)="setActiveTab('specs')"
+            >
+              Fiche technique
+            </button>
+            <button
+              class="tab-button"
+              [class.active]="activeTab === 'reviews'"
+              (click)="setActiveTab('reviews')"
+            >
+              Avis
+            </button>
+          </div>
+
+          <div class="tabs-content">
+            <!-- Plus d'informations -->
+            @if (activeTab === "info") {
+              <div class="tab-pane">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <h3>Type de produit</h3>
+                    <p>Papeterie</p>
+                  </div>
+                  <div class="info-item">
+                    <h3>Origine</h3>
+                    <p>Corée</p>
+                  </div>
+                </div>
+
+                <!-- Contenu de la box -->
+                <div class="contents-section-tab">
+                  <h3>Contenu de la box</h3>
+                  <div class="contents-grid">
+                    @for (item of box.items; track item.productName) {
+                      <div class="content-card">
+                        <div class="content-icon">📦</div>
+                        <div class="content-info">
+                          <h4>{{ item.productName }}</h4>
+                          <p class="content-qty">
+                            Quantité : {{ item.quantity }}
+                          </p>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Fiche technique -->
+            @if (activeTab === "specs") {
+              <div class="tab-pane">
+                <table class="specs-table">
+                  <tbody>
+                    <tr>
+                      <td class="spec-label">Nombre d'éléments</td>
+                      <td>{{ box.items.length }}</td>
+                    </tr>
+                    <tr>
+                      <td class="spec-label">Origine</td>
+                      <td>Corée</td>
+                    </tr>
+                    <tr>
+                      <td class="spec-label">Type</td>
+                      <td>Box de papeterie</td>
+                    </tr>
+                    <tr>
+                      <td class="spec-label">Stock disponible</td>
+                      <td>{{ box.stock }} unités</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            <!-- Avis clients -->
+            @if (activeTab === "reviews") {
+              <div class="tab-pane">
+                <div class="reviews-list">
+                  <p class="no-reviews">Aucun avis pour le moment.</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Lien panier fixe -->
+    <a routerLink="/panier" class="cart-link"> Panier ({{ cartItemCount }}) </a>
+  </div>
+</section>

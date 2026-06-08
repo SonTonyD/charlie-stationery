@@ -89,7 +89,9 @@ h3 {
 
 h1 {
   font-size: 2.5rem;
-  color: #9a9c89;
+  color: #98c381;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px #2e3d26;
 }
 
 h2 {

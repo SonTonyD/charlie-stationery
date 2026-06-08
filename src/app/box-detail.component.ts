@@ -1,0 +1,209 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { AdminMockService } from './admin/admin-mock.service';
+import { AdminBox } from './admin/admin.models';
+import { CartService } from './cart.service';
+import { supabase } from './supabase/supabase.client';
+
+interface BoxDetail {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  image: string;
+  items: { productName: string; quantity: number; price: number }[];
+}
+
+@Component({
+  selector: 'app-box-detail',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  templateUrl: './box-detail.component.html',
+  styleUrl: './box-detail.component.css',
+})
+export class BoxDetailComponent implements OnInit, OnDestroy {
+  box: BoxDetail | null = null;
+  loadError = '';
+  isLoading = true;
+  checkoutInProgress = false;
+  addedToCart = false;
+  cartItemCount = 0;
+  activeTab: 'info' | 'specs' | 'reviews' = 'info';
+  selectedImageIndex = 0;
+
+  private cartSubscription: Subscription | null = null;
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly adminMockService: AdminMockService,
+    private readonly cartService: CartService,
+  ) {}
+
+  async ngOnInit() {
+    this.cartItemCount = this.cartService.getTotalQuantity();
+    this.cartSubscription = this.cartService.items$.subscribe(() => {
+      this.cartItemCount = this.cartService.getTotalQuantity();
+    });
+
+    const boxId = this.route.snapshot.paramMap.get('id');
+    if (!boxId) {
+      this.loadError = 'Box non trouvée';
+      this.isLoading = false;
+      return;
+    }
+
+    await this.loadBoxDetails(boxId);
+  }
+
+  ngOnDestroy() {
+    this.cartSubscription?.unsubscribe();
+  }
+
+  async loadBoxDetails(boxId: string) {
+    this.loadError = '';
+    this.isLoading = true;
+
+    try {
+      const [products, boxes] = await Promise.all([
+        this.adminMockService.getProducts(),
+        this.adminMockService.getBoxes(),
+      ]);
+
+      const targetBox = boxes.find((b) => b.id === boxId);
+      if (!targetBox) {
+        this.loadError = 'Box non trouvée';
+        return;
+      }
+
+      const productById = new Map(
+        products.map((product) => [product.id, product]),
+      );
+
+      const items = targetBox.items.map((item) => {
+        const product = productById.get(item.productId);
+        return {
+          productName: product?.name || 'Produit inconnu',
+          quantity: item.quantity,
+          price: item.salePrice,
+        };
+      });
+
+      const stock = this.getBoxAvailableQuantity(targetBox, productById);
+      const price = this.getBoxSaleTotal(targetBox);
+
+      this.box = {
+        id: targetBox.id,
+        name: targetBox.name,
+        description: targetBox.description,
+        price: price,
+        stock: stock,
+        image: targetBox.imageUrl || '/alien-box.jpeg',
+        items: items,
+      };
+    } catch {
+      this.loadError = 'Erreur lors du chargement de la box';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async buyBox() {
+    if (!this.box) {
+      return;
+    }
+
+    this.loadError = '';
+    this.checkoutInProgress = true;
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'create-checkout-session',
+        {
+          body: { boxId: this.box.id },
+        },
+      );
+
+      if (error || !data?.url) {
+        this.loadError = 'Le paiement est indisponible pour le moment.';
+        return;
+      }
+
+      window.location.assign(data.url);
+    } catch {
+      this.loadError = 'Le paiement est indisponible pour le moment.';
+    } finally {
+      this.checkoutInProgress = false;
+    }
+  }
+
+  addToCart() {
+    if (!this.box || this.box.stock <= 0) {
+      return;
+    }
+
+    this.cartService.addItem({
+      boxId: this.box.id,
+      name: this.box.name,
+      description: this.box.description,
+      image: this.box.image,
+      unitPrice: this.box.price,
+    });
+
+    this.addedToCart = true;
+    setTimeout(() => {
+      this.addedToCart = false;
+    }, 1600);
+  }
+
+  goBack() {
+    this.router.navigate(['/']);
+  }
+
+  goToCart() {
+    this.router.navigate(['/panier']);
+  }
+
+  setActiveTab(tab: 'info' | 'specs' | 'reviews') {
+    this.activeTab = tab;
+  }
+
+  selectImage(index: number) {
+    this.selectedImageIndex = index;
+  }
+
+  private getBoxSaleTotal(box: AdminBox) {
+    return this.toMoney(
+      box.items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0),
+    );
+  }
+
+  private getBoxAvailableQuantity(
+    box: AdminBox,
+    productById: Map<string, { stockQuantity: number }>,
+  ) {
+    if (box.items.length === 0) {
+      return 0;
+    }
+
+    let maxBoxes = Number.POSITIVE_INFINITY;
+
+    for (const item of box.items) {
+      const product = productById.get(item.productId);
+      const itemCapacity =
+        !product || item.quantity <= 0
+          ? 0
+          : Math.floor(product.stockQuantity / item.quantity);
+      maxBoxes = Math.min(maxBoxes, itemCapacity);
+    }
+
+    return Number.isFinite(maxBoxes) ? maxBoxes : 0;
+  }
+
+  private toMoney(value: number) {
+    return Number(value.toFixed(2));
+  }
+}

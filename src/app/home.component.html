@@ -3,7 +3,9 @@
     <div class="hero-text">
       <h1>La chapétrie où le chat est roi</h1>
       <p>
-        Découvrez nos boxs coréennes en édition limité tout droit venu de Séoul
+        Découvre un univers de papeterie, stickers, carnets et accessoires
+        créatifs soigneusement sélectionnés pour embellir ton quotidien,
+        inspirer tes idées et faire rêver chaque page.
       </p>
       <div class="hero-actions">
         <a href="#shop" class="btn">Voir les box</a>
@@ -37,12 +39,14 @@
     <div class="grid grid-3">
       @for (box of boxes; track box.id) {
         <div class="card box-card">
-          <img class="box-image" [src]="box.image" alt="Box image" />
+          <a [routerLink]="['/box', box.id]" class="card-link">
+            <img class="box-image" [src]="box.image" alt="Box image" />
 
-          <h3>{{ box.name }}</h3>
-          <p>{{ box.description }}</p>
+            <h3>{{ box.name }}</h3>
+            <p>{{ box.description }}</p>
 
-          <div class="price">{{ box.price | number: "1.2-2" }}EUR</div>
+            <div class="price">{{ box.price | number: "1.2-2" }}EUR</div>
+          </a>
 
           <div class="box-actions">
             <button
@@ -117,11 +121,13 @@
 </section>
 
 <footer>
-  Copyright 2026 Box Papeterie Coreenne | Paiement securise | Toute reproduction
-  est interdite
+  Copyright 2026 La Chapétrie | Paiement securise | Toute reproduction est
+  interdite
 </footer>
 
 <div class="sticky-cta">
   <a href="#shop" class="btn">Voir les box</a>
-  <a routerLink="/panier" class="btn btn-outline">Panier ({{ cartItemCount }})</a>
+  <a routerLink="/panier" class="btn btn-outline"
+    >Panier ({{ cartItemCount }})</a
+  >
 </div>
