@@ -51,7 +51,7 @@
 }
 
 .admin-tabs button.active {
-  background: #e9eefc;
+  background: #6483da;
   color: #ffffff;
 }
 
@@ -121,13 +121,21 @@ select {
 }
 
 .btn-ghost {
-  background: #eef2ff;
+  background: #76529a;
   color: #ffffff;
 }
 
 .btn-danger {
-  background: #fee2e2;
+  background: #c43d55;
   color: #ffffff;
+}
+
+.btn-ghost:hover {
+  background: #60417f;
+}
+
+.btn-danger:hover {
+  background: #a92f45;
 }
 
 .table-wrap {
@@ -282,7 +290,7 @@ td {
   margin-bottom: 14px;
 }
 
-.stock-panel input[type='number'] {
+.stock-panel input[type="number"] {
   width: 120px;
 }
 
