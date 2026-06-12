@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
 import { AdminBox, AdminEvent } from './admin/admin.models';
 import { CartService } from './cart.service';
+import { LegalConsentComponent } from './legal-consent.component';
 import { SupabaseAuthService } from './supabase/auth.service';
 import { supabase } from './supabase/supabase.client';
 
@@ -38,7 +39,7 @@ interface Faq {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LegalConsentComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -47,6 +48,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   loadError = '';
   isAuthenticated = false;
   checkoutBoxId: string | null = null;
+  pendingCheckoutBoxId: string | null = null;
+  legalAccepted = false;
   addedCartBoxId: string | null = null;
   cartItemCount = 0;
   activeUpcomingIndex = 0;
@@ -129,7 +132,26 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.startUpcomingCarousel();
   }
 
-  async buyBox(boxId: string) {
+  requestBuyBox(boxId: string) {
+    this.pendingCheckoutBoxId = boxId;
+    this.legalAccepted = false;
+  }
+
+  cancelBuyBox() {
+    if (this.checkoutBoxId) {
+      return;
+    }
+
+    this.pendingCheckoutBoxId = null;
+    this.legalAccepted = false;
+  }
+
+  async confirmBuyBox() {
+    const boxId = this.pendingCheckoutBoxId;
+    if (!boxId || !this.legalAccepted || this.checkoutBoxId) {
+      return;
+    }
+
     this.loadError = '';
     this.checkoutBoxId = boxId;
 
@@ -137,7 +159,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       const { data, error } = await supabase.functions.invoke(
         'create-checkout-session',
         {
-          body: { boxId },
+          body: { boxId, legalAccepted: true },
         },
       );
 

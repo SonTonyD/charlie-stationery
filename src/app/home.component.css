@@ -192,6 +192,10 @@
   display: none;
 }
 
+footer {
+  display: none;
+}
+
 .hero {
   --hero-scale: 1.25;
   --hero-zoom-scale: 1;

@@ -1,0 +1,18 @@
+<main class="legal-page">
+  <a routerLink="/" class="back-link">Retour a l'accueil</a>
+
+  <header>
+    <span>Informations legales</span>
+    <h1>{{ title }}</h1>
+    <p>{{ introduction }}</p>
+  </header>
+
+  <div class="legal-content">
+    @for (section of sections; track section.title) {
+      <section>
+        <h2>{{ section.title }}</h2>
+        <p class="placeholder">{{ section.content }}</p>
+      </section>
+    }
+  </div>
+</main>

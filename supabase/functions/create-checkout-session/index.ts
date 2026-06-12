@@ -38,6 +38,11 @@ Deno.serve(async (request) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
     const body = await request.json();
+
+    if (!hasAcceptedLegalDocuments(body)) {
+      return jsonResponse({ error: 'Legal documents must be accepted' }, 400);
+    }
+
     const checkoutItems = normalizeCheckoutItems(body);
 
     if (checkoutItems.length === 0) {
@@ -96,6 +101,9 @@ Deno.serve(async (request) => {
     const metadata: Record<string, string> = {
       box_ids: checkoutItems.map((item) => item.boxId).join(','),
       quantities: checkoutItems.map((item) => String(item.quantity)).join(','),
+      legal_accepted: 'true',
+      legal_accepted_at: new Date().toISOString(),
+      legal_documents: 'cgv,cgu,politique-confidentialite,mentions-legales',
     };
 
     if (checkoutItems.length === 1) {
@@ -165,6 +173,15 @@ function normalizeCheckoutItems(body: unknown) {
     boxId,
     quantity,
   }));
+}
+
+function hasAcceptedLegalDocuments(body: unknown) {
+  return (
+    !!body &&
+    typeof body === 'object' &&
+    'legalAccepted' in body &&
+    body.legalAccepted === true
+  );
 }
 
 class CheckoutValidationError extends Error {

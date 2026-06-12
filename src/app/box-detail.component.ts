@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
 import { AdminBox } from './admin/admin.models';
 import { CartService } from './cart.service';
+import { LegalConsentComponent } from './legal-consent.component';
 import { supabase } from './supabase/supabase.client';
 
 interface BoxDetail {
@@ -20,7 +21,7 @@ interface BoxDetail {
 @Component({
   selector: 'app-box-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LegalConsentComponent],
   templateUrl: './box-detail.component.html',
   styleUrl: './box-detail.component.css',
 })
@@ -29,6 +30,8 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
   loadError = '';
   isLoading = true;
   checkoutInProgress = false;
+  showLegalConsent = false;
+  legalAccepted = false;
   addedToCart = false;
   cartItemCount = 0;
   activeTab: 'info' | 'specs' | 'reviews' = 'info';
@@ -111,8 +114,22 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  async buyBox() {
-    if (!this.box) {
+  requestBuyBox() {
+    this.legalAccepted = false;
+    this.showLegalConsent = true;
+  }
+
+  cancelBuyBox() {
+    if (this.checkoutInProgress) {
+      return;
+    }
+
+    this.showLegalConsent = false;
+    this.legalAccepted = false;
+  }
+
+  async confirmBuyBox() {
+    if (!this.box || !this.legalAccepted || this.checkoutInProgress) {
       return;
     }
 
@@ -123,7 +140,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
       const { data, error } = await supabase.functions.invoke(
         'create-checkout-session',
         {
-          body: { boxId: this.box.id },
+          body: { boxId: this.box.id, legalAccepted: true },
         },
       );
 

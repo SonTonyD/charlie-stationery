@@ -57,6 +57,11 @@
           <span>Total</span>
           <strong>{{ totalPrice | number: "1.2-2" }}EUR</strong>
         </div>
+        <app-legal-consent
+          [accepted]="legalAccepted"
+          [busy]="isCheckingOut"
+          (acceptedChange)="legalAccepted = $event"
+        />
         <button
           class="checkout-button"
           type="button"

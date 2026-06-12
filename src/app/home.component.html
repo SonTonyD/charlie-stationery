@@ -53,7 +53,7 @@
               class="btn"
               type="button"
               [disabled]="box.stock <= 0 || checkoutBoxId === box.id"
-              (click)="buyBox(box.id)"
+              (click)="requestBuyBox(box.id)"
             >
               {{
                 checkoutBoxId === box.id
@@ -86,6 +86,17 @@
     </div>
   </div>
 </section>
+
+@if (pendingCheckoutBoxId) {
+  <app-legal-consent
+    [modal]="true"
+    [accepted]="legalAccepted"
+    [busy]="checkoutBoxId === pendingCheckoutBoxId"
+    (acceptedChange)="legalAccepted = $event"
+    (cancel)="cancelBuyBox()"
+    (confirm)="confirmBuyBox()"
+  />
+}
 
 @if (events.length > 0) {
   <section class="upcoming-section" aria-labelledby="upcoming-title">

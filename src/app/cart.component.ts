@@ -3,12 +3,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CartItem, CartService } from './cart.service';
+import { LegalConsentComponent } from './legal-consent.component';
 import { supabase } from './supabase/supabase.client';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LegalConsentComponent],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css',
 })
@@ -16,6 +17,7 @@ export class CartComponent implements OnInit, OnDestroy {
   items: CartItem[] = [];
   isCheckingOut = false;
   errorMessage = '';
+  legalAccepted = false;
 
   private cartSubscription: Subscription | null = null;
 
@@ -41,7 +43,7 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   get canCheckout() {
-    return this.items.length > 0 && !this.isCheckingOut;
+    return this.items.length > 0 && this.legalAccepted && !this.isCheckingOut;
   }
 
   increment(boxId: string) {
@@ -73,6 +75,7 @@ export class CartComponent implements OnInit, OnDestroy {
         'create-checkout-session',
         {
           body: {
+            legalAccepted: true,
             items: this.items.map((item) => ({
               boxId: item.boxId,
               quantity: item.quantity,

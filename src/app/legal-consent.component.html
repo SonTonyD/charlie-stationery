@@ -1,0 +1,52 @@
+@if (modal) {
+  <div class="legal-backdrop" role="presentation">
+    <section
+      class="legal-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="legal-dialog-title"
+    >
+      <h2 id="legal-dialog-title">Avant de poursuivre vers le paiement</h2>
+      <p>Veuillez consulter et accepter les documents légaux de La Chapétrie.</p>
+
+      <ng-container *ngTemplateOutlet="consentText" />
+
+      <div class="dialog-actions">
+        <button class="cancel-button" type="button" (click)="cancel.emit()">
+          Annuler
+        </button>
+        <button
+          class="confirm-button"
+          type="button"
+          [disabled]="!accepted || busy"
+          (click)="confirm.emit()"
+        >
+          {{ busy ? "Redirection..." : "Continuer vers le paiement" }}
+        </button>
+      </div>
+    </section>
+  </div>
+} @else {
+  <ng-container *ngTemplateOutlet="consentText" />
+}
+
+<ng-template #consentText>
+  <label class="legal-consent">
+    <input
+      type="checkbox"
+      [checked]="accepted"
+      [disabled]="busy"
+      (change)="updateAccepted($event)"
+    />
+    <span>
+      Je reconnais avoir lu et accepté les
+      <a routerLink="/cgv" target="_blank">CGV</a>,
+      <a routerLink="/cgu" target="_blank">CGU</a>, la
+      <a routerLink="/politique-confidentialite" target="_blank"
+        >politique de confidentialité</a
+      >
+      et les
+      <a routerLink="/mentions-legales" target="_blank">mentions légales</a>.
+    </span>
+  </label>
+</ng-template>

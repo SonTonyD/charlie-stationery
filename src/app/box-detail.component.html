@@ -73,7 +73,7 @@
               <button
                 class="btn btn-primary"
                 [disabled]="box.stock <= 0 || checkoutInProgress"
-                (click)="buyBox()"
+                (click)="requestBuyBox()"
               >
                 {{
                   checkoutInProgress ? "Redirection..." : "Acheter maintenant"
@@ -205,3 +205,14 @@
     <a routerLink="/panier" class="cart-link"> Panier ({{ cartItemCount }}) </a>
   </div>
 </section>
+
+@if (showLegalConsent) {
+  <app-legal-consent
+    [modal]="true"
+    [accepted]="legalAccepted"
+    [busy]="checkoutInProgress"
+    (acceptedChange)="legalAccepted = $event"
+    (cancel)="cancelBuyBox()"
+    (confirm)="confirmBuyBox()"
+  />
+}
