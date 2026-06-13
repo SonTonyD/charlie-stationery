@@ -688,13 +688,67 @@ footer {
   letter-spacing: 2px;
 }
 
+/* Browser zoom reduces the CSS viewport. Compact the hero before it overflows. */
+@media (max-width: 1280px), (max-height: 820px) {
+  .hero {
+    --hero-scale: 1;
+    --hero-zoom-scale: 1;
+
+    padding-top: 110px;
+    padding-bottom: 48px;
+  }
+
+  .hero-content {
+    gap: clamp(22px, 3vw, 42px);
+  }
+
+  .hero-text {
+    flex-basis: 420px;
+  }
+
+  .hero-text h1 {
+    font-size: clamp(3rem, 5vw, 4.2rem);
+  }
+
+  .hero-logo {
+    width: min(36vw, 420px);
+    flex-basis: 420px;
+  }
+}
+
+@media (max-height: 650px) and (min-width: 769px) {
+  .hero {
+    min-height: 650px;
+    align-items: flex-start;
+    padding-top: 105px;
+  }
+
+  .hero-text h1 {
+    font-size: clamp(2.7rem, 4.5vw, 3.7rem);
+  }
+
+  .hero-text p {
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .hero-logo {
+    width: min(32vw, 340px);
+    flex-basis: 340px;
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
     --hero-scale: 0.78;
+    --hero-zoom-scale: 1;
 
     margin-top: -68px;
     min-height: auto;
     display: block;
+    padding-top: 118px;
+    padding-bottom: 52px;
   }
 
   .hero-content {
