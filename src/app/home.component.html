@@ -32,10 +32,6 @@
     @if (loadError) {
       <p>{{ loadError }}</p>
     }
-    <a routerLink="/panier" class="cart-link">
-      Voir le panier ({{ cartItemCount }})
-    </a>
-
     <div class="grid grid-3">
       @for (box of boxes; track box.id) {
         <div class="card box-card">
@@ -153,7 +149,7 @@
   </section>
 }
 
-<section>
+<section id="coup-de-coeur">
   <div class="container">
     <h2>Avis Clients <span class="heading-emoji">✏️</span></h2>
 

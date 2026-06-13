@@ -201,6 +201,7 @@ footer {
   --hero-zoom-scale: 1;
   --hero-scroll-progress: 0;
 
+  margin-top: -76px;
   min-height: 100svh;
   min-height: 100vh;
   display: flex;
@@ -486,6 +487,7 @@ footer {
   .hero {
     --hero-scale: 0.78;
 
+    margin-top: -68px;
     min-height: auto;
     display: block;
   }

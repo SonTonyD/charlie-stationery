@@ -155,3 +155,14 @@ html,
 body {
   overflow-x: hidden;
 }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 92px;
+}
+
+@media (max-width: 600px) {
+  html {
+    scroll-padding-top: 82px;
+  }
+}

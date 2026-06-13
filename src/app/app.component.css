@@ -1,3 +1,13 @@
 :host {
   display: block;
 }
+
+.page-content {
+  padding-top: 76px;
+}
+
+@media (max-width: 600px) {
+  .page-content {
+    padding-top: 68px;
+  }
+}
