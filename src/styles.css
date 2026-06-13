@@ -46,9 +46,9 @@ body::before {
   inset: 0;
   z-index: -2;
 
-  background-image: url("/background-image-3.jpeg");
+  background-image: url("/background-image-4.jpeg");
   background-repeat: no-repeat;
-  background-position: right bottom; /* ancre le coin bas-droit */
+  background-position: right 0 bottom -150px; /* descend légèrement l'image */
   background-size: cover; /* pas de déformation */
 }
 
@@ -60,7 +60,7 @@ body::after {
   z-index: -1;
   pointer-events: none;
 
-  background: rgba(248, 249, 255, 0.75);
+  background: rgba(248, 249, 255, 0.584);
 }
 
 /* optionnel : sur mobile, parfois "fixed" peut être saccadé.

@@ -41,7 +41,9 @@
       (click)="closeMenu()"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H7"></path>
+        <path
+          d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H7"
+        ></path>
         <circle cx="10" cy="20" r="1"></circle>
         <circle cx="17" cy="20" r="1"></circle>
       </svg>
@@ -64,6 +66,12 @@
         <span>03</span>
         Coup de Cœur
       </a>
+      @if (isAuthenticated) {
+        <a class="admin-link" routerLink="/admin" (click)="closeMenu()">
+          <span>04</span>
+          Accéder au back office
+        </a>
+      }
     </div>
   </nav>
 </header>
