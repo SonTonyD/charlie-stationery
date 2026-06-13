@@ -198,7 +198,7 @@ footer {
 
 .hero {
   --hero-scale: 1.25;
-  --hero-zoom-scale: 1;
+  --hero-zoom-scale: 1.3;
   --hero-scroll-progress: 0;
 
   margin-top: -76px;
@@ -220,7 +220,7 @@ footer {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: #fff8fb url("/background-hero-image.jpeg") center / contain
+  background: #fff8fb url("/background-hero-image-2.png") center / cover
     no-repeat;
   opacity: calc(1 - var(--hero-scroll-progress));
   transform: translate3d(calc(var(--hero-scroll-progress) * 70vw), 0, 0);
@@ -228,14 +228,86 @@ footer {
   will-change: transform, opacity;
 }
 
+.hero-stars {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-stars span {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1;
+  text-shadow:
+    0 0 8px #fff,
+    0 0 20px rgba(196, 160, 224, 0.9);
+  animation: hero-background-star 3.4s ease-in-out infinite;
+}
+
+.hero-stars span:nth-child(1) {
+  top: 18%;
+  left: 8%;
+  font-size: 1.5rem;
+}
+
+.hero-stars span:nth-child(2) {
+  top: 28%;
+  left: 46%;
+  font-size: 2rem;
+  animation-delay: 0.7s;
+}
+
+.hero-stars span:nth-child(3) {
+  top: 14%;
+  right: 12%;
+  font-size: 1.15rem;
+  animation-delay: 1.3s;
+}
+
+.hero-stars span:nth-child(4) {
+  bottom: 18%;
+  left: 17%;
+  font-size: 1.8rem;
+  animation-delay: 1.8s;
+}
+
+.hero-stars span:nth-child(5) {
+  right: 42%;
+  bottom: 12%;
+  font-size: 1.1rem;
+  animation-delay: 2.2s;
+}
+
+.hero-stars span:nth-child(6) {
+  top: 52%;
+  right: 5%;
+  font-size: 2.2rem;
+  animation-delay: 2.7s;
+}
+
+@keyframes hero-background-star {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0) scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.15) rotate(18deg);
+  }
+}
+
 .hero-content {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  width: min(100%, 1480px);
+  justify-content: center;
+  gap: clamp(28px, 4vw, 64px);
+  width: min(100%, 1320px);
   max-width: none;
   margin: 0 auto;
-  padding-right: 45%;
+  padding-right: clamp(8px, 3vw, 44px);
   padding-left: clamp(8px, 2vw, 28px);
   position: relative;
   z-index: 1;
@@ -255,7 +327,7 @@ footer {
   margin-bottom: 16px;
   color: #4f365c;
   font-family: "Parisienne", cursive;
-  font-size: clamp(2.8rem, 5vw, 4.4rem);
+  font-size: clamp(3.2rem, 5.5vw, 5rem);
   font-weight: 400;
   line-height: 1;
   text-transform: none;
@@ -265,18 +337,160 @@ footer {
 .hero-text p {
   margin-bottom: 24px;
   color: #74677a;
-  font-size: 0.95rem;
+  font-size: 1.08rem;
   line-height: 1.65;
 }
 
 .hero .btn {
-  padding: 10px 18px;
+  padding: 12px 21px;
   border-radius: 30px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .hero-actions {
   gap: 10px;
+}
+
+.hero-logo {
+  position: relative;
+  flex: 0 1 500px;
+  width: min(40vw, 500px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 24px 35px rgba(79, 54, 92, 0.22));
+}
+
+.hero-logo::before,
+.hero-logo::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-logo::before {
+  inset: -5%;
+  z-index: -1;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: radial-gradient(
+    circle at 35% 25%,
+    rgba(255, 255, 255, 0.9),
+    rgba(224, 204, 245, 0.35) 42%,
+    rgba(196, 160, 224, 0.12) 68%,
+    transparent 70%
+  );
+  box-shadow:
+    0 0 35px rgba(255, 255, 255, 0.8),
+    0 0 65px rgba(196, 160, 224, 0.38);
+}
+
+.hero-logo::after {
+  inset: 5%;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    inset 0 0 26px rgba(255, 255, 255, 0.72),
+    0 0 18px rgba(255, 255, 255, 0.72);
+}
+
+.hero-logo-ring {
+  position: absolute;
+  inset: 8%;
+  overflow: hidden;
+  border: 5px solid rgba(255, 255, 255, 0.82);
+  border-radius: 48% 52% 46% 54% / 52% 45% 55% 48%;
+  background: #fff;
+  box-shadow:
+    0 0 0 8px rgba(224, 204, 245, 0.28),
+    0 18px 45px rgba(79, 54, 92, 0.22);
+  animation: hero-logo-float 5s ease-in-out infinite;
+}
+
+.hero-logo-ring img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+  transform: scale(1.04);
+}
+
+.hero-logo-shine {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -70%;
+  width: 36%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.75),
+    transparent
+  );
+  transform: rotate(18deg);
+  animation: hero-logo-shine 4.5s ease-in-out infinite;
+}
+
+.hero-sparkle {
+  position: absolute;
+  z-index: 3;
+  color: #fff;
+  line-height: 1;
+  text-shadow:
+    0 0 8px #fff,
+    0 0 18px #c4a0e0;
+  animation: hero-sparkle 2.4s ease-in-out infinite;
+}
+
+.hero-sparkle-one {
+  top: 8%;
+  right: 10%;
+  font-size: 2rem;
+}
+
+.hero-sparkle-two {
+  bottom: 14%;
+  left: 2%;
+  font-size: 2.5rem;
+  animation-delay: 0.8s;
+}
+
+.hero-sparkle-three {
+  top: 35%;
+  left: 0;
+  font-size: 1.25rem;
+  animation-delay: 1.5s;
+}
+
+@keyframes hero-logo-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes hero-logo-shine {
+  0%,
+  45% {
+    left: -70%;
+  }
+  75%,
+  100% {
+    left: 140%;
+  }
+}
+
+@keyframes hero-sparkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
 }
 
 #shop {
@@ -484,6 +698,7 @@ footer {
   }
 
   .hero-content {
+    flex-direction: column;
     width: 100%;
     padding-left: 0;
     padding-right: 0;
@@ -508,6 +723,18 @@ footer {
 
   .hero-actions {
     justify-content: center;
+  }
+
+  .hero-logo {
+    width: min(78vw, 390px);
+    flex-basis: auto;
+    margin-top: 12px;
+  }
+
+  .hero-stars span:nth-child(2),
+  .hero-stars span:nth-child(5),
+  .hero-stars span:nth-child(6) {
+    display: none;
   }
 
   #shop {
@@ -543,5 +770,12 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   .upcoming-track {
     transition: none;
+  }
+
+  .hero-logo-ring,
+  .hero-logo-shine,
+  .hero-sparkle,
+  .hero-stars span {
+    animation: none;
   }
 }
