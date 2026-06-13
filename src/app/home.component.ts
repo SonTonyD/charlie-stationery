@@ -320,6 +320,14 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      hero.style.setProperty('--hero-scroll-progress', '0');
+      if (!this.shopVisible) {
+        this.shopVisible = true;
+      }
+      return;
+    }
+
     const progress = Math.min(1, window.scrollY / window.innerHeight);
     const eased = 1 - Math.pow(1 - progress, 3);
     const shouldShowShop = progress > 0.2;
