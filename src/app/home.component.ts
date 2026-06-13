@@ -54,7 +54,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   cartItemCount = 0;
   activeUpcomingIndex = 0;
 
-  private readonly baseDevicePixelRatio = window.devicePixelRatio || 1;
   private authSubscription: SupabaseSubscription | null = null;
   private cartSubscription: Subscription | null = null;
   private scrollAnimationFrameId: number | null = null;
@@ -99,7 +98,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    this.updateHeroZoomCompensation();
     await this.loadSession();
     this.authSubscription = this.authService.onAuthStateChange((session) => {
       this.isAuthenticated = !!session;
@@ -211,7 +209,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize() {
-    this.updateHeroZoomCompensation();
     this.updateHeroScrollAnimation();
   }
 
@@ -315,20 +312,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     } catch {
       this.isAuthenticated = false;
     }
-  }
-
-  private updateHeroZoomCompensation() {
-    const hero = document.querySelector('.hero') as HTMLElement | null;
-    if (!hero) {
-      return;
-    }
-
-    const currentDevicePixelRatio =
-      window.devicePixelRatio || this.baseDevicePixelRatio;
-    const browserZoom = currentDevicePixelRatio / this.baseDevicePixelRatio;
-    const zoomScale = Math.max(0.5, Math.min(2, 1 / browserZoom));
-
-    hero.style.setProperty('--hero-zoom-scale', zoomScale.toString());
   }
 
   private updateHeroScrollAnimation() {
