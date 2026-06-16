@@ -174,14 +174,21 @@
               ></textarea>
             </label>
             <label>
-              Image
+              Images
               <input
-                type="text"
-                name="newBoxImageUrl"
-                [(ngModel)]="newBoxForm.imageUrl"
-                placeholder="/alien-box.jpeg ou https://..."
+                type="file"
+                name="newBoxImages"
+                accept="image/*"
+                multiple
+                (change)="onNewBoxImagesSelected($event)"
               />
             </label>
+            @if (newBoxImageFiles.length > 0) {
+              <p class="upload-hint">
+                {{ newBoxImageFiles.length }} image(s) selectionnee(s). La
+                premiere image sera l'image principale.
+              </p>
+            }
             <button class="btn-primary" type="submit">Creer une box</button>
           </form>
 
@@ -230,23 +237,6 @@
                   [(ngModel)]="selectedBoxForm.description"
                 ></textarea>
               </label>
-              <label>
-                Image
-                <input
-                  type="text"
-                  name="selectedBoxImageUrl"
-                  [(ngModel)]="selectedBoxForm.imageUrl"
-                  placeholder="/alien-box.jpeg ou https://..."
-                />
-              </label>
-              @if (selectedBoxForm.imageUrl) {
-                <div class="box-image-preview">
-                  <img
-                    [src]="selectedBoxForm.imageUrl"
-                    [alt]="selectedBoxForm.name || 'Image de la box'"
-                  />
-                </div>
-              }
               <button
                 class="btn-ghost"
                 type="button"
@@ -260,6 +250,99 @@
               </button>
               <button class="btn-primary" type="submit">Sauvegarder</button>
             </form>
+
+            <section class="box-images-manager">
+              <div class="box-images-header">
+                <div>
+                  <h3>Images de la box</h3>
+                  <p>
+                    La premiere image est utilisee comme image principale sur
+                    la page d'accueil.
+                  </p>
+                </div>
+                <div class="box-image-upload">
+                  <input
+                    type="file"
+                    name="selectedBoxImages"
+                    accept="image/*"
+                    multiple
+                    (change)="onSelectedBoxImagesSelected($event)"
+                  />
+                  <button
+                    class="btn-primary"
+                    type="button"
+                    [disabled]="selectedBoxImageFiles.length === 0"
+                    (click)="uploadSelectedBoxImages()"
+                  >
+                    Uploader
+                  </button>
+                </div>
+              </div>
+
+              @if (selectedBoxImageFiles.length > 0) {
+                <p class="upload-hint">
+                  {{ selectedBoxImageFiles.length }} nouvelle(s) image(s)
+                  prete(s) a etre ajoutee(s).
+                </p>
+              }
+
+              @if (selectedBox.images.length > 0) {
+                <div class="box-images-grid">
+                  @for (
+                    image of selectedBox.images;
+                    track image.id;
+                    let i = $index
+                  ) {
+                    <article
+                      class="box-image-card"
+                      [class.primary]="i === 0"
+                    >
+                      <img
+                        [src]="image.url"
+                        [alt]="
+                          i === 0
+                            ? 'Image principale de ' + selectedBox.name
+                            : 'Image secondaire de ' + selectedBox.name
+                        "
+                      />
+                      <div class="box-image-card-body">
+                        <span>{{ i === 0 ? "Principale" : "Secondaire" }}</span>
+                        <div class="box-image-actions">
+                          <button
+                            class="btn-ghost"
+                            type="button"
+                            [disabled]="i === 0"
+                            (click)="moveSelectedBoxImage(i, -1)"
+                          >
+                            Monter
+                          </button>
+                          <button
+                            class="btn-ghost"
+                            type="button"
+                            [disabled]="i === selectedBox.images.length - 1"
+                            (click)="moveSelectedBoxImage(i, 1)"
+                          >
+                            Descendre
+                          </button>
+                          <button
+                            class="btn-danger"
+                            type="button"
+                            (click)="deleteSelectedBoxImage(image)"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <div class="box-image-empty">
+                  Aucune image uploadee. L'image par defaut sera utilisee tant
+                  qu'aucune image n'est ajoutee.
+                </div>
+              }
+            </section>
 
             <div class="add-row">
               <select name="addProductId" [(ngModel)]="addProductId">

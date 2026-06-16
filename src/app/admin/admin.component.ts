@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AdminMockService } from './admin-mock.service';
 import {
   AdminBox,
+  AdminBoxImage,
   AdminEvent,
   AdminProduct,
   BoxProductLine,
@@ -68,12 +69,14 @@ export class AdminComponent implements OnInit, OnDestroy {
     description: '',
     imageUrl: '/alien-box.jpeg',
   };
+  newBoxImageFiles: File[] = [];
   selectedBoxForm = {
     name: '',
     description: '',
     imageUrl: '/alien-box.jpeg',
     showOnFrontOffice: false,
   };
+  selectedBoxImageFiles: File[] = [];
   addProductId = '';
   editingEventId: string | null = null;
   eventForm = this.createEmptyEventForm();
@@ -239,11 +242,18 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     try {
       const newBox = await this.adminMockService.createBox(payload);
+      if (this.newBoxImageFiles.length > 0) {
+        await this.adminMockService.uploadBoxImages(
+          newBox.id,
+          this.newBoxImageFiles,
+        );
+      }
       this.newBoxForm = {
         name: '',
         description: '',
         imageUrl: '/alien-box.jpeg',
       };
+      this.newBoxImageFiles = [];
       await this.refreshAll();
       this.selectBox(newBox.id);
     } catch (error) {
@@ -283,6 +293,69 @@ export class AdminComponent implements OnInit, OnDestroy {
     await this.runAction(() =>
       this.adminMockService.updateBox(this.selectedBoxId!, payload),
     );
+  }
+
+  onNewBoxImagesSelected(event: Event) {
+    this.newBoxImageFiles = this.getFilesFromInput(event);
+  }
+
+  onSelectedBoxImagesSelected(event: Event) {
+    this.selectedBoxImageFiles = this.getFilesFromInput(event);
+  }
+
+  async uploadSelectedBoxImages() {
+    if (!this.selectedBoxId || this.selectedBoxImageFiles.length === 0) {
+      return;
+    }
+
+    const boxId = this.selectedBoxId;
+    this.errorMessage = '';
+    this.isLoading = true;
+    try {
+      await this.adminMockService.uploadBoxImages(
+        boxId,
+        this.selectedBoxImageFiles,
+      );
+      this.selectedBoxImageFiles = [];
+      await this.refreshAll();
+      this.selectBox(boxId);
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
+      this.isLoading = false;
+    }
+  }
+
+  async moveSelectedBoxImage(imageIndex: number, direction: -1 | 1) {
+    const box = this.selectedBox;
+    if (!box) {
+      return;
+    }
+
+    const targetIndex = imageIndex + direction;
+    if (targetIndex < 0 || targetIndex >= box.images.length) {
+      return;
+    }
+
+    const nextImages = [...box.images];
+    const [image] = nextImages.splice(imageIndex, 1);
+    nextImages.splice(targetIndex, 0, image);
+
+    await this.runAction(() =>
+      this.adminMockService.updateBoxImagesOrder(box.id, nextImages),
+    );
+    this.selectBox(box.id);
+  }
+
+  async deleteSelectedBoxImage(image: AdminBoxImage) {
+    const box = this.selectedBox;
+    if (!box) {
+      return;
+    }
+
+    await this.runAction(() =>
+      this.adminMockService.deleteBoxImage(box.id, image),
+    );
+    this.selectBox(box.id);
   }
 
   async deleteBox(boxId: string) {
@@ -635,6 +708,13 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   private normalizeImageUrl(imageUrl: string) {
     return imageUrl.trim() || '/alien-box.jpeg';
+  }
+
+  private getFilesFromInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    return Array.from(input.files ?? []).filter((file) =>
+      file.type.startsWith('image/'),
+    );
   }
 
   private getBoxPurchaseTotal(box: AdminBox) {

@@ -57,7 +57,7 @@ Deno.serve(async (request) => {
     const { data: boxes, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, box_items(quantity, sale_price)',
+        'id, name, description, image_url, show_on_front_office, box_images(image_url, sort_order), box_items(quantity, sale_price)',
       )
       .in('id', boxIds);
 
@@ -84,13 +84,18 @@ Deno.serve(async (request) => {
         throw new CheckoutValidationError('Box price is invalid', 400);
       }
 
+      const primaryImage =
+        [...(box.box_images ?? [])].sort(
+          (a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0),
+        )[0]?.image_url || box.image_url;
+
       return {
         price_data: {
           currency: 'eur',
           product_data: {
             name: box.name,
             description: box.description || undefined,
-            images: box.image_url?.startsWith('http') ? [box.image_url] : undefined,
+            images: primaryImage?.startsWith('http') ? [primaryImage] : undefined,
           },
           unit_amount: unitAmount,
         },

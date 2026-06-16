@@ -23,18 +23,28 @@
           <div class="gallery-section">
             <!-- Image principale -->
             <div class="main-image-container">
-              <img [src]="box.image" [alt]="box.name" class="main-image" />
+              <img
+                [src]="box.images[selectedImageIndex]"
+                [alt]="box.name"
+                class="main-image"
+              />
             </div>
             <!-- Galerie petites images -->
             <div class="gallery-thumbnails">
-              <button
-                class="thumbnail"
-                [class.active]="selectedImageIndex === 0"
-                (click)="selectImage(0)"
-                [attr.aria-label]="'Image principale de ' + box.name"
-              >
-                <img [src]="box.image" [alt]="box.name" />
-              </button>
+              @for (image of box.images; track image; let i = $index) {
+                <button
+                  class="thumbnail"
+                  [class.active]="selectedImageIndex === i"
+                  (click)="selectImage(i)"
+                  [attr.aria-label]="
+                    i === 0
+                      ? 'Image principale de ' + box.name
+                      : 'Image supplementaire ' + i + ' de ' + box.name
+                  "
+                >
+                  <img [src]="image" [alt]="box.name" />
+                </button>
+              }
             </div>
           </div>
 

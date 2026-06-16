@@ -15,6 +15,7 @@ interface BoxDetail {
   price: number;
   stock: number;
   image: string;
+  images: string[];
   items: { productName: string; quantity: number; price: number }[];
 }
 
@@ -105,8 +106,13 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
         price: price,
         stock: stock,
         image: targetBox.imageUrl || '/alien-box.jpeg',
+        images:
+          targetBox.images.length > 0
+            ? targetBox.images.map((image) => image.url)
+            : [targetBox.imageUrl || '/alien-box.jpeg'],
         items: items,
       };
+      this.selectedImageIndex = 0;
     } catch {
       this.loadError = 'Erreur lors du chargement de la box';
     } finally {
@@ -189,6 +195,10 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
   }
 
   selectImage(index: number) {
+    if (!this.box || index < 0 || index >= this.box.images.length) {
+      return;
+    }
+
     this.selectedImageIndex = index;
   }
 

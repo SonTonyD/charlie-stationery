@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AdminBox, AdminEvent, AdminProduct } from './admin.models';
+import {
+  AdminBox,
+  AdminBoxImage,
+  AdminEvent,
+  AdminProduct,
+} from './admin.models';
 import { supabase } from '../supabase/supabase.client';
 
 interface AdminProductPayload {
@@ -56,6 +61,7 @@ export class AdminMockService {
       name: 'Box Premium',
       description: 'Selection premium orientee ecriture et deco.',
       imageUrl: '/alien-box.jpeg',
+      images: [],
       showOnFrontOffice: true,
       items: [
         { productId: 'prd-1', quantity: 3, salePrice: 4.5 },
@@ -69,6 +75,7 @@ export class AdminMockService {
       name: 'Box Petite',
       description: 'Format compact pour petits cadeaux du quotidien.',
       imageUrl: '/alien-box.jpeg',
+      images: [],
       showOnFrontOffice: false,
       items: [
         { productId: 'prd-1', quantity: 1, salePrice: 4.2 },
@@ -81,6 +88,7 @@ export class AdminMockService {
       name: 'Box Fashion',
       description: 'Selection tendance orientee accessoires et deco.',
       imageUrl: '/alien-box.jpeg',
+      images: [],
       showOnFrontOffice: false,
       items: [
         { productId: 'prd-2', quantity: 3, salePrice: 2.5 },
@@ -119,7 +127,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, box_items(product_id, quantity, sale_price)',
+        'id, name, description, image_url, show_on_front_office, box_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity, sale_price)',
       )
       .order('name', { ascending: true });
 
@@ -127,18 +135,22 @@ export class AdminMockService {
       throw error;
     }
 
-    return (data ?? []).map((box) => ({
-      id: box.id,
-      name: box.name,
-      description: box.description ?? '',
-      imageUrl: box.image_url || '/alien-box.jpeg',
-      showOnFrontOffice: Boolean(box.show_on_front_office),
-      items: (box.box_items ?? []).map((item) => ({
-        productId: item.product_id,
-        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
-        salePrice: this.toMoney(Number(item.sale_price) || 0),
-      })),
-    }));
+    return (data ?? []).map((box) => {
+      const images = this.normalizeBoxImages(box.box_images ?? []);
+      return {
+        id: box.id,
+        name: box.name,
+        description: box.description ?? '',
+        imageUrl: images[0]?.url || box.image_url || '/alien-box.jpeg',
+        images,
+        showOnFrontOffice: Boolean(box.show_on_front_office),
+        items: (box.box_items ?? []).map((item) => ({
+          productId: item.product_id,
+          quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+          salePrice: this.toMoney(Number(item.sale_price) || 0),
+        })),
+      };
+    });
   }
 
   async getEvents() {
@@ -265,6 +277,7 @@ export class AdminMockService {
       name: payload.name,
       description: payload.description,
       imageUrl: payload.imageUrl || '/alien-box.jpeg',
+      images: [],
       showOnFrontOffice: payload.showOnFrontOffice ?? false,
       items: [],
     };
@@ -304,10 +317,114 @@ export class AdminMockService {
   }
 
   async deleteBox(boxId: string) {
+    await this.deleteBoxStorageImages(boxId);
     const { error } = await supabase.from('boxes').delete().eq('id', boxId);
     if (error) {
       throw error;
     }
+  }
+
+  async uploadBoxImages(boxId: string, files: File[]) {
+    if (files.length === 0) {
+      return;
+    }
+
+    const existingImages = await this.getBoxImages(boxId);
+    let nextSortOrder =
+      existingImages.length === 0
+        ? 0
+        : Math.max(...existingImages.map((image) => image.sortOrder)) + 1;
+    const uploadedImages: AdminBoxImage[] = [];
+
+    for (const file of files) {
+      const storagePath = this.createBoxImageStoragePath(boxId, file);
+      const { error: uploadError } = await supabase.storage
+        .from('box-images')
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('box-images').getPublicUrl(storagePath);
+
+      const image: AdminBoxImage = {
+        id: this.generateId('img'),
+        url: publicUrl,
+        storagePath,
+        sortOrder: nextSortOrder,
+      };
+      nextSortOrder += 1;
+      uploadedImages.push(image);
+    }
+
+    const { error } = await supabase.from('box_images').insert(
+      uploadedImages.map((image) => ({
+        id: image.id,
+        box_id: boxId,
+        image_url: image.url,
+        storage_path: image.storagePath,
+        sort_order: image.sortOrder,
+      })),
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    await this.syncBoxPrimaryImage(boxId);
+  }
+
+  async updateBoxImagesOrder(boxId: string, images: AdminBoxImage[]) {
+    const orderedImages = images.map((image, index) => ({
+      ...image,
+      sortOrder: index,
+    }));
+
+    const { error } = await supabase.from('box_images').upsert(
+      orderedImages.map((image) => ({
+        id: image.id,
+        box_id: boxId,
+        image_url: image.url,
+        storage_path: image.storagePath,
+        sort_order: image.sortOrder,
+      })),
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    await this.syncBoxPrimaryImage(boxId);
+  }
+
+  async deleteBoxImage(boxId: string, image: AdminBoxImage) {
+    if (image.storagePath) {
+      const { error: storageError } = await supabase.storage
+        .from('box-images')
+        .remove([image.storagePath]);
+
+      if (storageError) {
+        throw storageError;
+      }
+    }
+
+    const { error } = await supabase
+      .from('box_images')
+      .delete()
+      .eq('id', image.id);
+
+    if (error) {
+      throw error;
+    }
+
+    await this.reindexBoxImages(boxId);
+    await this.syncBoxPrimaryImage(boxId);
   }
 
   async addProductToBox(boxId: string, productId: string) {
@@ -394,6 +511,85 @@ export class AdminMockService {
       return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
     }
     return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  private normalizeBoxImages(
+    images: {
+      id: string;
+      image_url: string;
+      storage_path: string;
+      sort_order: number;
+    }[],
+  ) {
+    return images
+      .map((image) => ({
+        id: image.id,
+        url: image.image_url,
+        storagePath: image.storage_path,
+        sortOrder: Math.max(0, Math.floor(Number(image.sort_order) || 0)),
+      }))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  private async getBoxImages(boxId: string) {
+    const { data, error } = await supabase
+      .from('box_images')
+      .select('id, image_url, storage_path, sort_order')
+      .eq('box_id', boxId)
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return this.normalizeBoxImages(data ?? []);
+  }
+
+  private async syncBoxPrimaryImage(boxId: string) {
+    const images = await this.getBoxImages(boxId);
+    const imageUrl = images[0]?.url || '/alien-box.jpeg';
+    const { error } = await supabase
+      .from('boxes')
+      .update({ image_url: imageUrl })
+      .eq('id', boxId);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  private async reindexBoxImages(boxId: string) {
+    const images = await this.getBoxImages(boxId);
+    if (images.length === 0) {
+      return;
+    }
+
+    await this.updateBoxImagesOrder(boxId, images);
+  }
+
+  private async deleteBoxStorageImages(boxId: string) {
+    const images = await this.getBoxImages(boxId);
+    const storagePaths = images
+      .map((image) => image.storagePath)
+      .filter((path) => !!path);
+
+    if (storagePaths.length === 0) {
+      return;
+    }
+
+    const { error } = await supabase.storage
+      .from('box-images')
+      .remove(storagePaths);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  private createBoxImageStoragePath(boxId: string, file: File) {
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const safeExtension = extension.replace(/[^a-z0-9]/g, '') || 'jpg';
+    return `boxes/${boxId}/${Date.now()}-${this.generateId('upload')}.${safeExtension}`;
   }
 
   private async ensureSeedData() {

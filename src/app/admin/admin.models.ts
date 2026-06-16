@@ -12,11 +12,19 @@ export interface BoxProductLine {
   salePrice: number;
 }
 
+export interface AdminBoxImage {
+  id: string;
+  url: string;
+  storagePath: string;
+  sortOrder: number;
+}
+
 export interface AdminBox {
   id: string;
   name: string;
   description: string;
   imageUrl: string;
+  images: AdminBoxImage[];
   showOnFrontOffice: boolean;
   items: BoxProductLine[];
 }

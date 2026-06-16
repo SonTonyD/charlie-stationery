@@ -138,6 +138,13 @@ select {
   background: #a92f45;
 }
 
+.btn-primary:disabled,
+.btn-ghost:disabled,
+.btn-danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -232,20 +239,6 @@ td {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.box-image-preview {
-  align-self: end;
-  width: 100%;
-}
-
-.box-image-preview img {
-  display: block;
-  width: 100%;
-  max-height: 180px;
-  object-fit: cover;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-}
-
 .add-row {
   display: flex;
   gap: 10px;
@@ -337,6 +330,103 @@ td {
   color: #991b1b;
 }
 
+.upload-hint {
+  grid-column: 1 / -1;
+  margin: -4px 0 4px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.box-images-manager {
+  margin: 6px 0 18px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.box-images-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.box-images-header h3 {
+  margin: 0 0 4px;
+  color: #111827;
+}
+
+.box-images-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+
+.box-image-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.box-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.box-image-card {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.box-image-card.primary {
+  border-color: #76529a;
+  box-shadow: 0 0 0 3px rgba(118, 82, 154, 0.12);
+}
+
+.box-image-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+
+.box-image-card-body {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+.box-image-card-body span {
+  color: #76529a;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.box-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.box-image-actions button {
+  padding: 7px 9px;
+  font-size: 0.78rem;
+}
+
+.box-image-empty {
+  padding: 18px;
+  border: 1px dashed #c7cbd1;
+  border-radius: 12px;
+  color: #6b7280;
+  background: #ffffff;
+}
+
 @media (max-width: 980px) {
   .boxes-layout {
     grid-template-columns: 1fr;
@@ -352,5 +442,11 @@ td {
 
   .summary {
     grid-template-columns: 1fr;
+  }
+
+  .box-images-header,
+  .box-image-upload {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
