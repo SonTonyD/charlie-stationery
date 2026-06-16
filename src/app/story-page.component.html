@@ -2,18 +2,32 @@
   <a routerLink="/" class="back-link">Retour &agrave; l'accueil</a>
 
   <header class="story-hero">
-    <span>La Chap&eacute;trie</span>
-    <h1>Notre histoire</h1>
-    <p>
-      Cette papeterie est n&eacute;e gr&acirc;ce &agrave; mon amour pour la papeterie... et gr&acirc;ce &agrave;
-      mon chat.
-    </p>
+    <div class="story-hero-copy">
+      <span>La Chap&eacute;trie</span>
+      <h1>Notre histoire</h1>
+      <p>
+        Cette papeterie est n&eacute;e gr&acirc;ce &agrave; mon amour pour la papeterie... et gr&acirc;ce &agrave;
+        mon chat.
+      </p>
+    </div>
+
+    <div class="story-hero-visual" aria-hidden="true">
+      <div class="story-portrait">
+        <img src="/hero-image-3.jpeg" alt="" />
+      </div>
+      <span class="paper-note paper-note-one"></span>
+      <span class="paper-note paper-note-two"></span>
+      <span class="story-orbit story-orbit-one"></span>
+      <span class="story-orbit story-orbit-two"></span>
+    </div>
   </header>
 
   <article class="story-content" aria-label="Notre histoire">
+    <div class="story-thread" aria-hidden="true"></div>
+
     <section class="story-panel story-panel-featured">
       <div class="story-marker" aria-hidden="true">01</div>
-      <div>
+      <div class="story-panel-copy">
         <h2>Une pr&eacute;sence de chaque jour</h2>
         <p>
           Il a fait partie de mon quotidien pendant 16 ann&eacute;es. Il a toujours &eacute;t&eacute;
@@ -34,7 +48,7 @@
 
     <section class="story-panel">
       <div class="story-marker" aria-hidden="true">02</div>
-      <div>
+      <div class="story-panel-copy">
         <h2>Transformer l'absence</h2>
         <p>
           Quand il est parti, j'ai eu beaucoup de mal &agrave; imaginer qu'il ne ferait
@@ -57,7 +71,7 @@
 
     <section class="story-panel">
       <div class="story-marker" aria-hidden="true">03</div>
-      <div>
+      <div class="story-panel-copy">
         <h2>Cr&eacute;er avec le c&oelig;ur</h2>
         <p>
           Comme j'ai toujours ador&eacute; la papeterie et tous ces petits objets qu'on
