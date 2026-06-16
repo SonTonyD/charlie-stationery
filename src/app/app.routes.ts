@@ -9,9 +9,11 @@ import { CheckoutSuccessComponent } from './checkout-success.component';
 import { CustomBoxBuilderComponent } from './custom-box-builder.component';
 import { HomeComponent } from './home.component';
 import { LegalPageComponent } from './legal-page.component';
+import { StoryPageComponent } from './story-page.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'notre-histoire', component: StoryPageComponent },
   { path: 'box/:id', component: BoxDetailComponent },
   { path: 'admin/login', component: AdminLoginComponent },
   { path: 'admin', component: AdminComponent, canActivate: [adminAuthGuard] },

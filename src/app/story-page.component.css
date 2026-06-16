@@ -1,0 +1,191 @@
+.story-page {
+  width: min(1060px, calc(100% - 40px));
+  min-height: calc(100vh - 180px);
+  margin: 0 auto;
+  padding: 48px 0 84px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 32px;
+  color: #76529a;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.story-hero {
+  position: relative;
+  margin-bottom: 28px;
+  padding: clamp(34px, 7vw, 72px);
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.96),
+      rgba(250, 241, 247, 0.94) 50%,
+      rgba(232, 250, 246, 0.9)
+    ),
+    url("/hero-image-3.jpeg") right 12% center / min(34vw, 340px) no-repeat;
+  border: 1px solid rgba(176, 113, 203, 0.16);
+  border-radius: 24px;
+  box-shadow: 0 20px 48px rgba(111, 80, 150, 0.13);
+}
+
+.story-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.95), transparent 18%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0) 58%, #ffffff 100%);
+  opacity: 0.64;
+  pointer-events: none;
+}
+
+.story-hero span,
+.story-hero h1,
+.story-hero p {
+  position: relative;
+  z-index: 1;
+}
+
+.story-hero span {
+  color: #689588;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.story-hero h1 {
+  max-width: 640px;
+  margin: 10px 0 14px;
+  color: #4f365c;
+  font-family: "Parisienne", cursive;
+  font-size: clamp(3.8rem, 8vw, 6.2rem);
+  font-weight: 400;
+  line-height: 0.95;
+  text-transform: none;
+  text-shadow: none;
+}
+
+.story-hero p {
+  max-width: 600px;
+  color: #74677a;
+  font-size: clamp(1.04rem, 2vw, 1.22rem);
+  line-height: 1.7;
+}
+
+.story-content {
+  display: grid;
+  gap: 20px;
+}
+
+.story-panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 28px);
+  padding: clamp(24px, 4vw, 38px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(176, 113, 203, 0.18);
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(111, 80, 150, 0.08);
+}
+
+.story-panel-featured {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.94),
+    rgba(255, 245, 250, 0.94)
+  );
+}
+
+.story-marker {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #b071cb, #689588);
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(112, 80, 130, 0.2);
+}
+
+.story-content h2 {
+  margin-bottom: 12px;
+  text-align: left;
+  color: #705082;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  text-decoration: none;
+}
+
+.story-content p {
+  max-width: 760px;
+  margin: 0 0 14px;
+  color: #74677a;
+  line-height: 1.7;
+}
+
+.story-content p:last-child {
+  margin-bottom: 0;
+}
+
+.story-closing {
+  position: relative;
+  padding: clamp(28px, 5vw, 46px);
+  overflow: hidden;
+  color: #4f365c;
+  background:
+    linear-gradient(135deg, rgba(244, 239, 255, 0.95), rgba(232, 250, 246, 0.92)),
+    url("/background-image-2.jpeg") center / cover no-repeat;
+  border: 1px solid rgba(104, 149, 136, 0.18);
+  border-radius: 24px;
+  box-shadow: 0 18px 38px rgba(111, 80, 150, 0.12);
+}
+
+.story-closing::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.story-closing p {
+  position: relative;
+  max-width: 820px;
+  margin-inline: auto;
+  color: #4f365c;
+  font-size: clamp(1.08rem, 2vw, 1.24rem);
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .story-page {
+    width: min(100% - 28px, 980px);
+    padding-top: 36px;
+  }
+
+  .story-hero {
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.94),
+        rgba(250, 241, 247, 0.92) 58%,
+        rgba(232, 250, 246, 0.9)
+      ),
+      url("/hero-image-3.jpeg") right -36px bottom -42px / 180px no-repeat;
+  }
+
+  .story-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .story-marker {
+    width: 42px;
+    height: 42px;
+  }
+}
