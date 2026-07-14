@@ -16,6 +16,7 @@
   min-height: calc(100vh - 180px);
   margin: 0 auto;
   padding: 48px 0 96px;
+  font-family: "Nunito", "Poppins", sans-serif;
 }
 
 .story-page::before {
@@ -145,12 +146,14 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 40px;
-  color: var(--leaf);
-  font-size: 0.74rem;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  margin-bottom: 32px;
+  color: var(--ink);
+  font-family: "Parisienne", cursive;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
 }
 
 .story-hero-copy span::before,
@@ -164,7 +167,7 @@
 
 .story-hero h1 {
   margin: 0 0 22px;
-  color: var(--ink);
+  color: var(--leaf);
   font-family: "Parisienne", cursive;
   font-size: clamp(4.8rem, 12vw, 9.4rem);
   font-weight: 400;
@@ -177,6 +180,8 @@
   max-width: 560px;
   margin: 0;
   color: #6f5f78;
+  font-family: "Nunito", "Poppins", sans-serif;
+  font-weight: 700;
   font-size: clamp(1.12rem, 2.2vw, 1.38rem);
   line-height: 1.75;
 }
@@ -289,7 +294,7 @@
   position: relative;
   display: grid;
   width: min(780px, calc(50% + 170px));
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(16px, 3vw, 30px);
   align-items: start;
   padding: clamp(26px, 4vw, 42px);
@@ -348,44 +353,16 @@
     url("/background-image-3.jpeg") right center / 40% auto no-repeat;
 }
 
-.story-marker {
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 58px;
-  color: #ffffff;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(176, 113, 203, 0.94),
-      rgba(104, 149, 136, 0.94)
-    ),
-    #9b69ad;
-  border: 6px solid rgba(255, 255, 255, 0.78);
-  border-radius: 50%;
-  box-shadow: 0 14px 28px rgba(112, 80, 130, 0.22);
-  font-size: 0.76rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
 .story-panel-copy {
   position: relative;
-}
-
-.story-content h2 {
-  margin: 0 0 16px;
-  color: var(--ink);
-  font-size: clamp(1.55rem, 3vw, 2.05rem);
-  line-height: 1.1;
-  text-align: left;
-  text-decoration: none;
 }
 
 .story-panel-copy p {
   max-width: 700px;
   margin: 0 0 16px;
   color: #6f5f78;
+  font-family: "Nunito", "Poppins", sans-serif;
+  font-weight: 600;
   font-size: 1.02rem;
   line-height: 1.82;
 }
@@ -405,7 +382,7 @@
   overflow: hidden;
   color: var(--ink);
   background:
-    linear-gradient(135deg, rgba(79, 54, 92, 0.86), rgba(118, 82, 154, 0.72)),
+    linear-gradient(135deg, var(--leaf), rgba(98, 185, 109, 0.72)),
     url("/background-image-2.jpeg") center / cover no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.56);
   border-radius: 34px;
@@ -439,6 +416,7 @@
   max-width: 760px;
   margin: 0 auto;
   color: #ffffff;
+  font-family: "Nunito", "Poppins", sans-serif;
   font-size: clamp(1.12rem, 2vw, 1.34rem);
   line-height: 1.78;
   text-align: center;
@@ -508,11 +486,6 @@
   .story-panel {
     grid-template-columns: 1fr;
     border-radius: 24px;
-  }
-
-  .story-marker {
-    width: 48px;
-    height: 48px;
   }
 
   .story-panel-copy p,
