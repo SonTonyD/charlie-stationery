@@ -810,6 +810,9 @@ footer {
     gap: 10px;
     position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1300;
     width: 100%;
     background: white;
     padding: 15px;
