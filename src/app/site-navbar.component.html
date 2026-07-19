@@ -1,4 +1,21 @@
 <header class="navbar-shell">
+  <div class="announcement" role="img" aria-label="La Chapétrie, petit chat et cœur">
+    <div class="announcement-track" aria-hidden="true">
+      @for (group of [0, 1]; track group) {
+        <div class="announcement-group" [attr.aria-hidden]="group === 1 ? 'true' : null">
+          @for (item of [0, 1, 2, 3]; track item) {
+            <span class="announcement-item">
+              <span>La Chapétrie</span>
+              <img src="/petit_chat.png" alt="" />
+              <svg class="announcement-heart" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 20.4 4.2 13A5.2 5.2 0 0 1 11.6 5.7l.4.4.4-.4A5.2 5.2 0 0 1 19.8 13Z"></path>
+              </svg>
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </div>
   <nav class="navbar" aria-label="Navigation principale">
     <div class="navbar-left">
       <button
@@ -19,7 +36,7 @@
 
       <a
         class="instagram-button"
-        href="https://www.instagram.com/lachapetrie/"
+        href="https://www.instagram.com/lachapetrie.papeterie/reels/"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Suivre La Chapétrie sur Instagram"

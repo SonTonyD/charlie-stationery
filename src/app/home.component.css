@@ -201,7 +201,7 @@ footer {
   --hero-zoom-scale: 1.3;
   --hero-scroll-progress: 0;
 
-  margin-top: -76px;
+  margin-top: -110px;
   min-height: 100svh;
   min-height: 100vh;
   display: flex;
@@ -694,7 +694,7 @@ footer {
     --hero-scale: 1;
     --hero-zoom-scale: 1;
 
-    padding-top: 110px;
+    padding-top: 144px;
     padding-bottom: 48px;
   }
 
@@ -720,7 +720,7 @@ footer {
   .hero {
     min-height: 650px;
     align-items: flex-start;
-    padding-top: 105px;
+    padding-top: 139px;
   }
 
   .hero-text h1 {
@@ -744,10 +744,10 @@ footer {
     --hero-scale: 0.78;
     --hero-zoom-scale: 1;
 
-    margin-top: -68px;
+    margin-top: -98px;
     min-height: auto;
     display: block;
-    padding-top: 118px;
+    padding-top: 148px;
     padding-bottom: 52px;
   }
 

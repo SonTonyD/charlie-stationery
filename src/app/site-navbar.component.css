@@ -10,6 +10,69 @@
   z-index: 1200;
 }
 
+.announcement {
+  overflow: hidden;
+  height: 34px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fffafc;
+  background: #76529a;
+  box-shadow: inset 0 -1px 0 rgba(75, 44, 31, 0.16);
+}
+
+.announcement-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: announcement-scroll 24s linear infinite;
+  will-change: transform;
+}
+
+.announcement-group {
+  display: flex;
+  min-width: 100vw;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.announcement-item {
+  display: flex;
+  flex: 1 0 230px;
+  min-width: 230px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 24px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.announcement-item img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.announcement-heart {
+  width: 14px;
+  fill: #765044;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.22));
+}
+
+@keyframes announcement-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-track {
+    animation-play-state: paused;
+  }
+}
+
 .navbar {
   position: relative;
   display: grid;
@@ -55,7 +118,10 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
 }
 
 .menu-button:hover,
@@ -76,7 +142,9 @@
   height: 1.5px;
   border-radius: 999px;
   background: currentColor;
-  transition: transform 200ms ease, width 200ms ease;
+  transition:
+    transform 200ms ease,
+    width 200ms ease;
 }
 
 .menu-icon i:nth-child(2) {
@@ -106,7 +174,10 @@
   border-radius: 50%;
   color: #76529a;
   text-decoration: none;
-  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
 }
 
 .instagram-button:hover {
@@ -129,7 +200,9 @@
   font-size: clamp(2rem, 3vw, 2.55rem);
   line-height: 1;
   text-decoration: none;
-  transition: color 180ms ease, transform 180ms ease;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
 }
 
 .brand:hover {
@@ -144,7 +217,10 @@
   border: 1px solid rgba(118, 82, 154, 0.22);
   border-radius: 50%;
   text-decoration: none;
-  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
 }
 
 .cart-button:hover {
@@ -193,7 +269,10 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
-  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
 }
 
 .dropdown-menu.open {
@@ -221,7 +300,9 @@
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
-  transition: color 180ms ease, padding-left 180ms ease;
+  transition:
+    color 180ms ease,
+    padding-left 180ms ease;
 }
 
 .dropdown-menu a:last-child {
@@ -241,6 +322,27 @@
 }
 
 @media (max-width: 600px) {
+  .announcement {
+    height: 30px;
+  }
+
+  .announcement-track {
+    animation-duration: 20s;
+  }
+
+  .announcement-item {
+    flex-basis: 205px;
+    min-width: 205px;
+    gap: 9px;
+    padding: 0 18px;
+    font-size: 0.65rem;
+  }
+
+  .announcement-item img {
+    width: 21px;
+    height: 21px;
+  }
+
   .navbar {
     min-height: 68px;
     padding: 8px 14px;

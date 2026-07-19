@@ -25,7 +25,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+  font-family: "Nunito", sans-serif;
 }
 
 body {
@@ -158,11 +158,11 @@ body {
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 92px;
+  scroll-padding-top: 126px;
 }
 
 @media (max-width: 600px) {
   html {
-    scroll-padding-top: 82px;
+    scroll-padding-top: 112px;
   }
 }
