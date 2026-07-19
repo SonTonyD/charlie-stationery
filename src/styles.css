@@ -106,6 +106,36 @@ p {
   margin-bottom: 10px;
 }
 
+.delivery-scope-note {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 9px;
+  margin: 4px 0 14px;
+  padding: 9px 13px;
+  border: 1px solid rgba(118, 82, 154, 0.28);
+  border-radius: 10px;
+  color: #4f365c;
+  background: rgba(224, 204, 245, 0.62);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.delivery-scope-note::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #765044;
+  box-shadow: 0 0 0 3px rgba(118, 80, 68, 0.14);
+}
+
+.shop-delivery-note {
+  margin: -22px auto 28px;
+}
+
 /* Curseur principal : petit ours */
 body {
   cursor:

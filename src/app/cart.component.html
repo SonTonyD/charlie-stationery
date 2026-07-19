@@ -57,6 +57,9 @@
           <span>Total</span>
           <strong>{{ totalPrice | number: "1.2-2" }}EUR</strong>
         </div>
+        <p class="delivery-scope-note" role="note">
+          Livraison disponible uniquement en France
+        </p>
         <app-legal-consent
           [accepted]="legalAccepted"
           [busy]="isCheckingOut"

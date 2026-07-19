@@ -134,6 +134,58 @@
   letter-spacing: 0.04em;
 }
 
+.delivery-notice {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  border: 1px solid rgba(224, 204, 245, 0.48);
+  border-radius: 12px;
+  color: #352046;
+  background: #e0ccf5;
+  box-shadow: 0 10px 28px rgba(21, 10, 29, 0.18);
+}
+
+.delivery-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fffafc;
+  background: #765044;
+}
+
+.delivery-icon svg {
+  width: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.delivery-notice p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.delivery-notice strong {
+  color: #4f365c;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.delivery-notice p span {
+  color: #765044;
+}
+
 .footer-bottom {
   display: flex;
   align-items: center;
@@ -180,6 +232,15 @@
 
   .footer-brand {
     grid-column: auto;
+  }
+
+  .delivery-notice {
+    align-items: flex-start;
+    padding: 15px 16px;
+  }
+
+  .delivery-notice p {
+    flex-direction: column;
   }
 
   .footer-bottom {

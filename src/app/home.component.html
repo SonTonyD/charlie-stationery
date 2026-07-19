@@ -36,7 +36,14 @@
 
 <section id="shop" [class.shop-visible]="shopVisible">
   <div class="container">
-    <h2>Nos Box Disponibles <span class="heading-emoji">📦</span></h2>
+    <h2>
+      Nouveautés, box coréenne, édition limitée<span class="heading-emoji"
+        >📦</span
+      >
+    </h2>
+    <p class="delivery-scope-note shop-delivery-note" role="note">
+      Livraison disponible uniquement en France
+    </p>
     @if (loadError) {
       <p>{{ loadError }}</p>
     }
