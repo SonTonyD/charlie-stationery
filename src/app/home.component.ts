@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
-import { AdminBox, AdminEvent } from './admin/admin.models';
+import { AdminBox } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
 import { SupabaseAuthService } from './supabase/auth.service';
@@ -53,6 +53,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   addedCartBoxId: string | null = null;
   cartItemCount = 0;
   activeUpcomingIndex = 0;
+  activeUpcomingRatio = '827 / 422';
 
   private authSubscription: SupabaseSubscription | null = null;
   private cartSubscription: Subscription | null = null;
@@ -60,7 +61,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   private upcomingIntervalId: number | null = null;
 
   boxes: BoxItem[] = [];
-  events: AdminEvent[] = [];
+  upcomingSlides = ['/upcoming_slide_1.jpeg'];
+  private upcomingSlideRatios: Record<string, string> = {};
+  private nextUpcomingSlideChecked = false;
 
   reviews: Review[] = [
     {
@@ -107,7 +110,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.cartItemCount = this.cartService.getTotalQuantity();
     });
 
-    await Promise.all([this.loadFrontOfficeBoxes(), this.loadUpcomingEvents()]);
+    await this.loadFrontOfficeBoxes();
+    this.startUpcomingCarousel();
   }
 
   ngOnDestroy() {
@@ -127,7 +131,20 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   selectUpcoming(index: number) {
     this.activeUpcomingIndex = index;
+    this.updateUpcomingRatio();
     this.startUpcomingCarousel();
+  }
+
+  onUpcomingImageLoad(index: number, event: Event) {
+    const image = event.target as HTMLImageElement;
+    this.upcomingSlideRatios[this.upcomingSlides[index]] =
+      `${image.naturalWidth} / ${image.naturalHeight}`;
+
+    if (index === this.activeUpcomingIndex) {
+      this.updateUpcomingRatio();
+    }
+
+    this.discoverNextUpcomingSlide(index);
   }
 
   requestBuyBox(boxId: string) {
@@ -238,20 +255,24 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadUpcomingEvents() {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      this.events = (await this.adminMockService.getEvents()).filter(
-        (event) =>
-          event.showOnFrontOffice &&
-          (!event.eventDate ||
-            new Date(`${event.eventDate}T00:00:00`) >= today),
-      );
-      this.startUpcomingCarousel();
-    } catch {
-      this.events = [];
+  discoverNextUpcomingSlide(index: number) {
+    if (index !== this.upcomingSlides.length - 1 || this.nextUpcomingSlideChecked) {
+      return;
     }
+
+    this.nextUpcomingSlideChecked = true;
+    const nextNumber = this.upcomingSlides.length + 1;
+    const nextUrl = `/upcoming_slide_${nextNumber}.jpeg`;
+    const image = new Image();
+
+    image.onload = () => {
+      this.ngZone.run(() => {
+        this.upcomingSlides = [...this.upcomingSlides, nextUrl];
+        this.nextUpcomingSlideChecked = false;
+        this.startUpcomingCarousel();
+      });
+    };
+    image.src = nextUrl;
   }
 
   private startUpcomingCarousel() {
@@ -260,17 +281,25 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.upcomingIntervalId = null;
     }
 
-    if (this.events.length <= 1) {
+    if (this.upcomingSlides.length <= 1) {
       this.activeUpcomingIndex = 0;
+      this.updateUpcomingRatio();
       return;
     }
 
     this.upcomingIntervalId = window.setInterval(() => {
       this.ngZone.run(() => {
         this.activeUpcomingIndex =
-          (this.activeUpcomingIndex + 1) % this.events.length;
+          (this.activeUpcomingIndex + 1) % this.upcomingSlides.length;
+        this.updateUpcomingRatio();
       });
     }, 5000);
+  }
+
+  private updateUpcomingRatio() {
+    const activeSlide = this.upcomingSlides[this.activeUpcomingIndex];
+    this.activeUpcomingRatio =
+      this.upcomingSlideRatios[activeSlide] ?? this.activeUpcomingRatio;
   }
 
   private getBoxSaleTotal(box: AdminBox) {

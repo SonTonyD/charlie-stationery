@@ -565,7 +565,8 @@ footer {
 .upcoming-panel {
   position: relative;
   overflow: hidden;
-  min-height: 300px;
+  min-height: 0;
+  transition: aspect-ratio 0.35s ease;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.94),
@@ -606,55 +607,21 @@ footer {
   position: relative;
   z-index: 1;
   display: flex;
-  min-height: 300px;
+  height: 100%;
   transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .upcoming-slide {
   flex: 0 0 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 55px clamp(24px, 9vw, 120px);
-  text-align: center;
+  display: block;
+  height: 100%;
 }
 
-.upcoming-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 16px;
-  margin-bottom: 18px;
-  color: #6f947f;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.upcoming-meta time,
-.upcoming-meta span {
-  padding: 7px 12px;
-  background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(104, 149, 136, 0.18);
-  border-radius: 999px;
-}
-
-.upcoming-slide h3 {
-  max-width: 850px;
-  margin: 0 0 14px;
-  color: #705082;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1.05;
-}
-
-.upcoming-slide p {
-  max-width: 720px;
-  margin: 0;
-  color: #777080;
-  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
-  line-height: 1.6;
+.upcoming-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .upcoming-dots {
@@ -821,14 +788,6 @@ footer {
     justify-content: center;
   }
 
-  .upcoming-panel,
-  .upcoming-track {
-    min-height: 330px;
-  }
-
-  .upcoming-slide {
-    padding: 42px 22px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

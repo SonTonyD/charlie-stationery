@@ -109,7 +109,7 @@
   />
 }
 
-@if (events.length > 0) {
+@if (upcomingSlides.length > 0) {
   <section
     id="nouveautes"
     class="upcoming-section"
@@ -120,39 +120,33 @@
         <span class="upcoming-kicker">Les prochaines nouveautés</span>
       </div>
 
-      <div class="upcoming-panel">
+      <div
+        class="upcoming-panel"
+        [style.aspect-ratio]="activeUpcomingRatio"
+      >
         <div
           class="upcoming-track"
           [style.transform]="'translateX(-' + activeUpcomingIndex * 100 + '%)'"
         >
-          @for (event of events; track event.id) {
+          @for (slide of upcomingSlides; track slide; let i = $index) {
             <article class="upcoming-slide">
-              <div class="upcoming-meta">
-                @if (event.eventDate) {
-                  <time [attr.datetime]="event.eventDate">
-                    {{ event.eventDate | date: "dd.MM.yyyy" }}
-                  </time>
-                }
-                @if (event.location) {
-                  <span>{{ event.location }}</span>
-                }
-              </div>
-              <h3>{{ event.title }}</h3>
-              @if (event.description) {
-                <p>{{ event.description }}</p>
-              }
+              <img
+                [src]="slide"
+                [alt]="'Prochaine nouveauté ' + (i + 1)"
+                (load)="onUpcomingImageLoad(i, $event)"
+              />
             </article>
           }
         </div>
       </div>
 
-      @if (events.length > 1) {
+      @if (upcomingSlides.length > 1) {
         <div class="upcoming-dots" aria-label="Choisir une annonce">
-          @for (event of events; track event.id; let i = $index) {
+          @for (slide of upcomingSlides; track slide; let i = $index) {
             <button
               type="button"
               [class.active]="activeUpcomingIndex === i"
-              [attr.aria-label]="'Afficher ' + event.title"
+              [attr.aria-label]="'Afficher la nouveauté ' + (i + 1)"
               [attr.aria-current]="activeUpcomingIndex === i ? 'true' : null"
               (click)="selectUpcoming(i)"
             ></button>

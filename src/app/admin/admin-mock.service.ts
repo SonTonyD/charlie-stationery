@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import {
   AdminBox,
   AdminBoxImage,
-  AdminEvent,
   AdminProduct,
 } from './admin.models';
 import { supabase } from '../supabase/supabase.client';
@@ -19,8 +18,6 @@ interface AdminBoxPayload {
   imageUrl?: string;
   showOnFrontOffice?: boolean;
 }
-
-type AdminEventPayload = Omit<AdminEvent, 'id'>;
 
 @Injectable({ providedIn: 'root' })
 export class AdminMockService {
@@ -151,69 +148,6 @@ export class AdminMockService {
         })),
       };
     });
-  }
-
-  async getEvents() {
-    const { data, error } = await supabase
-      .from('events')
-      .select('id, title, description, event_date, location, show_on_front_office')
-      .order('event_date', { ascending: true });
-
-    if (error) {
-      throw error;
-    }
-
-    return (data ?? []).map((event) => ({
-      id: event.id,
-      title: event.title,
-      description: event.description ?? '',
-      eventDate: event.event_date ?? null,
-      location: event.location ?? '',
-      showOnFrontOffice: Boolean(event.show_on_front_office),
-    }));
-  }
-
-  async createEvent(payload: AdminEventPayload) {
-    const event: AdminEvent = {
-      id: this.generateId('evt'),
-      ...payload,
-    };
-    const { error } = await supabase.from('events').insert({
-      id: event.id,
-      title: event.title,
-      description: event.description,
-      event_date: event.eventDate || null,
-      location: event.location,
-      show_on_front_office: event.showOnFrontOffice,
-    });
-
-    if (error) {
-      throw error;
-    }
-  }
-
-  async updateEvent(eventId: string, payload: AdminEventPayload) {
-    const { error } = await supabase
-      .from('events')
-      .update({
-        title: payload.title,
-        description: payload.description,
-        event_date: payload.eventDate || null,
-        location: payload.location,
-        show_on_front_office: payload.showOnFrontOffice,
-      })
-      .eq('id', eventId);
-
-    if (error) {
-      throw error;
-    }
-  }
-
-  async deleteEvent(eventId: string) {
-    const { error } = await supabase.from('events').delete().eq('id', eventId);
-    if (error) {
-      throw error;
-    }
   }
 
   async createProduct(payload: AdminProductPayload) {

@@ -41,13 +41,6 @@
       </button>
       <button
         type="button"
-        [class.active]="activeTab === 'events'"
-        (click)="setActiveTab('events')"
-      >
-        Evenements
-      </button>
-      <button
-        type="button"
         [class.active]="activeTab === 'stocks'"
         (click)="setActiveTab('stocks')"
       >
@@ -455,117 +448,6 @@
             <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
           }
         </section>
-      </section>
-    } @else if (activeTab === "events") {
-      <section class="panel">
-        <h2>Prochains evenements</h2>
-        <p class="panel-intro">
-          Les evenements visibles et a venir defilent dans le bandeau de la
-          page d'accueil.
-        </p>
-
-        <form class="form-grid event-form" (ngSubmit)="saveEvent()">
-          <label>
-            Titre
-            <input
-              type="text"
-              name="eventTitle"
-              [(ngModel)]="eventForm.title"
-              required
-            />
-          </label>
-          <label>
-            Date
-            <input
-              type="date"
-              name="eventDate"
-              [(ngModel)]="eventForm.eventDate"
-            />
-          </label>
-          <label>
-            Lieu
-            <input
-              type="text"
-              name="eventLocation"
-              [(ngModel)]="eventForm.location"
-            />
-          </label>
-          <label class="event-description">
-            Description
-            <textarea
-              rows="3"
-              name="eventDescription"
-              [(ngModel)]="eventForm.description"
-            ></textarea>
-          </label>
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              name="eventVisible"
-              [(ngModel)]="eventForm.showOnFrontOffice"
-            />
-            Afficher sur la page d'accueil
-          </label>
-          <div class="actions">
-            <button class="btn-primary" type="submit">
-              {{ editingEventId ? "Mettre a jour" : "Ajouter" }}
-            </button>
-            @if (editingEventId) {
-              <button class="btn-ghost" type="button" (click)="cancelEventEdit()">
-                Annuler
-              </button>
-            }
-          </div>
-        </form>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Evenement</th>
-                <th>Lieu</th>
-                <th>Visible</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (event of events; track event.id) {
-                <tr>
-                  <td>
-                    {{
-                      event.eventDate
-                        ? (event.eventDate | date: "dd/MM/yyyy")
-                        : "-"
-                    }}
-                  </td>
-                  <td>
-                    <strong>{{ event.title }}</strong>
-                    @if (event.description) {
-                      <small class="table-description">
-                        {{ event.description }}
-                      </small>
-                    }
-                  </td>
-                  <td>{{ event.location || "-" }}</td>
-                  <td>{{ event.showOnFrontOffice ? "Oui" : "Non" }}</td>
-                  <td class="actions-inline">
-                    <button class="btn-ghost" type="button" (click)="editEvent(event)">
-                      Modifier
-                    </button>
-                    <button class="btn-danger" type="button" (click)="deleteEvent(event.id)">
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="5">Aucun evenement configure.</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
       </section>
     } @else if (activeTab === "stocks") {
       <section class="panel stock-panel">
