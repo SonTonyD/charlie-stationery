@@ -118,16 +118,54 @@
 }
 
 .card-link h3 {
-  transition: color 0.3s ease;
+  position: relative;
+  display: inline-block;
+  margin: 4px 0 12px;
+  padding-bottom: 8px;
+  color: #60417f;
+  font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 10px rgba(118, 82, 154, 0.14);
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.card-link h3::after {
+  content: "";
+  position: absolute;
+  right: 18%;
+  bottom: 0;
+  left: 18%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #c9a7e8, #76529a, #efb3c8);
+  opacity: 0.75;
+  transition:
+    right 0.3s ease,
+    left 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .card:hover .card-link h3 {
   color: var(--primary-purple, #8f5fd7);
+  text-shadow: 0 4px 14px rgba(143, 95, 215, 0.24);
+  transform: translateY(-1px);
+}
+
+.card:hover .card-link h3::after {
+  right: 6%;
+  left: 6%;
+  opacity: 1;
 }
 
 .box-image {
-  max-height: 170px;
-  object-fit: cover;
+  height: 280px;
+  object-fit: contain;
+  background: #f9f7ff;
   transition: transform 0.3s ease;
 }
 
