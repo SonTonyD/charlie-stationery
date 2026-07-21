@@ -204,6 +204,25 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
     this.selectedImageIndex = index;
   }
 
+  showPreviousImage() {
+    if (!this.box || this.box.images.length < 2) {
+      return;
+    }
+
+    this.selectedImageIndex =
+      (this.selectedImageIndex - 1 + this.box.images.length) %
+      this.box.images.length;
+  }
+
+  showNextImage() {
+    if (!this.box || this.box.images.length < 2) {
+      return;
+    }
+
+    this.selectedImageIndex =
+      (this.selectedImageIndex + 1) % this.box.images.length;
+  }
+
   private getBoxSaleTotal(box: AdminBox) {
     return this.toMoney(
       box.items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0),

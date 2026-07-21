@@ -28,6 +28,24 @@
                 [alt]="box.name"
                 class="main-image"
               />
+              @if (box.images.length > 1) {
+                <button
+                  type="button"
+                  class="gallery-arrow gallery-arrow-left"
+                  (click)="showPreviousImage()"
+                  aria-label="Afficher l'image précédente"
+                >
+                  &#10094;
+                </button>
+                <button
+                  type="button"
+                  class="gallery-arrow gallery-arrow-right"
+                  (click)="showNextImage()"
+                  aria-label="Afficher l'image suivante"
+                >
+                  &#10095;
+                </button>
+              }
             </div>
             <!-- Galerie petites images -->
             <div class="gallery-thumbnails">
