@@ -16,6 +16,7 @@ interface BoxDetail {
   stock: number;
   image: string;
   images: string[];
+  completeImages: string[];
   items: { productName: string; quantity: number; price: number }[];
 }
 
@@ -110,6 +111,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
           targetBox.images.length > 0
             ? targetBox.images.map((image) => image.url)
             : [targetBox.imageUrl || '/alien-box.jpeg'],
+        completeImages: targetBox.completeImages.map((image) => image.url),
         items: items,
       };
       this.selectedImageIndex = 0;

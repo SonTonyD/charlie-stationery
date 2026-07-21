@@ -25,6 +25,7 @@ export interface AdminBox {
   description: string;
   imageUrl: string;
   images: AdminBoxImage[];
+  completeImages: AdminBoxImage[];
   showOnFrontOffice: boolean;
   items: BoxProductLine[];
 }

@@ -337,6 +337,41 @@
               }
             </section>
 
+            <section class="box-images-manager complete-images-manager">
+              <div class="box-images-header">
+                <div>
+                  <h3>Upload image box complète</h3>
+                  <p>Ajoute les images présentant tous les produits de la box. Elles seront affichées dans « Contenu de la box ».</p>
+                </div>
+                <div class="box-image-upload">
+                  <input type="file" name="selectedBoxCompleteImages" accept="image/*" multiple (change)="onSelectedBoxCompleteImagesSelected($event)" />
+                  <button class="btn-primary" type="button" [disabled]="selectedBoxCompleteImageFiles.length === 0" (click)="uploadSelectedBoxCompleteImages()">Uploader</button>
+                </div>
+              </div>
+              @if (selectedBoxCompleteImageFiles.length > 0) {
+                <p class="upload-hint">{{ selectedBoxCompleteImageFiles.length }} image(s) prête(s) à être ajoutée(s).</p>
+              }
+              @if (selectedBox.completeImages.length > 0) {
+                <div class="box-images-grid complete-images-grid">
+                  @for (image of selectedBox.completeImages; track image.id; let i = $index) {
+                    <article class="box-image-card complete-image-card">
+                      <img [src]="image.url" [alt]="'Contenu de ' + selectedBox.name + ', image ' + (i + 1)" />
+                      <div class="box-image-card-body">
+                        <span>Image {{ i + 1 }}</span>
+                        <div class="box-image-actions">
+                          <button class="btn-ghost" type="button" [disabled]="i === 0" (click)="moveSelectedBoxCompleteImage(i, -1)">Monter</button>
+                          <button class="btn-ghost" type="button" [disabled]="i === selectedBox.completeImages.length - 1" (click)="moveSelectedBoxCompleteImage(i, 1)">Descendre</button>
+                          <button class="btn-danger" type="button" (click)="deleteSelectedBoxCompleteImage(image)">Supprimer</button>
+                        </div>
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <div class="box-image-empty">Aucune image de box complète ajoutée.</div>
+              }
+            </section>
+
             <div class="add-row">
               <select name="addProductId" [(ngModel)]="addProductId">
                 <option value="">Ajouter un produit existant</option>

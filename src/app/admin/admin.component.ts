@@ -75,6 +75,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     showOnFrontOffice: false,
   };
   selectedBoxImageFiles: File[] = [];
+  selectedBoxCompleteImageFiles: File[] = [];
   addProductId = '';
   restockTargets: Record<string, number> = {};
   private authSubscription: { unsubscribe: () => void } | null = null;
@@ -253,6 +254,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectedBoxImageFiles = this.getFilesFromInput(event);
   }
 
+  onSelectedBoxCompleteImagesSelected(event: Event) {
+    this.selectedBoxCompleteImageFiles = this.getFilesFromInput(event);
+  }
+
   async uploadSelectedBoxImages() {
     if (!this.selectedBoxId || this.selectedBoxImageFiles.length === 0) {
       return;
@@ -293,6 +298,41 @@ export class AdminComponent implements OnInit, OnDestroy {
     await this.runAction(() =>
       this.adminMockService.updateBoxImagesOrder(box.id, nextImages),
     );
+    this.selectBox(box.id);
+  }
+
+  async uploadSelectedBoxCompleteImages() {
+    if (!this.selectedBoxId || this.selectedBoxCompleteImageFiles.length === 0) return;
+    const boxId = this.selectedBoxId;
+    this.errorMessage = '';
+    this.isLoading = true;
+    try {
+      await this.adminMockService.uploadBoxCompleteImages(boxId, this.selectedBoxCompleteImageFiles);
+      this.selectedBoxCompleteImageFiles = [];
+      await this.refreshAll();
+      this.selectBox(boxId);
+    } catch (error) {
+      this.errorMessage = this.formatError(error);
+      this.isLoading = false;
+    }
+  }
+
+  async moveSelectedBoxCompleteImage(imageIndex: number, direction: -1 | 1) {
+    const box = this.selectedBox;
+    if (!box) return;
+    const targetIndex = imageIndex + direction;
+    if (targetIndex < 0 || targetIndex >= box.completeImages.length) return;
+    const images = [...box.completeImages];
+    const [image] = images.splice(imageIndex, 1);
+    images.splice(targetIndex, 0, image);
+    await this.runAction(() => this.adminMockService.updateBoxCompleteImagesOrder(box.id, images));
+    this.selectBox(box.id);
+  }
+
+  async deleteSelectedBoxCompleteImage(image: AdminBoxImage) {
+    const box = this.selectedBox;
+    if (!box) return;
+    await this.runAction(() => this.adminMockService.deleteBoxCompleteImage(box.id, image));
     this.selectBox(box.id);
   }
 

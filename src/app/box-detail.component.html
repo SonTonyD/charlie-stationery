@@ -159,19 +159,13 @@
                 <!-- Contenu de la box -->
                 <div class="contents-section-tab">
                   <h3>Contenu de la box</h3>
-                  <div class="contents-grid">
-                    @for (item of box.items; track item.productName) {
-                      <div class="content-card">
-                        <div class="content-icon">📦</div>
-                        <div class="content-info">
-                          <h4>{{ item.productName }}</h4>
-                          <p class="content-qty">
-                            Quantité : {{ item.quantity }}
-                          </p>
-                        </div>
-                      </div>
-                    }
-                  </div>
+                  @if (box.completeImages.length > 0) {
+                    <div class="complete-contents-gallery">
+                      @for (image of box.completeImages; track image; let i = $index) {
+                        <img [src]="image" [alt]="'Contenu de ' + box.name + ', image ' + (i + 1)" />
+                      }
+                    </div>
+                  }
                 </div>
               </div>
             }

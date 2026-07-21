@@ -59,6 +59,7 @@ export class AdminMockService {
       description: 'Selection premium orientee ecriture et deco.',
       imageUrl: '/alien-box.jpeg',
       images: [],
+      completeImages: [],
       showOnFrontOffice: true,
       items: [
         { productId: 'prd-1', quantity: 3, salePrice: 4.5 },
@@ -73,6 +74,7 @@ export class AdminMockService {
       description: 'Format compact pour petits cadeaux du quotidien.',
       imageUrl: '/alien-box.jpeg',
       images: [],
+      completeImages: [],
       showOnFrontOffice: false,
       items: [
         { productId: 'prd-1', quantity: 1, salePrice: 4.2 },
@@ -86,6 +88,7 @@ export class AdminMockService {
       description: 'Selection tendance orientee accessoires et deco.',
       imageUrl: '/alien-box.jpeg',
       images: [],
+      completeImages: [],
       showOnFrontOffice: false,
       items: [
         { productId: 'prd-2', quantity: 3, salePrice: 2.5 },
@@ -124,7 +127,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, box_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity, sale_price)',
+        'id, name, description, image_url, show_on_front_office, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity, sale_price)',
       )
       .order('name', { ascending: true });
 
@@ -134,12 +137,16 @@ export class AdminMockService {
 
     return (data ?? []).map((box) => {
       const images = this.normalizeBoxImages(box.box_images ?? []);
+      const completeImages = this.normalizeBoxImages(
+        box.box_complete_images ?? [],
+      );
       return {
         id: box.id,
         name: box.name,
         description: box.description ?? '',
         imageUrl: images[0]?.url || box.image_url || '/alien-box.jpeg',
         images,
+        completeImages,
         showOnFrontOffice: Boolean(box.show_on_front_office),
         items: (box.box_items ?? []).map((item) => ({
           productId: item.product_id,
@@ -212,6 +219,7 @@ export class AdminMockService {
       description: payload.description,
       imageUrl: payload.imageUrl || '/alien-box.jpeg',
       images: [],
+      completeImages: [],
       showOnFrontOffice: payload.showOnFrontOffice ?? false,
       items: [],
     };
@@ -252,6 +260,7 @@ export class AdminMockService {
 
   async deleteBox(boxId: string) {
     await this.deleteBoxStorageImages(boxId);
+    await this.deleteBoxCompleteStorageImages(boxId);
     const { error } = await supabase.from('boxes').delete().eq('id', boxId);
     if (error) {
       throw error;
@@ -359,6 +368,77 @@ export class AdminMockService {
 
     await this.reindexBoxImages(boxId);
     await this.syncBoxPrimaryImage(boxId);
+  }
+
+  async uploadBoxCompleteImages(boxId: string, files: File[]) {
+    if (files.length === 0) return;
+
+    const existingImages = await this.getBoxCompleteImages(boxId);
+    let nextSortOrder = existingImages.length
+      ? Math.max(...existingImages.map((image) => image.sortOrder)) + 1
+      : 0;
+    const uploadedImages: AdminBoxImage[] = [];
+
+    for (const file of files) {
+      const storagePath = this.createBoxImageStoragePath(boxId, file, 'complete');
+      const { error: uploadError } = await supabase.storage
+        .from('box-images')
+        .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('box-images')
+        .getPublicUrl(storagePath);
+      uploadedImages.push({
+        id: this.generateId('complete-img'),
+        url: publicUrl,
+        storagePath,
+        sortOrder: nextSortOrder++,
+      });
+    }
+
+    const { error } = await supabase.from('box_complete_images').insert(
+      uploadedImages.map((image) => ({
+        id: image.id,
+        box_id: boxId,
+        image_url: image.url,
+        storage_path: image.storagePath,
+        sort_order: image.sortOrder,
+      })),
+    );
+    if (error) throw error;
+  }
+
+  async updateBoxCompleteImagesOrder(boxId: string, images: AdminBoxImage[]) {
+    const { error } = await supabase.from('box_complete_images').upsert(
+      images.map((image, sortOrder) => ({
+        id: image.id,
+        box_id: boxId,
+        image_url: image.url,
+        storage_path: image.storagePath,
+        sort_order: sortOrder,
+      })),
+    );
+    if (error) throw error;
+  }
+
+  async deleteBoxCompleteImage(boxId: string, image: AdminBoxImage) {
+    if (image.storagePath) {
+      const { error } = await supabase.storage
+        .from('box-images')
+        .remove([image.storagePath]);
+      if (error) throw error;
+    }
+    const { error } = await supabase
+      .from('box_complete_images')
+      .delete()
+      .eq('id', image.id);
+    if (error) throw error;
+
+    const remainingImages = await this.getBoxCompleteImages(boxId);
+    if (remainingImages.length) {
+      await this.updateBoxCompleteImagesOrder(boxId, remainingImages);
+    }
   }
 
   async addProductToBox(boxId: string, productId: string) {
@@ -479,6 +559,16 @@ export class AdminMockService {
     return this.normalizeBoxImages(data ?? []);
   }
 
+  private async getBoxCompleteImages(boxId: string) {
+    const { data, error } = await supabase
+      .from('box_complete_images')
+      .select('id, image_url, storage_path, sort_order')
+      .eq('box_id', boxId)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return this.normalizeBoxImages(data ?? []);
+  }
+
   private async syncBoxPrimaryImage(boxId: string) {
     const images = await this.getBoxImages(boxId);
     const imageUrl = images[0]?.url || '/alien-box.jpeg';
@@ -520,10 +610,22 @@ export class AdminMockService {
     }
   }
 
-  private createBoxImageStoragePath(boxId: string, file: File) {
+  private async deleteBoxCompleteStorageImages(boxId: string) {
+    const images = await this.getBoxCompleteImages(boxId);
+    const storagePaths = images.map((image) => image.storagePath).filter(Boolean);
+    if (!storagePaths.length) return;
+    const { error } = await supabase.storage.from('box-images').remove(storagePaths);
+    if (error) throw error;
+  }
+
+  private createBoxImageStoragePath(
+    boxId: string,
+    file: File,
+    category: 'gallery' | 'complete' = 'gallery',
+  ) {
     const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const safeExtension = extension.replace(/[^a-z0-9]/g, '') || 'jpg';
-    return `boxes/${boxId}/${Date.now()}-${this.generateId('upload')}.${safeExtension}`;
+    return `boxes/${boxId}/${category}/${Date.now()}-${this.generateId('upload')}.${safeExtension}`;
   }
 
   private async ensureSeedData() {

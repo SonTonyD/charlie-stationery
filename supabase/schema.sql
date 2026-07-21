@@ -31,6 +31,18 @@ create table if not exists public.box_images (
 create index if not exists box_images_box_id_sort_order_idx
 on public.box_images(box_id, sort_order);
 
+create table if not exists public.box_complete_images (
+  id text primary key,
+  box_id text not null references public.boxes(id) on delete cascade,
+  image_url text not null,
+  storage_path text not null,
+  sort_order integer not null default 0 check (sort_order >= 0),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists box_complete_images_box_id_sort_order_idx
+on public.box_complete_images(box_id, sort_order);
+
 create table if not exists public.box_items (
   box_id text not null references public.boxes(id) on delete cascade,
   product_id text not null references public.products(id) on delete cascade,
@@ -56,6 +68,7 @@ alter column event_date drop not null;
 alter table public.products enable row level security;
 alter table public.boxes enable row level security;
 alter table public.box_images enable row level security;
+alter table public.box_complete_images enable row level security;
 alter table public.box_items enable row level security;
 alter table public.events enable row level security;
 
@@ -103,6 +116,21 @@ using (true);
 drop policy if exists "box_images_write_authenticated" on public.box_images;
 create policy "box_images_write_authenticated"
 on public.box_images
+for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "box_complete_images_select_public" on public.box_complete_images;
+create policy "box_complete_images_select_public"
+on public.box_complete_images
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "box_complete_images_write_authenticated" on public.box_complete_images;
+create policy "box_complete_images_write_authenticated"
+on public.box_complete_images
 for all
 to authenticated
 using (true)

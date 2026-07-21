@@ -387,6 +387,19 @@ td {
   background: #f3f4f6;
 }
 
+.complete-images-manager {
+  border-color: rgba(118, 82, 154, 0.35);
+}
+
+.complete-images-grid {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 230px));
+}
+
+.complete-image-card img {
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+}
+
 .box-image-card-body {
   display: grid;
   gap: 10px;
