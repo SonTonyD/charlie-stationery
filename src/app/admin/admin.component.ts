@@ -260,9 +260,30 @@ export class AdminComponent implements OnInit, OnDestroy {
       return;
     }
 
-    await this.runAction(() =>
-      this.adminMockService.updateBox(this.selectedBoxId!, payload),
-    );
+    const boxId = this.selectedBoxId;
+    const box = this.selectedBox;
+    const images = [...(box?.images ?? [])];
+    const completeImages = [...(box?.completeImages ?? [])];
+
+    await this.runAction(async () => {
+      await this.adminMockService.updateBox(boxId, payload);
+
+      const orderUpdates: Promise<unknown>[] = [];
+      if (images.length > 0) {
+        orderUpdates.push(
+          this.adminMockService.updateBoxImagesOrder(boxId, images),
+        );
+      }
+      if (completeImages.length > 0) {
+        orderUpdates.push(
+          this.adminMockService.updateBoxCompleteImagesOrder(
+            boxId,
+            completeImages,
+          ),
+        );
+      }
+      await Promise.all(orderUpdates);
+    });
   }
 
   onNewBoxImagesSelected(event: Event) {
@@ -299,7 +320,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  async moveSelectedBoxImage(imageIndex: number, direction: -1 | 1) {
+  moveSelectedBoxImage(imageIndex: number, direction: -1 | 1) {
     const box = this.selectedBox;
     if (!box) {
       return;
@@ -314,10 +335,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     const [image] = nextImages.splice(imageIndex, 1);
     nextImages.splice(targetIndex, 0, image);
 
-    await this.runAction(() =>
-      this.adminMockService.updateBoxImagesOrder(box.id, nextImages),
+    this.replaceSelectedBoxImages(
+      nextImages.map((item, sortOrder) => ({ ...item, sortOrder })),
+      'images',
     );
-    this.selectBox(box.id);
   }
 
   async uploadSelectedBoxCompleteImages() {
@@ -336,7 +357,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  async moveSelectedBoxCompleteImage(imageIndex: number, direction: -1 | 1) {
+  moveSelectedBoxCompleteImage(imageIndex: number, direction: -1 | 1) {
     const box = this.selectedBox;
     if (!box) return;
     const targetIndex = imageIndex + direction;
@@ -344,8 +365,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     const images = [...box.completeImages];
     const [image] = images.splice(imageIndex, 1);
     images.splice(targetIndex, 0, image);
-    await this.runAction(() => this.adminMockService.updateBoxCompleteImagesOrder(box.id, images));
-    this.selectBox(box.id);
+    this.replaceSelectedBoxImages(
+      images.map((item, sortOrder) => ({ ...item, sortOrder })),
+      'completeImages',
+    );
   }
 
   async deleteSelectedBoxCompleteImage(image: AdminBoxImage) {
@@ -688,6 +711,27 @@ export class AdminComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     return Array.from(input.files ?? []).filter((file) =>
       file.type.startsWith('image/'),
+    );
+  }
+
+  private replaceSelectedBoxImages(
+    images: AdminBoxImage[],
+    imageType: 'images' | 'completeImages',
+  ) {
+    if (!this.selectedBoxId) {
+      return;
+    }
+
+    this.boxes = this.boxes.map((box) =>
+      box.id === this.selectedBoxId
+        ? {
+            ...box,
+            [imageType]: images,
+            ...(imageType === 'images' && images.length > 0
+              ? { imageUrl: images[0].url }
+              : {}),
+          }
+        : box,
     );
   }
 
