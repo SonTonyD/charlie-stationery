@@ -369,7 +369,7 @@
   color: #6f5f78;
   font-family: "Nunito", sans-serif;
   font-weight: 600;
-  font-size: 1.02rem;
+  font-size: 1.25rem;
   line-height: 1.82;
 }
 
@@ -496,6 +496,6 @@
 
   .story-panel-copy p,
   .story-closing p {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 }

@@ -1,4 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription, filter } from 'rxjs';
@@ -13,6 +20,9 @@ import { SupabaseAuthService } from './supabase/auth.service';
   styleUrl: './site-navbar.component.css',
 })
 export class SiteNavbarComponent implements OnInit, OnDestroy {
+  @ViewChild('menuButton') private menuButton?: ElementRef<HTMLElement>;
+  @ViewChild('menuPanel') private menuPanel?: ElementRef<HTMLElement>;
+
   cartItemCount = 0;
   isAuthenticated = false;
   menuOpen = false;
@@ -57,6 +67,25 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
 
   closeMenu() {
     this.menuOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeMenuOnOutsideClick(event: MouseEvent) {
+    if (!this.menuOpen) {
+      return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+
+    const clickedMenuButton = this.menuButton?.nativeElement.contains(target);
+    const clickedMenuPanel = this.menuPanel?.nativeElement.contains(target);
+
+    if (!clickedMenuButton && !clickedMenuPanel) {
+      this.closeMenu();
+    }
   }
 
   private async loadSession() {

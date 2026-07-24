@@ -19,6 +19,7 @@
   <nav class="navbar" aria-label="Navigation principale">
     <div class="navbar-left">
       <button
+        #menuButton
         class="menu-button"
         type="button"
         aria-label="Ouvrir le menu"
@@ -69,7 +70,12 @@
       }
     </a>
 
-    <div id="main-menu" class="dropdown-menu" [class.open]="menuOpen">
+    <div
+      #menuPanel
+      id="main-menu"
+      class="dropdown-menu"
+      [class.open]="menuOpen"
+    >
       <span class="dropdown-kicker">Explorer</span>
       <a routerLink="/" fragment="shop" (click)="closeMenu()">
         <span>01</span>
