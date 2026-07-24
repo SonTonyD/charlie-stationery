@@ -13,11 +13,23 @@ create table if not exists public.boxes (
   description text not null default '',
   image_url text not null default '/alien-box.jpeg',
   show_on_front_office boolean not null default false,
+  sale_price numeric(10,2) not null default 0 check (sale_price >= 0),
+  purchase_price numeric(10,2) check (purchase_price is null or purchase_price >= 0),
+  stock_quantity integer not null default 0 check (stock_quantity >= 0),
   created_at timestamptz not null default now()
 );
 
 alter table public.boxes
 add column if not exists image_url text not null default '/alien-box.jpeg';
+
+alter table public.boxes
+add column if not exists sale_price numeric(10,2) not null default 0;
+
+alter table public.boxes
+add column if not exists purchase_price numeric(10,2);
+
+alter table public.boxes
+add column if not exists stock_quantity integer not null default 0;
 
 create table if not exists public.box_images (
   id text primary key,
@@ -51,6 +63,18 @@ create table if not exists public.box_items (
   created_at timestamptz not null default now(),
   primary key (box_id, product_id)
 );
+
+-- Conserve le prix actuel lors de la première migration, puis la colonne
+-- boxes.sale_price devient l'unique source de vérité.
+update public.boxes as box
+set sale_price = totals.sale_price
+from (
+  select box_id, sum(sale_price * quantity) as sale_price
+  from public.box_items
+  group by box_id
+) as totals
+where box.id = totals.box_id
+  and box.sale_price = 0;
 
 create table if not exists public.events (
   id text primary key,

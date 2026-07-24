@@ -15,6 +15,8 @@ interface AdminProductPayload {
 interface AdminBoxPayload {
   name: string;
   description: string;
+  salePrice: number;
+  purchasePrice: number | null;
   imageUrl?: string;
   showOnFrontOffice?: boolean;
 }
@@ -61,11 +63,14 @@ export class AdminMockService {
       images: [],
       completeImages: [],
       showOnFrontOffice: true,
+      salePrice: 35.1,
+      purchasePrice: 15.4,
+      stockQuantity: 5,
       items: [
-        { productId: 'prd-1', quantity: 3, salePrice: 4.5 },
-        { productId: 'prd-2', quantity: 5, salePrice: 2.4 },
-        { productId: 'prd-3', quantity: 1, salePrice: 1.2 },
-        { productId: 'prd-4', quantity: 3, salePrice: 2.8 },
+        { productId: 'prd-1', quantity: 3 },
+        { productId: 'prd-2', quantity: 5 },
+        { productId: 'prd-3', quantity: 1 },
+        { productId: 'prd-4', quantity: 3 },
       ],
     },
     {
@@ -76,10 +81,13 @@ export class AdminMockService {
       images: [],
       completeImages: [],
       showOnFrontOffice: false,
+      salePrice: 10.8,
+      purchasePrice: 4.3,
+      stockQuantity: 8,
       items: [
-        { productId: 'prd-1', quantity: 1, salePrice: 4.2 },
-        { productId: 'prd-2', quantity: 2, salePrice: 2.2 },
-        { productId: 'prd-3', quantity: 2, salePrice: 1.1 },
+        { productId: 'prd-1', quantity: 1 },
+        { productId: 'prd-2', quantity: 2 },
+        { productId: 'prd-3', quantity: 2 },
       ],
     },
     {
@@ -90,10 +98,13 @@ export class AdminMockService {
       images: [],
       completeImages: [],
       showOnFrontOffice: false,
+      salePrice: 18,
+      purchasePrice: 8.2,
+      stockQuantity: 4,
       items: [
-        { productId: 'prd-2', quantity: 3, salePrice: 2.5 },
-        { productId: 'prd-3', quantity: 4, salePrice: 1.3 },
-        { productId: 'prd-4', quantity: 2, salePrice: 3.1 },
+        { productId: 'prd-2', quantity: 3 },
+        { productId: 'prd-3', quantity: 4 },
+        { productId: 'prd-4', quantity: 2 },
       ],
     },
   ];
@@ -127,7 +138,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity, sale_price)',
+        'id, name, description, image_url, show_on_front_office, sale_price, purchase_price, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity)',
       )
       .order('name', { ascending: true });
 
@@ -148,10 +159,15 @@ export class AdminMockService {
         images,
         completeImages,
         showOnFrontOffice: Boolean(box.show_on_front_office),
+        salePrice: this.toMoney(Number(box.sale_price) || 0),
+        purchasePrice:
+          box.purchase_price === null
+            ? null
+            : this.toMoney(Number(box.purchase_price) || 0),
+        stockQuantity: Math.max(0, Math.floor(Number(box.stock_quantity) || 0)),
         items: (box.box_items ?? []).map((item) => ({
           productId: item.product_id,
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
-          salePrice: this.toMoney(Number(item.sale_price) || 0),
         })),
       };
     });
@@ -221,6 +237,9 @@ export class AdminMockService {
       images: [],
       completeImages: [],
       showOnFrontOffice: payload.showOnFrontOffice ?? false,
+      salePrice: payload.salePrice,
+      purchasePrice: payload.purchasePrice,
+      stockQuantity: 0,
       items: [],
     };
 
@@ -230,6 +249,9 @@ export class AdminMockService {
       description: box.description,
       image_url: box.imageUrl,
       show_on_front_office: box.showOnFrontOffice,
+      sale_price: box.salePrice,
+      purchase_price: box.purchasePrice,
+      stock_quantity: box.stockQuantity,
     });
 
     if (error) {
@@ -241,7 +263,7 @@ export class AdminMockService {
 
   async updateBox(
     boxId: string,
-    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice'>,
+    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice'>,
   ) {
     const { error } = await supabase
       .from('boxes')
@@ -250,6 +272,8 @@ export class AdminMockService {
         description: payload.description,
         image_url: payload.imageUrl || '/alien-box.jpeg',
         show_on_front_office: payload.showOnFrontOffice,
+        sale_price: payload.salePrice,
+        purchase_price: payload.purchasePrice,
       })
       .eq('id', boxId);
 
@@ -262,6 +286,17 @@ export class AdminMockService {
     await this.deleteBoxStorageImages(boxId);
     await this.deleteBoxCompleteStorageImages(boxId);
     const { error } = await supabase.from('boxes').delete().eq('id', boxId);
+    if (error) {
+      throw error;
+    }
+  }
+
+  async updateBoxStock(boxId: string, stockQuantity: number) {
+    const { error } = await supabase
+      .from('boxes')
+      .update({ stock_quantity: stockQuantity })
+      .eq('id', boxId);
+
     if (error) {
       throw error;
     }
@@ -476,7 +511,7 @@ export class AdminMockService {
       box_id: boxId,
       product_id: productId,
       quantity: 1,
-      sale_price: product.defaultSalePrice,
+      sale_price: 0,
     });
 
     if (error) {
@@ -487,14 +522,11 @@ export class AdminMockService {
   async updateBoxItem(
     boxId: string,
     productId: string,
-    payload: { quantity?: number; salePrice?: number },
+    payload: { quantity?: number },
   ) {
-    const updatePayload: { quantity?: number; sale_price?: number } = {};
+    const updatePayload: { quantity?: number } = {};
     if (typeof payload.quantity === 'number') {
       updatePayload.quantity = payload.quantity;
-    }
-    if (typeof payload.salePrice === 'number') {
-      updatePayload.sale_price = payload.salePrice;
     }
 
     const { error } = await supabase
@@ -674,6 +706,9 @@ export class AdminMockService {
         description: box.description,
         image_url: box.imageUrl,
         show_on_front_office: box.showOnFrontOffice,
+        sale_price: box.salePrice,
+        purchase_price: box.purchasePrice,
+        stock_quantity: box.stockQuantity,
       })),
     );
 
@@ -687,7 +722,7 @@ export class AdminMockService {
           box_id: box.id,
           product_id: item.productId,
           quantity: item.quantity,
-          sale_price: item.salePrice,
+          sale_price: 0,
         })),
       ),
     );

@@ -73,10 +73,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     try {
-      const [products, boxes] = await Promise.all([
-        this.adminMockService.getProducts(),
-        this.adminMockService.getBoxes(),
-      ]);
+      const boxes = await this.adminMockService.getBoxes();
 
       const targetBox = boxes.find((b) => b.id === boxId);
       if (!targetBox) {
@@ -84,21 +81,16 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const productById = new Map(
-        products.map((product) => [product.id, product]),
-      );
-
       const items = targetBox.items.map((item) => {
-        const product = productById.get(item.productId);
         return {
-          productName: product?.name || 'Produit inconnu',
+          productName: 'Produit',
           quantity: item.quantity,
-          price: item.salePrice,
+          price: 0,
         };
       });
 
-      const stock = this.getBoxAvailableQuantity(targetBox, productById);
-      const price = this.getBoxSaleTotal(targetBox);
+      const stock = targetBox.stockQuantity;
+      const price = targetBox.salePrice;
 
       this.box = {
         id: targetBox.id,
@@ -221,34 +213,6 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
 
     this.selectedImageIndex =
       (this.selectedImageIndex + 1) % this.box.images.length;
-  }
-
-  private getBoxSaleTotal(box: AdminBox) {
-    return this.toMoney(
-      box.items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0),
-    );
-  }
-
-  private getBoxAvailableQuantity(
-    box: AdminBox,
-    productById: Map<string, { stockQuantity: number }>,
-  ) {
-    if (box.items.length === 0) {
-      return 0;
-    }
-
-    let maxBoxes = Number.POSITIVE_INFINITY;
-
-    for (const item of box.items) {
-      const product = productById.get(item.productId);
-      const itemCapacity =
-        !product || item.quantity <= 0
-          ? 0
-          : Math.floor(product.stockQuantity / item.quantity);
-      maxBoxes = Math.min(maxBoxes, itemCapacity);
-    }
-
-    return Number.isFinite(maxBoxes) ? maxBoxes : 0;
   }
 
   private toMoney(value: number) {

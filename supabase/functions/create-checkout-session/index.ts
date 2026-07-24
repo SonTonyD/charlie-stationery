@@ -57,7 +57,7 @@ Deno.serve(async (request) => {
     const { data: boxes, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, box_images(image_url, sort_order), box_items(quantity, sale_price)',
+        'id, name, description, image_url, show_on_front_office, sale_price, box_images(image_url, sort_order)',
       )
       .in('id', boxIds);
 
@@ -74,10 +74,7 @@ Deno.serve(async (request) => {
         throw new CheckoutValidationError('Box not available', 404);
       }
 
-      const price = (box.box_items ?? []).reduce(
-        (sum, item) => sum + Number(item.sale_price ?? 0) * Number(item.quantity ?? 0),
-        0,
-      );
+      const price = Number(box.sale_price ?? 0);
       const unitAmount = Math.round(price * 100);
 
       if (unitAmount <= 0) {

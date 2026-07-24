@@ -232,21 +232,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   private async loadFrontOfficeBoxes() {
     this.loadError = '';
     try {
-      const [products, boxes] = await Promise.all([
-        this.adminMockService.getProducts(),
-        this.adminMockService.getBoxes(),
-      ]);
-      const productById = new Map(
-        products.map((product) => [product.id, product]),
-      );
+      const boxes = await this.adminMockService.getBoxes();
       const frontBoxes = boxes.filter((box) => box.showOnFrontOffice);
 
       this.boxes = frontBoxes.map((box) => ({
         id: box.id,
         name: box.name,
         description: box.description,
-        price: this.getBoxSaleTotal(box),
-        stock: this.getBoxAvailableQuantity(box, productById),
+        price: box.salePrice,
+        stock: box.stockQuantity,
         image: box.imageUrl || '/alien-box.jpeg',
       }));
     } catch {
@@ -300,34 +294,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     const activeSlide = this.upcomingSlides[this.activeUpcomingIndex];
     this.activeUpcomingRatio =
       this.upcomingSlideRatios[activeSlide] ?? this.activeUpcomingRatio;
-  }
-
-  private getBoxSaleTotal(box: AdminBox) {
-    return this.toMoney(
-      box.items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0),
-    );
-  }
-
-  private getBoxAvailableQuantity(
-    box: AdminBox,
-    productById: Map<string, { stockQuantity: number }>,
-  ) {
-    if (box.items.length === 0) {
-      return 0;
-    }
-
-    let maxBoxes = Number.POSITIVE_INFINITY;
-
-    for (const item of box.items) {
-      const product = productById.get(item.productId);
-      const itemCapacity =
-        !product || item.quantity <= 0
-          ? 0
-          : Math.floor(product.stockQuantity / item.quantity);
-      maxBoxes = Math.min(maxBoxes, itemCapacity);
-    }
-
-    return Number.isFinite(maxBoxes) ? maxBoxes : 0;
   }
 
   private toMoney(value: number) {

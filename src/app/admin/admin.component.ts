@@ -11,7 +11,7 @@ import {
 } from './admin.models';
 import { SupabaseAuthService } from '../supabase/auth.service';
 
-type AdminTab = 'products' | 'boxes' | 'stocks' | 'restock';
+type AdminTab = 'boxes' | 'stocks';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -46,7 +46,7 @@ interface StockBoxAvailability {
   styleUrl: './admin.component.css',
 })
 export class AdminComponent implements OnInit, OnDestroy {
-  activeTab: AdminTab = 'products';
+  activeTab: AdminTab = 'boxes';
   isLoading = true;
   errorMessage = '';
   currentUserEmail = '';
@@ -65,12 +65,16 @@ export class AdminComponent implements OnInit, OnDestroy {
   newBoxForm = {
     name: '',
     description: '',
+    salePrice: 0,
+    purchasePrice: null as number | null,
     imageUrl: '/alien-box.jpeg',
   };
   newBoxImageFiles: File[] = [];
   selectedBoxForm = {
     name: '',
     description: '',
+    salePrice: 0,
+    purchasePrice: null as number | null,
     imageUrl: '/alien-box.jpeg',
     showOnFrontOffice: false,
   };
@@ -174,6 +178,13 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
+  async updateBoxStock(boxId: string, value: number) {
+    const stockQuantity = Math.max(0, Math.floor(Number(value) || 0));
+    await this.runAction(() =>
+      this.adminMockService.updateBoxStock(boxId, stockQuantity),
+    );
+  }
+
   cancelProductEdit() {
     this.resetProductForm();
   }
@@ -182,6 +193,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.newBoxForm.name.trim(),
       description: this.newBoxForm.description.trim(),
+      salePrice: Math.max(0, this.toMoney(Number(this.newBoxForm.salePrice) || 0)),
+      purchasePrice: this.normalizeOptionalPrice(this.newBoxForm.purchasePrice),
       imageUrl: this.normalizeImageUrl(this.newBoxForm.imageUrl),
     };
 
@@ -202,6 +215,8 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.newBoxForm = {
         name: '',
         description: '',
+        salePrice: 0,
+        purchasePrice: null,
         imageUrl: '/alien-box.jpeg',
       };
       this.newBoxImageFiles = [];
@@ -219,6 +234,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectedBoxForm = {
       name: box?.name ?? '',
       description: box?.description ?? '',
+      salePrice: box?.salePrice ?? 0,
+      purchasePrice: box?.purchasePrice ?? null,
       imageUrl: box?.imageUrl ?? '/alien-box.jpeg',
       showOnFrontOffice: box?.showOnFrontOffice ?? false,
     };
@@ -233,6 +250,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.selectedBoxForm.name.trim(),
       description: this.selectedBoxForm.description.trim(),
+      salePrice: Math.max(0, this.toMoney(Number(this.selectedBoxForm.salePrice) || 0)),
+      purchasePrice: this.normalizeOptionalPrice(this.selectedBoxForm.purchasePrice),
       imageUrl: this.normalizeImageUrl(this.selectedBoxForm.imageUrl),
       showOnFrontOffice: this.selectedBoxForm.showOnFrontOffice,
     };
@@ -359,6 +378,8 @@ export class AdminComponent implements OnInit, OnDestroy {
         this.selectedBoxForm = {
           name: '',
           description: '',
+          salePrice: 0,
+          purchasePrice: null,
           imageUrl: '/alien-box.jpeg',
           showOnFrontOffice: false,
         };
@@ -378,6 +399,8 @@ export class AdminComponent implements OnInit, OnDestroy {
         description: box.description,
         imageUrl: box.imageUrl,
         showOnFrontOffice: !box.showOnFrontOffice,
+        salePrice: box.salePrice,
+        purchasePrice: box.purchasePrice,
       }),
     );
     this.selectBox(box.id);
@@ -407,19 +430,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     );
   }
 
-  async updateBoxItemSalePrice(item: BoxProductLine, value: number) {
-    if (!this.selectedBoxId) {
-      return;
-    }
-
-    const salePrice = Math.max(0, this.toMoney(Number(value) || 0));
-    await this.runAction(() =>
-      this.adminMockService.updateBoxItem(this.selectedBoxId!, item.productId, {
-        salePrice,
-      }),
-    );
-  }
-
   async removeProductFromSelectedBox(productId: string) {
     if (!this.selectedBoxId) {
       return;
@@ -434,28 +444,12 @@ export class AdminComponent implements OnInit, OnDestroy {
     return this.products.find((product) => product.id === productId) ?? null;
   }
 
-  getUnitMargin(item: BoxProductLine) {
-    const product = this.getProductById(item.productId);
-    if (!product) {
-      return 0;
-    }
-    return this.toMoney(item.salePrice - product.purchaseUnitPrice);
-  }
-
   getLineCost(item: BoxProductLine) {
     const product = this.getProductById(item.productId);
     if (!product) {
       return 0;
     }
     return this.toMoney(product.purchaseUnitPrice * item.quantity);
-  }
-
-  getLineSales(item: BoxProductLine) {
-    return this.toMoney(item.salePrice * item.quantity);
-  }
-
-  getLineMargin(item: BoxProductLine) {
-    return this.toMoney(this.getLineSales(item) - this.getLineCost(item));
   }
 
   getBoxCostTotal() {
@@ -519,7 +513,6 @@ export class AdminComponent implements OnInit, OnDestroy {
         const purchaseTotal = this.toMoney(
           product.purchaseUnitPrice * requiredQuantity,
         );
-        const saleTotal = this.toMoney(item.salePrice * requiredQuantity);
         const existing = linesByProduct.get(item.productId);
 
         if (existing) {
@@ -527,10 +520,8 @@ export class AdminComponent implements OnInit, OnDestroy {
             ...existing,
             requiredQuantity: existing.requiredQuantity + requiredQuantity,
             purchaseTotal: this.toMoney(existing.purchaseTotal + purchaseTotal),
-            saleTotal: this.toMoney(existing.saleTotal + saleTotal),
-            marginTotal: this.toMoney(
-              existing.marginTotal + (saleTotal - purchaseTotal),
-            ),
+            saleTotal: 0,
+            marginTotal: 0,
           });
         } else {
           linesByProduct.set(item.productId, {
@@ -538,8 +529,8 @@ export class AdminComponent implements OnInit, OnDestroy {
             productName: product.name,
             requiredQuantity,
             purchaseTotal,
-            saleTotal,
-            marginTotal: this.toMoney(saleTotal - purchaseTotal),
+            saleTotal: 0,
+            marginTotal: 0,
           });
         }
       }
@@ -637,6 +628,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     );
   }
 
+  getTotalBoxStock() {
+    return this.boxes.reduce((sum, box) => sum + box.stockQuantity, 0);
+  }
+
   async signOut() {
     try {
       await this.authService.signOut();
@@ -650,12 +645,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      const [products, boxes] = await Promise.all([
-        this.adminMockService.getProducts(),
-        this.adminMockService.getBoxes(),
-      ]);
-      this.products = products;
-      this.boxes = boxes;
+      this.boxes = await this.adminMockService.getBoxes();
+      this.products = [];
     } catch (error) {
       this.errorMessage = this.formatError(error);
       this.products = [];
@@ -683,6 +674,12 @@ export class AdminComponent implements OnInit, OnDestroy {
     return Number(value.toFixed(2));
   }
 
+  private normalizeOptionalPrice(value: number | null) {
+    return value === null || value === undefined || value === ('' as unknown as number)
+      ? null
+      : Math.max(0, this.toMoney(Number(value) || 0));
+  }
+
   private normalizeImageUrl(imageUrl: string) {
     return imageUrl.trim() || '/alien-box.jpeg';
   }
@@ -695,15 +692,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   private getBoxPurchaseTotal(box: AdminBox) {
-    return this.toMoney(
-      box.items.reduce((sum, item) => sum + this.getLineCost(item), 0),
-    );
+    return box.purchasePrice ?? 0;
   }
 
   private getBoxSaleTotal(box: AdminBox) {
-    return this.toMoney(
-      box.items.reduce((sum, item) => sum + this.getLineSales(item), 0),
-    );
+    return box.salePrice;
   }
 
   private synchronizeRestockTargets() {

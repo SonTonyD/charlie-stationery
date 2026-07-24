@@ -9,7 +9,6 @@ export interface AdminProduct {
 export interface BoxProductLine {
   productId: string;
   quantity: number;
-  salePrice: number;
 }
 
 export interface AdminBoxImage {
@@ -27,5 +26,8 @@ export interface AdminBox {
   images: AdminBoxImage[];
   completeImages: AdminBoxImage[];
   showOnFrontOffice: boolean;
+  salePrice: number;
+  purchasePrice: number | null;
+  stockQuantity: number;
   items: BoxProductLine[];
 }
