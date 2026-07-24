@@ -37,7 +37,7 @@
 <section id="shop" [class.shop-visible]="shopVisible">
   <div class="container">
     <h2>
-      Nouveautés, box coréenne, édition limitée<span class="heading-emoji"
+      Nouveautés : box coréenne - édition limitée<span class="heading-emoji"
         >📦</span
       >
     </h2>
@@ -120,10 +120,7 @@
         <span class="upcoming-kicker">Les prochaines nouveautés</span>
       </div>
 
-      <div
-        class="upcoming-panel"
-        [style.aspect-ratio]="activeUpcomingRatio"
-      >
+      <div class="upcoming-panel" [style.aspect-ratio]="activeUpcomingRatio">
         <div
           class="upcoming-track"
           [style.transform]="'translateX(-' + activeUpcomingIndex * 100 + '%)'"
