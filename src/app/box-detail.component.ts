@@ -6,7 +6,6 @@ import { AdminMockService } from './admin/admin-mock.service';
 import { AdminBox } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
-import { supabase } from './supabase/supabase.client';
 
 interface BoxDetail {
   id: string;
@@ -133,28 +132,9 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loadError = '';
-    this.checkoutInProgress = true;
-
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        'create-checkout-session',
-        {
-          body: { boxId: this.box.id, legalAccepted: true },
-        },
-      );
-
-      if (error || !data?.url) {
-        this.loadError = 'Le paiement est indisponible pour le moment.';
-        return;
-      }
-
-      window.location.assign(data.url);
-    } catch {
-      this.loadError = 'Le paiement est indisponible pour le moment.';
-    } finally {
-      this.checkoutInProgress = false;
-    }
+    const boxId = this.box.id;
+    this.showLegalConsent = false;
+    await this.router.navigate(['/livraison'], { queryParams: { boxId } });
   }
 
   addToCart() {

@@ -106,6 +106,30 @@ p {
   margin-bottom: 10px;
 }
 
+/* Le composant Boxtal injecte l'iframe après le rendu Angular : ces règles
+   doivent donc rester globales pour que la carte remplisse son conteneur. */
+#boxtal-parcel-map {
+  width: 100%;
+  height: 520px;
+  min-height: 520px;
+}
+
+#boxtal-parcel-map iframe {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 520px;
+  border: 0;
+}
+
+@media (max-width: 700px) {
+  #boxtal-parcel-map,
+  #boxtal-parcel-map iframe {
+    height: 620px;
+    min-height: 620px;
+  }
+}
+
 .delivery-scope-note {
   display: flex;
   width: fit-content;

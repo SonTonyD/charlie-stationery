@@ -6,12 +6,14 @@ import { AdminMockService } from './admin-mock.service';
 import {
   AdminBox,
   AdminBoxImage,
+  AdminOrder,
   AdminProduct,
   BoxProductLine,
+  OrderStatus,
 } from './admin.models';
 import { SupabaseAuthService } from '../supabase/auth.service';
 
-type AdminTab = 'boxes' | 'stocks';
+type AdminTab = 'boxes' | 'stocks' | 'orders';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -53,6 +55,15 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   products: AdminProduct[] = [];
   boxes: AdminBox[] = [];
+  orders: AdminOrder[] = [];
+  readonly orderStatuses: { value: OrderStatus; label: string }[] = [
+    { value: 'pending_payment', label: 'En attente de paiement' },
+    { value: 'paid', label: 'Payée' },
+    { value: 'preparing', label: 'En préparation' },
+    { value: 'shipped', label: 'Expédiée' },
+    { value: 'delivered', label: 'Livrée' },
+    { value: 'cancelled', label: 'Annulée' },
+  ];
 
   editingProductId: string | null = null;
   productForm = {
@@ -119,6 +130,25 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   setActiveTab(tab: AdminTab) {
     this.activeTab = tab;
+  }
+
+  async updateOrderStatus(orderId: string, status: OrderStatus) {
+    await this.runAction(() => this.adminMockService.updateOrderStatus(orderId, status));
+  }
+
+  relayDescription(order: AdminOrder) {
+    if (!order.relayPoint) return '—';
+    const point = order.relayPoint;
+    return [
+      point['name'] ?? point['label'] ?? point['parcelPointName'],
+      point['address'] ?? point['street'],
+      point['zipCode'] ?? point['postalCode'],
+      point['city'],
+    ].filter(Boolean).join(' · ') || JSON.stringify(point);
+  }
+
+  orderItemsLabel(order: AdminOrder) {
+    return order.items.map((item) => `${item.name} × ${item.quantity}`).join(', ');
   }
 
   setRestockTarget(boxId: string, value: number) {
@@ -668,12 +698,16 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      this.boxes = await this.adminMockService.getBoxes();
+      [this.boxes, this.orders] = await Promise.all([
+        this.adminMockService.getBoxes(),
+        this.adminMockService.getOrders(),
+      ]);
       this.products = [];
     } catch (error) {
       this.errorMessage = this.formatError(error);
       this.products = [];
       this.boxes = [];
+      this.orders = [];
     } finally {
       this.isLoading = false;
     }

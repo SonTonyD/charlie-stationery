@@ -86,6 +86,35 @@ create table if not exists public.events (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  stripe_session_id text unique,
+  status text not null default 'pending_payment'
+    check (status in ('pending_payment', 'paid', 'preparing', 'shipped', 'delivered', 'cancelled')),
+  customer_first_name text not null,
+  customer_last_name text not null,
+  customer_email text not null,
+  customer_phone text,
+  delivery_method text not null
+    check (delivery_method in ('mondial_relay_pickup', 'laposte_pickup', 'mondial_relay_home', 'laposte_home')),
+  delivery_carrier text not null,
+  delivery_mode text not null check (delivery_mode in ('pickup', 'home')),
+  delivery_price numeric(10,2) not null check (delivery_price >= 0),
+  delivery_address text,
+  delivery_postal_code text,
+  delivery_city text,
+  relay_point jsonb,
+  items jsonb not null,
+  items_total numeric(10,2) not null check (items_total >= 0),
+  total numeric(10,2) not null check (total >= 0),
+  paid_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists orders_created_at_idx on public.orders(created_at desc);
+create index if not exists orders_status_idx on public.orders(status);
+
 alter table public.events
 alter column event_date drop not null;
 
@@ -95,6 +124,7 @@ alter table public.box_images enable row level security;
 alter table public.box_complete_images enable row level security;
 alter table public.box_items enable row level security;
 alter table public.events enable row level security;
+alter table public.orders enable row level security;
 
 insert into storage.buckets (id, name, public)
 values ('box-images', 'box-images', true)
@@ -189,6 +219,14 @@ for all
 to authenticated
 using (true)
 with check (true);
+
+drop policy if exists "orders_select_authenticated" on public.orders;
+create policy "orders_select_authenticated"
+on public.orders for select to authenticated using (true);
+
+drop policy if exists "orders_update_authenticated" on public.orders;
+create policy "orders_update_authenticated"
+on public.orders for update to authenticated using (true) with check (true);
 
 drop policy if exists "box_images_storage_select_public" on storage.objects;
 create policy "box_images_storage_select_public"

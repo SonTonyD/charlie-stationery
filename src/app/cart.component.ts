@@ -3,13 +3,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CartItem, CartService } from './cart.service';
+import { DeliveryFormComponent } from './delivery-form.component';
 import { LegalConsentComponent } from './legal-consent.component';
-import { supabase } from './supabase/supabase.client';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterLink, LegalConsentComponent],
+  imports: [CommonModule, RouterLink, LegalConsentComponent, DeliveryFormComponent],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css',
 })
@@ -42,10 +42,6 @@ export class CartComponent implements OnInit, OnDestroy {
     return this.cartService.getTotalPrice();
   }
 
-  get canCheckout() {
-    return this.items.length > 0 && this.legalAccepted && !this.isCheckingOut;
-  }
-
   increment(boxId: string) {
     this.cartService.increment(boxId);
   }
@@ -62,39 +58,12 @@ export class CartComponent implements OnInit, OnDestroy {
     return Number((item.unitPrice * item.quantity).toFixed(2));
   }
 
-  async checkout() {
-    if (!this.canCheckout) {
-      return;
-    }
-
-    this.errorMessage = '';
+  checkoutStarted() {
     this.isCheckingOut = true;
+    this.cartService.markCheckoutStarted();
+  }
 
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        'create-checkout-session',
-        {
-          body: {
-            legalAccepted: true,
-            items: this.items.map((item) => ({
-              boxId: item.boxId,
-              quantity: item.quantity,
-            })),
-          },
-        },
-      );
-
-      if (error || !data?.url) {
-        this.errorMessage = 'Le paiement est indisponible pour le moment.';
-        return;
-      }
-
-      this.cartService.markCheckoutStarted();
-      window.location.assign(data.url);
-    } catch {
-      this.errorMessage = 'Le paiement est indisponible pour le moment.';
-    } finally {
-      this.isCheckingOut = false;
-    }
+  checkoutFinished() {
+    this.isCheckingOut = false;
   }
 }

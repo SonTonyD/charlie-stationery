@@ -44,9 +44,13 @@ Deno.serve(async (request) => {
     }
 
     const checkoutItems = normalizeCheckoutItems(body);
+    const delivery = normalizeDelivery(body);
 
     if (checkoutItems.length === 0) {
       return jsonResponse({ error: 'At least one checkout item is required' }, 400);
+    }
+    if (!delivery) {
+      return jsonResponse({ error: 'Les informations de livraison sont incomplètes' }, 400);
     }
 
     const boxIds = checkoutItems.map((item) => item.boxId);
@@ -69,7 +73,9 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: 'One or more boxes are not available' }, 404);
     }
 
-    const lineItems = boxes.map((box) => {
+    let itemsTotalCents = 0;
+    const orderItems: Record<string, unknown>[] = [];
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = boxes.map((box) => {
       if (!box.show_on_front_office) {
         throw new CheckoutValidationError('Box not available', 404);
       }
@@ -80,6 +86,9 @@ Deno.serve(async (request) => {
       if (unitAmount <= 0) {
         throw new CheckoutValidationError('Box price is invalid', 400);
       }
+      const quantity = quantityByBoxId.get(box.id) ?? 1;
+      itemsTotalCents += unitAmount * quantity;
+      orderItems.push({ boxId: box.id, name: box.name, unitPrice: price, quantity });
 
       const primaryImage =
         [...(box.box_images ?? [])].sort(
@@ -96,9 +105,38 @@ Deno.serve(async (request) => {
           },
           unit_amount: unitAmount,
         },
-        quantity: quantityByBoxId.get(box.id) ?? 1,
+        quantity,
       };
     });
+
+    lineItems.push({
+      price_data: {
+        currency: 'eur',
+        product_data: { name: `Livraison — ${delivery.carrier} (${delivery.modeLabel})` },
+        unit_amount: delivery.priceCents,
+      },
+      quantity: 1,
+    });
+
+    const { data: order, error: orderError } = await supabase.from('orders').insert({
+      status: 'pending_payment',
+      customer_first_name: delivery.firstName,
+      customer_last_name: delivery.lastName,
+      customer_email: delivery.email,
+      customer_phone: delivery.phone,
+      delivery_method: delivery.method,
+      delivery_carrier: delivery.carrier,
+      delivery_mode: delivery.mode,
+      delivery_price: delivery.priceCents / 100,
+      delivery_address: delivery.address,
+      delivery_postal_code: delivery.postalCode,
+      delivery_city: delivery.city,
+      relay_point: delivery.relayPoint,
+      items: orderItems,
+      items_total: itemsTotalCents / 100,
+      total: (itemsTotalCents + delivery.priceCents) / 100,
+    }).select('id').single();
+    if (orderError || !order) throw orderError ?? new Error('Unable to create order');
 
     const metadata: Record<string, string> = {
       box_ids: checkoutItems.map((item) => item.boxId).join(','),
@@ -106,6 +144,8 @@ Deno.serve(async (request) => {
       legal_accepted: 'true',
       legal_accepted_at: new Date().toISOString(),
       legal_documents: 'cgv,cgu,politique-confidentialite,mentions-legales',
+      order_id: order.id,
+      delivery_method: delivery.method,
     };
 
     if (checkoutItems.length === 1) {
@@ -118,7 +158,14 @@ Deno.serve(async (request) => {
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout/cancel`,
       metadata,
+      customer_email: delivery.email,
     });
+
+    const { error: sessionUpdateError } = await supabase
+      .from('orders')
+      .update({ stripe_session_id: session.id })
+      .eq('id', order.id);
+    if (sessionUpdateError) throw sessionUpdateError;
 
     return jsonResponse({ url: session.url });
   } catch (error) {
@@ -175,6 +222,37 @@ function normalizeCheckoutItems(body: unknown) {
     boxId,
     quantity,
   }));
+}
+
+const deliveryMethods = {
+  mondial_relay_pickup: { carrier: 'Mondial Relay', mode: 'pickup', modeLabel: 'point relais', priceCents: 490 },
+  laposte_pickup: { carrier: 'La Poste', mode: 'pickup', modeLabel: 'point relais', priceCents: 490 },
+  mondial_relay_home: { carrier: 'Mondial Relay', mode: 'home', modeLabel: 'à domicile', priceCents: 790 },
+  laposte_home: { carrier: 'La Poste', mode: 'home', modeLabel: 'à domicile', priceCents: 790 },
+} as const;
+
+function normalizeDelivery(body: unknown) {
+  if (!body || typeof body !== 'object' || !('delivery' in body) || !body.delivery || typeof body.delivery !== 'object') return null;
+  const value = body.delivery as Record<string, unknown>;
+  const method = typeof value['method'] === 'string' ? value['method'] : '';
+  if (!(method in deliveryMethods)) return null;
+  const config = deliveryMethods[method as keyof typeof deliveryMethods];
+  const firstName = text(value['firstName']);
+  const lastName = text(value['lastName']);
+  const email = text(value['email']).toLowerCase();
+  if (!firstName || !lastName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  const phone = text(value['phone']) || null;
+  const address = text(value['address']) || null;
+  const postalCode = text(value['postalCode']) || null;
+  const city = text(value['city']) || null;
+  const relayPoint = value['relayPoint'] && typeof value['relayPoint'] === 'object' ? value['relayPoint'] : null;
+  if (config.mode === 'pickup' && (!relayPoint || !postalCode || !city)) return null;
+  if (config.mode === 'home' && (!phone || !address || !postalCode || !/^\d{5}$/.test(postalCode) || !city)) return null;
+  return { method, ...config, firstName, lastName, email, phone, address, postalCode, city, relayPoint };
+}
+
+function text(value: unknown) {
+  return typeof value === 'string' ? value.trim().slice(0, 300) : '';
 }
 
 function hasAcceptedLegalDocuments(body: unknown) {

@@ -1,0 +1,57 @@
+<section class="delivery-card" aria-labelledby="delivery-title">
+  <div class="section-heading">
+    <span class="step-number">1</span>
+    <div><h2 id="delivery-title">Choisissez votre livraison</h2><p>France métropolitaine uniquement</p></div>
+  </div>
+
+  <div class="method-grid">
+    @for (method of methods; track method.id) {
+      <button type="button" class="method-card" [class.selected]="selectedMethodId === method.id"
+        (click)="selectMethod(method.id)" [attr.aria-pressed]="selectedMethodId === method.id">
+        <span class="method-icon">{{ method.mode === "Point relais" ? "⌖" : "⌂" }}</span>
+        <span><strong>{{ method.carrier }}</strong><small>{{ method.mode }}</small></span>
+        <b>{{ method.price | number: "1.2-2" }} €</b>
+      </button>
+    }
+  </div>
+
+  @if (isPickup) {
+    <div class="relay-search">
+      <div class="section-heading compact"><span class="step-number">2</span><div><h3>Trouvez votre point relais</h3><p>Réseau {{ selectedMethod.carrier }}</p></div></div>
+      <div class="inline-fields">
+        <label>Code postal<input name="relayPostalCode" inputmode="numeric" maxlength="5" [(ngModel)]="form.postalCode" placeholder="69003" /></label>
+        <label>Ville<input name="relayCity" [(ngModel)]="form.city" placeholder="Lyon" /></label>
+        <button type="button" class="secondary-button" (click)="searchRelayPoints()">Rechercher</button>
+      </div>
+      <div id="boxtal-parcel-map" class="boxtal-map" [class.loading]="isMapLoading"></div>
+      @if (mapMessage) { <p class="form-note">{{ mapMessage }}</p> }
+      @if (relayPoint) { <p class="relay-selected"><span>✓</span><strong>{{ relayPointLabel }}</strong> sélectionné</p> }
+    </div>
+  }
+
+  <div class="customer-form">
+    <div class="section-heading compact"><span class="step-number">{{ isPickup ? "3" : "2" }}</span><div><h3>Vos coordonnées</h3><p>Pour le suivi de votre commande</p></div></div>
+    <div class="form-grid">
+      <label>Prénom<input name="deliveryFirstName" autocomplete="given-name" [(ngModel)]="form.firstName" required /></label>
+      <label>Nom<input name="deliveryLastName" autocomplete="family-name" [(ngModel)]="form.lastName" required /></label>
+      <label class="wide">Adresse e-mail<input type="email" name="deliveryEmail" autocomplete="email" [(ngModel)]="form.email" required /></label>
+      @if (!isPickup) {
+        <label class="wide">Adresse<input name="deliveryAddress" autocomplete="street-address" [(ngModel)]="form.address" required /></label>
+        <label>Code postal<input name="deliveryPostalCode" maxlength="5" inputmode="numeric" autocomplete="postal-code" [(ngModel)]="form.postalCode" required /></label>
+        <label>Ville<input name="deliveryCity" autocomplete="address-level2" [(ngModel)]="form.city" required /></label>
+        <label class="wide">Téléphone<input type="tel" name="deliveryPhone" autocomplete="tel" [(ngModel)]="form.phone" required /></label>
+      }
+    </div>
+  </div>
+
+  <div class="price-summary">
+    <div><span>Sous-total articles</span><strong>{{ itemsTotal | number: "1.2-2" }} €</strong></div>
+    <div><span>Livraison — {{ selectedMethod.carrier }}, {{ selectedMethod.mode | lowercase }}</span><strong>{{ selectedMethod.price | number: "1.2-2" }} €</strong></div>
+    <div class="grand-total"><span>Total à payer</span><strong>{{ grandTotal | number: "1.2-2" }} €</strong></div>
+  </div>
+  @if (errorMessage) { <p class="form-error">{{ errorMessage }}</p> }
+  <button type="button" class="pay-button" [disabled]="!canCheckout" (click)="checkout()">
+    {{ isCheckingOut ? "Redirection vers Stripe…" : "Payer " + (grandTotal | number: "1.2-2") + " €" }}
+  </button>
+  @if (!legalAccepted) { <p class="form-note centered">Acceptez les conditions ci-dessus pour continuer.</p> }
+</section>

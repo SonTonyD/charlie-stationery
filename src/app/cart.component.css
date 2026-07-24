@@ -54,6 +54,11 @@ section {
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
 }
 
+.cart-delivery {
+  max-width: 850px;
+  margin-top: 28px;
+}
+
 .cart-line {
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr) auto auto auto;

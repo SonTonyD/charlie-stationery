@@ -54,7 +54,7 @@
           <strong>{{ totalQuantity }}</strong>
         </div>
         <div class="summary-row">
-          <span>Total</span>
+          <span>Sous-total</span>
           <strong>{{ totalPrice | number: "1.2-2" }}EUR</strong>
         </div>
         <p class="delivery-scope-note" role="note">
@@ -65,15 +65,16 @@
           [busy]="isCheckingOut"
           (acceptedChange)="legalAccepted = $event"
         />
-        <button
-          class="checkout-button"
-          type="button"
-          [disabled]="!canCheckout"
-          (click)="checkout()"
-        >
-          {{ isCheckingOut ? "Redirection..." : "Passer au paiement" }}
-        </button>
       </aside>
+    </section>
+    <section class="cart-delivery">
+      <app-delivery-form
+        [items]="items"
+        [itemsTotal]="totalPrice"
+        [legalAccepted]="legalAccepted"
+        (checkoutStarted)="checkoutStarted()"
+        (checkoutFinished)="checkoutFinished()"
+      />
     </section>
   } @else {
     <section class="empty-cart">

@@ -276,3 +276,27 @@ Chaque composant route possede son CSS local, sauf les pages checkout qui ont le
 - Le nom `AdminMockService` est trompeur : il parle bien a Supabase.
 - Le builder personnalise n'est pas encore connecte a Supabase ni a Stripe.
 - Certaines chaines visibles contiennent des caracteres accentues mal encodes dans les sources actuelles.
+# Livraison, Boxtal et commandes
+
+Le checkout propose quatre tarifs fixes, recalculés côté serveur :
+
+- point relais Mondial Relay ou La Poste : 4,90 € ;
+- domicile Mondial Relay ou La Poste : 7,90 €.
+
+Pour activer cette fonctionnalité :
+
+1. Exécuter `supabase/schema.sql` dans l’éditeur SQL Supabase.
+2. Créer une application « composant carte » dans l’espace développeur Boxtal,
+   puis ajouter ses identifiants aux secrets Supabase sous les noms
+   `BOXTAL_MAP_ACCESS_KEY` et `BOXTAL_MAP_SECRET_KEY`. La fonction serveur les
+   échange contre un jeton temporaire via `/iam/account-app/token`; la Secret
+   Key n'est jamais envoyée au navigateur.
+3. Déployer `boxtal-map-token`, `create-checkout-session` et `stripe-webhook`.
+4. Dans Stripe, créer un webhook vers
+   `https://<project-ref>.supabase.co/functions/v1/stripe-webhook` pour les
+   événements `checkout.session.completed` et `checkout.session.expired`, puis
+   enregistrer son secret sous `STRIPE_WEBHOOK_SECRET`.
+
+Les autres secrets requis restent `STRIPE_SECRET_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY` et `SITE_URL`. Les commandes payées apparaissent
+dans **Back Office → Commandes** ; leur statut peut y être changé manuellement.

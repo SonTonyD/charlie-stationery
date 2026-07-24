@@ -55,6 +55,9 @@
   color: #ffffff;
 }
 
+.tab-count{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-left:6px;padding:0 5px;border-radius:999px;background:#fff;color:#6a36a5;font-size:.75rem}
+.orders-panel{overflow:hidden}.orders-heading{display:flex;justify-content:space-between;align-items:center}.orders-table{min-width:1100px}.orders-table td{vertical-align:top}.orders-table td strong,.orders-table td small{display:block}.orders-table td small{margin-top:5px;color:#6b6174;max-width:270px;white-space:normal}.orders-table select{min-width:170px;border:1px solid #d5c8df;border-radius:8px;padding:8px;background:#fff}
+
 .panel {
   background: #ffffff;
   border: 1px solid #e5e7eb;

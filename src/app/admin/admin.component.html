@@ -39,6 +39,10 @@
       >
         Stocks
       </button>
+      <button type="button" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
+        Commandes
+        @if (orders.length) { <span class="tab-count">{{ orders.length }}</span> }
+      </button>
     </section>
 
     @if (activeTab === "boxes") {
@@ -398,7 +402,7 @@
         </div>
 
       </section>
-    } @else {
+    
       <section class="panel restock-panel">
         <div class="restock-head">
           <div>
@@ -519,6 +523,34 @@
             </p>
           }
         }
+      </section>
+    } @else if (activeTab === "orders") {
+      <section class="panel orders-panel">
+        <div class="orders-heading"><div><h2>Commandes</h2><p>Informations nécessaires à la préparation et à l’expédition.</p></div></div>
+        @if (orders.length) {
+          <div class="table-wrap">
+            <table class="orders-table">
+              <thead><tr><th>Date / commande</th><th>Client</th><th>Articles</th><th>Livraison</th><th>Total</th><th>État</th></tr></thead>
+              <tbody>
+                @for (order of orders; track order.id) {
+                  <tr>
+                    <td><strong>{{ order.createdAt | date:"dd/MM/yyyy HH:mm" }}</strong><small>#{{ order.id.slice(0, 8) }}</small></td>
+                    <td><strong>{{ order.customerName }}</strong><small>{{ order.customerEmail }}</small>@if(order.customerPhone){<small>{{ order.customerPhone }}</small>}</td>
+                    <td><span>{{ orderItemsLabel(order) }}</span></td>
+                    <td><strong>{{ order.deliveryCarrier }} — {{ order.deliveryMode === "pickup" ? "Point relais" : "Domicile" }}</strong>
+                      @if(order.deliveryMode === "pickup"){<small>{{ relayDescription(order) }}</small>}
+                      @else {<small>{{ order.deliveryAddress }}, {{ order.deliveryPostalCode }} {{ order.deliveryCity }}</small>}
+                    </td>
+                    <td><strong>{{ order.total | number:"1.2-2" }} €</strong><small>dont {{ order.deliveryPrice | number:"1.2-2" }} € de livraison</small></td>
+                    <td><select [ngModel]="order.status" (ngModelChange)="updateOrderStatus(order.id, $event)">
+                      @for (status of orderStatuses; track status.value) { <option [ngValue]="status.value">{{ status.label }}</option> }
+                    </select></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else { <p>Aucune commande pour le moment.</p> }
       </section>
     }
   }

@@ -8,6 +8,7 @@ import { CheckoutCancelComponent } from './checkout-cancel.component';
 import { CheckoutSuccessComponent } from './checkout-success.component';
 import { CustomBoxBuilderComponent } from './custom-box-builder.component';
 import { HomeComponent } from './home.component';
+import { DeliveryPageComponent } from './delivery-page.component';
 import { LegalPageComponent } from './legal-page.component';
 import { StoryPageComponent } from './story-page.component';
 
@@ -18,6 +19,7 @@ export const routes: Routes = [
   { path: 'admin/login', component: AdminLoginComponent },
   { path: 'admin', component: AdminComponent, canActivate: [adminAuthGuard] },
   { path: 'panier', component: CartComponent },
+  { path: 'livraison', component: DeliveryPageComponent },
   { path: 'personnaliser-box', component: CustomBoxBuilderComponent },
   { path: 'checkout/success', component: CheckoutSuccessComponent },
   { path: 'checkout/cancel', component: CheckoutCancelComponent },

@@ -6,7 +6,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
@@ -14,7 +14,6 @@ import { AdminBox } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
 import { SupabaseAuthService } from './supabase/auth.service';
-import { supabase } from './supabase/supabase.client';
 
 interface BoxItem {
   id: string;
@@ -98,6 +97,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly cartService: CartService,
     private readonly authService: SupabaseAuthService,
     private readonly ngZone: NgZone,
+    private readonly router: Router,
   ) {}
 
   async ngOnInit() {
@@ -167,28 +167,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loadError = '';
-    this.checkoutBoxId = boxId;
-
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        'create-checkout-session',
-        {
-          body: { boxId, legalAccepted: true },
-        },
-      );
-
-      if (error || !data?.url) {
-        this.loadError = 'Le paiement est indisponible pour le moment.';
-        return;
-      }
-
-      window.location.assign(data.url);
-    } catch {
-      this.loadError = 'Le paiement est indisponible pour le moment.';
-    } finally {
-      this.checkoutBoxId = null;
-    }
+    this.pendingCheckoutBoxId = null;
+    this.checkoutBoxId = null;
+    await this.router.navigate(['/livraison'], { queryParams: { boxId } });
   }
 
   addToCart(box: BoxItem) {

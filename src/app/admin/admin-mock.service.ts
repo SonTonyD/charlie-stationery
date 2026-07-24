@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
+  AdminOrder,
+  OrderStatus,
   AdminBox,
   AdminBoxImage,
   AdminProduct,
@@ -557,6 +559,42 @@ export class AdminMockService {
       return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
     }
     return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  async getOrders(): Promise<AdminOrder[]> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((order) => ({
+      id: order.id,
+      stripeSessionId: order.stripe_session_id,
+      status: order.status as OrderStatus,
+      customerName: `${order.customer_first_name} ${order.customer_last_name}`.trim(),
+      customerEmail: order.customer_email,
+      customerPhone: order.customer_phone,
+      deliveryMethod: order.delivery_method,
+      deliveryCarrier: order.delivery_carrier,
+      deliveryMode: order.delivery_mode,
+      deliveryPrice: this.toMoney(Number(order.delivery_price) || 0),
+      deliveryAddress: order.delivery_address,
+      deliveryPostalCode: order.delivery_postal_code,
+      deliveryCity: order.delivery_city,
+      relayPoint: order.relay_point,
+      items: Array.isArray(order.items) ? order.items : [],
+      itemsTotal: this.toMoney(Number(order.items_total) || 0),
+      total: this.toMoney(Number(order.total) || 0),
+      createdAt: order.created_at,
+    }));
+  }
+
+  async updateOrderStatus(orderId: string, status: OrderStatus) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', orderId);
+    if (error) throw error;
   }
 
   private normalizeBoxImages(

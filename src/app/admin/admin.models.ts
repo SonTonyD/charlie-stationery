@@ -31,3 +31,27 @@ export interface AdminBox {
   stockQuantity: number;
   items: BoxProductLine[];
 }
+
+export type OrderStatus =
+  | 'pending_payment' | 'paid' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface AdminOrder {
+  id: string;
+  stripeSessionId: string | null;
+  status: OrderStatus;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string | null;
+  deliveryMethod: string;
+  deliveryCarrier: string;
+  deliveryMode: 'pickup' | 'home';
+  deliveryPrice: number;
+  deliveryAddress: string | null;
+  deliveryPostalCode: string | null;
+  deliveryCity: string | null;
+  relayPoint: Record<string, unknown> | null;
+  items: { boxId: string; name: string; unitPrice: number; quantity: number }[];
+  itemsTotal: number;
+  total: number;
+  createdAt: string;
+}
