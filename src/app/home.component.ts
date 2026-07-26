@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
-import { AdminBox, BoxVariant } from './admin/admin.models';
+import { AdminBox, BoxCollection, BoxVariant } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
 import { SupabaseAuthService } from './supabase/auth.service';
@@ -68,6 +68,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   private upcomingIntervalId: number | null = null;
 
   boxes: BoxItem[] = [];
+  collections: BoxCollection[] = [];
+  selectedCollectionId: string | null = null;
   upcomingSlides = ['/upcoming_slide_1.jpeg'];
   private upcomingSlideRatios: Record<string, string> = {};
   private nextUpcomingSlideChecked = false;
@@ -116,6 +118,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
 
     await this.loadFrontOfficeBoxes();
+    await this.loadCollections();
     await this.loadPublishedReviews();
     this.startUpcomingCarousel();
   }
@@ -275,6 +278,21 @@ export class HomeComponent implements OnInit, OnDestroy {
     return `Entre ${Math.min(...prices).toFixed(2)}EUR et ${Math.max(...prices).toFixed(2)}EUR`;
   }
 
+  get displayedBoxes() {
+    if (!this.selectedCollectionId) return this.boxes;
+    const collection = this.collections.find(
+      (entry) => entry.id === this.selectedCollectionId,
+    );
+    return collection
+      ? this.boxes.filter((box) => collection.boxIds.includes(box.id))
+      : this.boxes;
+  }
+
+  collectionCover(collection: BoxCollection) {
+    return this.boxes.find((box) => collection.boxIds.includes(box.id))?.image
+      ?? '/alien-box.jpeg';
+  }
+
   private async loadFrontOfficeBoxes() {
     this.loadError = '';
     try {
@@ -359,6 +377,18 @@ export class HomeComponent implements OnInit, OnDestroy {
       rating: Number(review.rating),
       author: [review.first_name, review.last_name].filter(Boolean).join(' '),
     }));
+  }
+
+  private async loadCollections() {
+    try {
+      const collections = await this.adminMockService.getCollections();
+      const visibleBoxIds = new Set(this.boxes.map((box) => box.id));
+      this.collections = collections.filter((collection) =>
+        collection.boxIds.some((boxId) => visibleBoxIds.has(boxId)),
+      );
+    } catch {
+      this.collections = [];
+    }
   }
 
   private async readFunctionError(error: unknown) {

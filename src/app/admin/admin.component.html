@@ -39,6 +39,10 @@
       >
         Stocks
       </button>
+      <button type="button" [class.active]="activeTab === 'collections'"
+        (click)="setActiveTab('collections')">
+        Collections
+      </button>
       <button type="button" [class.active]="activeTab === 'shipping'" (click)="setActiveTab('shipping')">
         Frais de livraison
       </button>
@@ -397,6 +401,85 @@
           } @else {
             <h2>Aucune box selectionnee</h2>
             <p>Cree une box ou selectionne-en une dans la colonne de gauche.</p>
+          }
+        </section>
+      </section>
+    } @else if (activeTab === "collections") {
+      <section class="collections-layout">
+        <aside class="panel">
+          <h2>Collections</h2>
+          @if (!selectedCollectionId) {
+            <form class="form-grid" (ngSubmit)="createCollection()">
+              <label>Nom
+                <input name="newCollectionName" [(ngModel)]="collectionForm.name" required />
+              </label>
+              <label>Description
+                <textarea name="newCollectionDescription" rows="3"
+                  [(ngModel)]="collectionForm.description"></textarea>
+              </label>
+              <button class="btn-primary" type="submit">Créer la collection</button>
+            </form>
+          } @else {
+            <button class="btn-ghost" type="button" (click)="selectedCollectionId = null; collectionForm = { name: '', description: '' }">
+              + Nouvelle collection
+            </button>
+          }
+          <div class="box-list">
+            @for (collection of collections; track collection.id) {
+              <button type="button" class="box-list-item"
+                [class.selected]="selectedCollectionId === collection.id"
+                (click)="selectCollection(collection.id)">
+                <span>{{ collection.name }}</span>
+                <small>{{ collection.boxIds.length }} box</small>
+              </button>
+            }
+          </div>
+        </aside>
+
+        <section class="panel">
+          @if (selectedCollection) {
+            <div class="box-header">
+              <h2>Modifier la collection</h2>
+              <button class="btn-danger" type="button" (click)="deleteCollection()">Supprimer</button>
+            </div>
+            <form class="form-grid" (ngSubmit)="saveCollection()">
+              <label>Nom
+                <input name="collectionName" [(ngModel)]="collectionForm.name" required />
+              </label>
+              <label>Description
+                <textarea name="collectionDescription" rows="3"
+                  [(ngModel)]="collectionForm.description"></textarea>
+              </label>
+              <button class="btn-primary" type="submit">Enregistrer</button>
+            </form>
+
+            <section class="collection-composition">
+              <h3>Box de la collection</h3>
+              <div class="collection-add-box">
+                <select [(ngModel)]="collectionBoxId" name="collectionBoxId">
+                  <option value="">Choisir une box</option>
+                  @for (box of availableBoxesForCollection(); track box.id) {
+                    <option [value]="box.id">{{ box.name }}</option>
+                  }
+                </select>
+                <button class="btn-primary" type="button" [disabled]="!collectionBoxId"
+                  (click)="addBoxToCollection()">Ajouter</button>
+              </div>
+              <div class="collection-box-list">
+                @for (boxId of selectedCollection.boxIds; track boxId) {
+                  <div>
+                    <strong>{{ boxName(boxId) }}</strong>
+                    <button class="btn-danger" type="button"
+                      (click)="removeBoxFromCollection(boxId)">Retirer</button>
+                  </div>
+                } @empty {
+                  <p>Cette collection ne contient encore aucune box.</p>
+                }
+              </div>
+            </section>
+          } @else {
+            <h2>Sélectionnez une collection</h2>
+            <p>Créez ou choisissez une collection pour organiser ses box.</p>
           }
         </section>
       </section>

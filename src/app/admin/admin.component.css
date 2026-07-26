@@ -452,6 +452,38 @@ td {
   background: #faf7fd;
 }
 
+.collections-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  gap: 20px;
+}
+
+.collection-composition { margin-top: 26px; }
+
+.collection-add-box {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.collection-add-box select { flex: 1; }
+
+.collection-box-list {
+  display: grid;
+  gap: 8px;
+}
+
+.collection-box-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px;
+  border: 1px solid #e2d9e9;
+  border-radius: 10px;
+  background: #fff;
+}
+
 .variant-add-form,
 .variant-row {
   display: grid;
@@ -463,6 +495,7 @@ td {
 @media (max-width: 760px) {
   .variant-add-form,
   .variant-row { grid-template-columns: 1fr; }
+  .collections-layout { grid-template-columns: 1fr; }
 }
 
 .box-image-actions button {

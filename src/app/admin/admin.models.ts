@@ -51,6 +51,13 @@ export interface BoxVariant {
   sortOrder: number;
 }
 
+export interface BoxCollection {
+  id: string;
+  name: string;
+  description: string;
+  boxIds: string[];
+}
+
 export interface AdminReview {
   id: string;
   firstName: string;

@@ -172,6 +172,57 @@ p {
   font: inherit;
 }
 
+.collection-picker {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 28px;
+  padding: 4px 2px 10px;
+  overflow-x: auto;
+}
+
+.collection-picker button {
+  flex: 0 0 220px;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  border: 1px solid #d8c7e6;
+  border-radius: 14px;
+  background: #fff;
+  color: #573078;
+  text-align: left;
+}
+
+.collection-picker button.active {
+  border-color: #7543a5;
+  background: #f1e7fa;
+  box-shadow: 0 0 0 2px rgba(117, 67, 165, 0.15);
+}
+
+.collection-picker small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #716779;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-cover {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.collection-all {
+  display: grid;
+  place-items: center;
+  background: #eadcf5;
+  font-size: 1.5rem;
+}
+
 /* Le composant Boxtal injecte l'iframe après le rendu Angular : ces règles
    doivent donc rester globales pour que la carte remplisse son conteneur. */
 #boxtal-parcel-map {

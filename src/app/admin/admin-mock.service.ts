@@ -7,6 +7,7 @@ import {
   AdminProduct,
   ShippingRate,
   AdminReview,
+  BoxCollection,
 } from './admin.models';
 import { supabase } from '../supabase/supabase.client';
 
@@ -688,6 +689,59 @@ export class AdminMockService {
       isPublished: Boolean(review.is_published),
       createdAt: review.created_at,
     }));
+  }
+
+  async getCollections(): Promise<BoxCollection[]> {
+    const { data, error } = await supabase
+      .from('collections')
+      .select('id, name, description, collection_boxes(box_id)')
+      .order('name');
+    if (error) throw error;
+    return (data ?? []).map((collection) => ({
+      id: collection.id,
+      name: collection.name,
+      description: collection.description ?? '',
+      boxIds: (collection.collection_boxes ?? []).map((entry) => entry.box_id),
+    }));
+  }
+
+  async createCollection(name: string, description: string) {
+    const { data, error } = await supabase
+      .from('collections')
+      .insert({ name, description })
+      .select('id')
+      .single();
+    if (error) throw error;
+    return data.id as string;
+  }
+
+  async updateCollection(collectionId: string, name: string, description: string) {
+    const { error } = await supabase
+      .from('collections')
+      .update({ name, description, updated_at: new Date().toISOString() })
+      .eq('id', collectionId);
+    if (error) throw error;
+  }
+
+  async deleteCollection(collectionId: string) {
+    const { error } = await supabase.from('collections').delete().eq('id', collectionId);
+    if (error) throw error;
+  }
+
+  async addBoxToCollection(collectionId: string, boxId: string) {
+    const { error } = await supabase
+      .from('collection_boxes')
+      .insert({ collection_id: collectionId, box_id: boxId });
+    if (error) throw error;
+  }
+
+  async removeBoxFromCollection(collectionId: string, boxId: string) {
+    const { error } = await supabase
+      .from('collection_boxes')
+      .delete()
+      .eq('collection_id', collectionId)
+      .eq('box_id', boxId);
+    if (error) throw error;
   }
 
   async updateReviewPublication(reviewId: string, isPublished: boolean) {

@@ -12,10 +12,11 @@ import {
   OrderStatus,
   ShippingRate,
   AdminReview,
+  BoxCollection,
 } from './admin.models';
 import { SupabaseAuthService } from '../supabase/auth.service';
 
-type AdminTab = 'boxes' | 'stocks' | 'shipping' | 'reviews' | 'orders';
+type AdminTab = 'boxes' | 'collections' | 'stocks' | 'shipping' | 'reviews' | 'orders';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -60,6 +61,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   orders: AdminOrder[] = [];
   shippingRates: ShippingRate[] = [];
   reviews: AdminReview[] = [];
+  collections: BoxCollection[] = [];
+  selectedCollectionId: string | null = null;
+  collectionForm = { name: '', description: '' };
+  collectionBoxId = '';
   readonly orderStatuses: { value: OrderStatus; label: string }[] = [
     { value: 'pending_payment', label: 'En attente de paiement' },
     { value: 'paid', label: 'Payée' },
@@ -137,8 +142,87 @@ export class AdminComponent implements OnInit, OnDestroy {
     return this.boxes.find((box) => box.id === this.selectedBoxId) ?? null;
   }
 
+  get selectedCollection() {
+    return this.collections.find(
+      (collection) => collection.id === this.selectedCollectionId,
+    ) ?? null;
+  }
+
   setActiveTab(tab: AdminTab) {
     this.activeTab = tab;
+  }
+
+  async createCollection() {
+    const name = this.collectionForm.name.trim();
+    if (!name) return;
+    let collectionId = '';
+    await this.runAction(async () => {
+      collectionId = await this.adminMockService.createCollection(
+        name,
+        this.collectionForm.description.trim(),
+      );
+    });
+    this.collectionForm = { name: '', description: '' };
+    if (collectionId) this.selectCollection(collectionId);
+  }
+
+  selectCollection(collectionId: string) {
+    this.selectedCollectionId = collectionId;
+    const collection = this.collections.find((entry) => entry.id === collectionId);
+    this.collectionForm = {
+      name: collection?.name ?? '',
+      description: collection?.description ?? '',
+    };
+    this.collectionBoxId = '';
+  }
+
+  async saveCollection() {
+    if (!this.selectedCollectionId || !this.collectionForm.name.trim()) return;
+    const collectionId = this.selectedCollectionId;
+    await this.runAction(() =>
+      this.adminMockService.updateCollection(
+        collectionId,
+        this.collectionForm.name.trim(),
+        this.collectionForm.description.trim(),
+      ),
+    );
+    this.selectCollection(collectionId);
+  }
+
+  async deleteCollection() {
+    if (!this.selectedCollectionId) return;
+    await this.runAction(() =>
+      this.adminMockService.deleteCollection(this.selectedCollectionId!),
+    );
+    this.selectedCollectionId = null;
+    this.collectionForm = { name: '', description: '' };
+  }
+
+  async addBoxToCollection() {
+    if (!this.selectedCollectionId || !this.collectionBoxId) return;
+    const collectionId = this.selectedCollectionId;
+    await this.runAction(() =>
+      this.adminMockService.addBoxToCollection(collectionId, this.collectionBoxId),
+    );
+    this.selectCollection(collectionId);
+  }
+
+  async removeBoxFromCollection(boxId: string) {
+    if (!this.selectedCollectionId) return;
+    const collectionId = this.selectedCollectionId;
+    await this.runAction(() =>
+      this.adminMockService.removeBoxFromCollection(collectionId, boxId),
+    );
+    this.selectCollection(collectionId);
+  }
+
+  availableBoxesForCollection() {
+    const assigned = new Set(this.selectedCollection?.boxIds ?? []);
+    return this.boxes.filter((box) => !assigned.has(box.id));
+  }
+
+  boxName(boxId: string) {
+    return this.boxes.find((box) => box.id === boxId)?.name ?? 'Box supprimée';
   }
 
   async updateOrderStatus(orderId: string, status: OrderStatus) {
@@ -767,11 +851,12 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      [this.boxes, this.orders, this.shippingRates, this.reviews] = await Promise.all([
+      [this.boxes, this.orders, this.shippingRates, this.reviews, this.collections] = await Promise.all([
         this.adminMockService.getBoxes(),
         this.adminMockService.getOrders(),
         this.adminMockService.getShippingRates(),
         this.adminMockService.getReviews(),
+        this.adminMockService.getCollections(),
       ]);
       this.products = [];
     } catch (error) {
@@ -781,6 +866,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.orders = [];
       this.shippingRates = [];
       this.reviews = [];
+      this.collections = [];
     } finally {
       this.isLoading = false;
     }
@@ -788,6 +874,12 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.synchronizeRestockTargets();
     if (!this.selectedBoxId && this.boxes.length > 0) {
       this.selectBox(this.boxes[0].id);
+    }
+    if (
+      this.selectedCollectionId &&
+      !this.collections.some((collection) => collection.id === this.selectedCollectionId)
+    ) {
+      this.selectedCollectionId = null;
     }
   }
 

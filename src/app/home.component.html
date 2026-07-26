@@ -47,8 +47,24 @@
     @if (loadError) {
       <p>{{ loadError }}</p>
     }
+    @if (collections.length) {
+      <div class="collection-picker" aria-label="Filtrer les box par collection">
+        <button type="button" [class.active]="selectedCollectionId === null"
+          (click)="selectedCollectionId = null">
+          <span class="collection-cover collection-all">✨</span>
+          <span><strong>Toutes les box</strong><small>Voir toute la boutique</small></span>
+        </button>
+        @for (collection of collections; track collection.id) {
+          <button type="button" [class.active]="selectedCollectionId === collection.id"
+            (click)="selectedCollectionId = collection.id">
+            <img class="collection-cover" [src]="collectionCover(collection)" alt="" />
+            <span><strong>{{ collection.name }}</strong><small>{{ collection.description }}</small></span>
+          </button>
+        }
+      </div>
+    }
     <div class="grid grid-3">
-      @for (box of boxes; track box.id) {
+      @for (box of displayedBoxes; track box.id) {
         <div class="card box-card">
           <a [routerLink]="['/box', box.id]" class="card-link">
             <img class="box-image" [src]="box.image" alt="Box image" />
