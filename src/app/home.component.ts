@@ -244,6 +244,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       image: box.image,
       unitPrice: variant?.price ?? box.price,
       weightGrams: box.weightGrams,
+      stockQuantity: box.stock,
     });
     this.addedCartBoxId = box.id;
 

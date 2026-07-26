@@ -47,6 +47,7 @@ export class DeliveryPageComponent implements OnInit {
         image: box.imageUrl,
         unitPrice: variant?.price ?? box.salePrice,
         weightGrams: box.weightGrams,
+        stockQuantity: box.stockQuantity,
         quantity: 1,
       };
     } catch { this.errorMessage = 'Cette box n’est plus disponible.'; }

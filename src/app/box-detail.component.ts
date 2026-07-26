@@ -172,6 +172,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
       image: this.box.image,
       unitPrice: variant?.price ?? this.box.price,
       weightGrams: this.box.weightGrams,
+      stockQuantity: this.box.stock,
     });
 
     this.addedToCart = true;

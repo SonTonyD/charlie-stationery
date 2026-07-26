@@ -25,12 +25,14 @@
               @if (item.variantName) { <p><strong>Variante : {{ item.variantName }}</strong></p> }
               <p>{{ item.description }}</p>
               <strong>{{ item.unitPrice | number: "1.2-2" }}EUR</strong>
+              <small>Stock disponible : {{ item.stockQuantity }}</small>
             </div>
 
             <div class="quantity-controls" aria-label="Quantite">
               <button type="button" (click)="decrement(item.cartItemId)">-</button>
               <span>{{ item.quantity }}</span>
-              <button type="button" (click)="increment(item.cartItemId)">+</button>
+              <button type="button" [disabled]="isAtMaximumStock(item)"
+                (click)="increment(item.cartItemId)">+</button>
             </div>
 
             <div class="line-total">

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { CartItem, CartService } from './cart.service';
 import { DeliveryFormComponent } from './delivery-form.component';
 import { LegalConsentComponent } from './legal-consent.component';
+import { AdminMockService } from './admin/admin-mock.service';
 
 @Component({
   selector: 'app-cart',
@@ -21,13 +22,25 @@ export class CartComponent implements OnInit, OnDestroy {
 
   private cartSubscription: Subscription | null = null;
 
-  constructor(private readonly cartService: CartService) {}
+  constructor(
+    private readonly cartService: CartService,
+    private readonly adminService: AdminMockService,
+  ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.items = this.cartService.getItems();
     this.cartSubscription = this.cartService.items$.subscribe((items) => {
       this.items = items;
     });
+    try {
+      const boxes = await this.adminService.getBoxes();
+      this.cartService.reconcileStock(
+        new Map(boxes.map((box) => [box.id, box.stockQuantity])),
+      );
+    } catch {
+      this.errorMessage =
+        'Impossible de vérifier le stock disponible pour le moment.';
+    }
   }
 
   ngOnDestroy() {
@@ -56,6 +69,10 @@ export class CartComponent implements OnInit, OnDestroy {
 
   getLineTotal(item: CartItem) {
     return Number((item.unitPrice * item.quantity).toFixed(2));
+  }
+
+  isAtMaximumStock(item: CartItem) {
+    return this.cartService.getBoxQuantity(item.boxId) >= item.stockQuantity;
   }
 
   checkoutStarted() {

@@ -11,6 +11,7 @@ export interface CartItem {
   image: string;
   unitPrice: number;
   weightGrams: number;
+  stockQuantity: number;
   quantity: number;
 }
 
@@ -62,7 +63,15 @@ export class CartService {
   }
 
   updateQuantity(cartItemId: string, quantity: number) {
-    const normalizedQuantity = Math.max(0, Math.floor(Number(quantity) || 0));
+    const item = this.getItems().find((entry) => entry.cartItemId === cartItemId);
+    if (!item) return;
+    const otherQuantity = this.getItems()
+      .filter((entry) => entry.boxId === item.boxId && entry.cartItemId !== cartItemId)
+      .reduce((sum, entry) => sum + entry.quantity, 0);
+    const normalizedQuantity = Math.min(
+      Math.max(0, item.stockQuantity - otherQuantity),
+      Math.max(0, Math.floor(Number(quantity) || 0)),
+    );
 
     if (normalizedQuantity === 0) {
       this.removeItem(cartItemId);
@@ -78,9 +87,32 @@ export class CartService {
 
   increment(cartItemId: string) {
     const item = this.getItems().find((cartItem) => cartItem.cartItemId === cartItemId);
-    if (item) {
+    if (item && this.getBoxQuantity(item.boxId) < item.stockQuantity) {
       this.updateQuantity(cartItemId, item.quantity + 1);
     }
+  }
+
+  getBoxQuantity(boxId: string) {
+    return this.getItems()
+      .filter((item) => item.boxId === boxId)
+      .reduce((sum, item) => sum + item.quantity, 0);
+  }
+
+  reconcileStock(stockByBoxId: Map<string, number>) {
+    const usedByBoxId = new Map<string, number>();
+    const items = this.getItems()
+      .map((item) => {
+        const stockQuantity = Math.max(
+          0,
+          Math.floor(stockByBoxId.get(item.boxId) ?? 0),
+        );
+        const used = usedByBoxId.get(item.boxId) ?? 0;
+        const quantity = Math.min(item.quantity, Math.max(0, stockQuantity - used));
+        usedByBoxId.set(item.boxId, used + quantity);
+        return { ...item, stockQuantity, quantity };
+      })
+      .filter((item) => item.quantity > 0);
+    this.setItems(items);
   }
 
   decrement(cartItemId: string) {
@@ -154,6 +186,10 @@ export class CartService {
             image: typeof item.image === 'string' ? item.image : '/alien-box.jpeg',
             unitPrice: this.toMoney(Number(item.unitPrice) || 0),
             weightGrams: Math.max(1, Math.floor(Number(item.weightGrams) || 1)),
+            stockQuantity: Math.max(
+              0,
+              Math.floor(Number(item.stockQuantity) || 0),
+            ),
             quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
           };
         })
