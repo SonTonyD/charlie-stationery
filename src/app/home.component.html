@@ -10,11 +10,11 @@
 
   <div class="container hero-content">
     <div class="hero-text">
-      <h1>La papeterie du souvenirs</h1>
+      <h1>La papeterie des souvenirs</h1>
       <p>
-        Bienvenue dans la papeterie du souvenirs, viens découvrir de jolies
-        accessoires pensé pour embellir tes pensées, capturer tes émotions et
-        préserver tes beaux souvenirs.
+        Bienvenue dans la papeterie des souvenirs. Viens découvrir de jolis
+        accessoires pensés pour embellir tes pensées, capturer tes émotions et
+        préserver tes plus beaux souvenirs.
       </p>
       <div class="hero-actions">
         <a href="#shop" class="btn">Voir les box du moment</a>
@@ -55,78 +55,106 @@
     <div class="grid grid-3">
       @for (entry of catalogEntries; track entry.key) {
         @if (entry.kind === "collection") {
-          <article class="card box-card collection-card"
-            [class.expanded]="expandedCollectionId === entry.collection.id">
-            <button type="button" class="collection-card-button"
-              [attr.aria-expanded]="expandedCollectionId === entry.collection.id"
-              (click)="toggleCollection(entry.collection.id)">
-              <img class="box-image" [src]="collectionCover(entry.collection)" alt="" />
+          <article
+            class="card box-card collection-card"
+            [class.expanded]="expandedCollectionId === entry.collection.id"
+          >
+            <button
+              type="button"
+              class="collection-card-button"
+              [attr.aria-expanded]="
+                expandedCollectionId === entry.collection.id
+              "
+              (click)="toggleCollection(entry.collection.id)"
+            >
+              <img
+                class="box-image"
+                [src]="collectionCover(entry.collection)"
+                alt=""
+              />
               <span class="collection-badge">Collection</span>
               <h3>{{ entry.collection.name }}</h3>
               <p>{{ entry.collection.description }}</p>
               <strong>
-                {{ expandedCollectionId === entry.collection.id ? "Masquer les box" : "Découvrir les box" }}
+                {{
+                  expandedCollectionId === entry.collection.id
+                    ? "Masquer les box"
+                    : "Découvrir les box"
+                }}
               </strong>
             </button>
           </article>
         } @else {
-        @let box = entry.box;
-        <div class="card box-card" [class.premium-box-card]="box.isPremium">
-          @if (box.isPremium) {
-            <div class="premium-box-badge"><span>✦</span> Premium</div>
-          }
-          <a [routerLink]="['/box', box.id]" class="card-link">
-            <img class="box-image" [src]="box.image" alt="Box image" />
+          @let box = entry.box;
+          <div class="card box-card" [class.premium-box-card]="box.isPremium">
+            @if (box.isPremium) {
+              <div class="premium-box-badge"><span>✦</span> Premium</div>
+            }
+            <a [routerLink]="['/box', box.id]" class="card-link">
+              <img class="box-image" [src]="box.image" alt="Box image" />
 
-            <h3>{{ box.name }}</h3>
-            <p>{{ box.description }}</p>
+              <h3>{{ box.name }}</h3>
+              <p>{{ box.description }}</p>
 
-            <div class="price">{{ boxPriceLabel(box) }}</div>
-          </a>
+              <div class="price">{{ boxPriceLabel(box) }}</div>
+            </a>
 
-          @if (box.hasVariants) {
-            <label class="box-variant-select">
-              Choisir une variante
-              <select [(ngModel)]="selectedVariantIds[box.id]" name="variant-{{ box.id }}">
-                @for (variant of box.variants; track variant.id) {
-                  <option [value]="variant.id">{{ variant.name }} — {{ variant.price | number:"1.2-2" }}EUR</option>
-                }
-              </select>
-            </label>
-          }
+            @if (box.hasVariants) {
+              <label class="box-variant-select">
+                Choisir une variante
+                <select
+                  [(ngModel)]="selectedVariantIds[box.id]"
+                  name="variant-{{ box.id }}"
+                >
+                  @for (variant of box.variants; track variant.id) {
+                    <option [value]="variant.id">
+                      {{ variant.name }} —
+                      {{ variant.price | number: "1.2-2" }}EUR
+                    </option>
+                  }
+                </select>
+              </label>
+            }
 
-          <div class="box-actions">
-            <button
-              class="btn"
-              type="button"
-              [disabled]="box.stock <= 0 || checkoutBoxId === box.id || (box.hasVariants && !selectedVariantIds[box.id])"
-              (click)="requestBuyBox(box)"
-            >
-              {{
-                checkoutBoxId === box.id
-                  ? "Redirection..."
-                  : box.stock <= 0
-                    ? "Indisponible"
-                    : "Acheter"
-              }}
-            </button>
+            <div class="box-actions">
+              <button
+                class="btn"
+                type="button"
+                [disabled]="
+                  box.stock <= 0 ||
+                  checkoutBoxId === box.id ||
+                  (box.hasVariants && !selectedVariantIds[box.id])
+                "
+                (click)="requestBuyBox(box)"
+              >
+                {{
+                  checkoutBoxId === box.id
+                    ? "Redirection..."
+                    : box.stock <= 0
+                      ? "Indisponible"
+                      : "Acheter"
+                }}
+              </button>
 
-            <button
-              class="btn btn-cart"
-              type="button"
-              [disabled]="box.stock <= 0 || (box.hasVariants && !selectedVariantIds[box.id])"
-              (click)="addToCart(box)"
-            >
-              {{
-                addedCartBoxId === box.id
-                  ? "Ajoute au panier"
-                  : "Ajouter au panier"
-              }}
-            </button>
+              <button
+                class="btn btn-cart"
+                type="button"
+                [disabled]="
+                  box.stock <= 0 ||
+                  (box.hasVariants && !selectedVariantIds[box.id])
+                "
+                (click)="addToCart(box)"
+              >
+                {{
+                  addedCartBoxId === box.id
+                    ? "Ajoute au panier"
+                    : "Ajouter au panier"
+                }}
+              </button>
+            </div>
+
+            <div class="stock">Plus que {{ box.stock }} disponibles</div>
           </div>
-
-          <div class="stock">Plus que {{ box.stock }} disponibles</div>
-        </div>
         }
       } @empty {
         <p>Aucune box n'est affichee sur le front office pour le moment.</p>
@@ -204,86 +232,115 @@
       } @empty {
         <div class="card reviews-empty">
           <div class="review-stars">✏️ ✨ 📒</div>
-          <p>Cette page est encore toute blanche… Soyez la première personne à y griffonner un joli avis !</p>
+          <p>
+            Cette page est encore toute blanche… Soyez la première personne à y
+            griffonner un joli avis !
+          </p>
         </div>
       }
     </div>
 
     <div class="review-button-wrap">
-      <button class="btn review-open-button" type="button" (click)="openReviewDialog()">
+      <button
+        class="btn review-open-button"
+        type="button"
+        (click)="openReviewDialog()"
+      >
         Donner un avis
       </button>
     </div>
 
     @if (isReviewDialogOpen) {
-      <div class="review-backdrop" role="presentation" (click)="closeReviewDialog()">
-        <form class="review-form review-dialog" role="dialog" aria-modal="true"
-          aria-labelledby="review-dialog-title" (click)="$event.stopPropagation()"
-          (ngSubmit)="submitReview()">
-      <h3 id="review-dialog-title">Donner un avis</h3>
-      <p>Votre adresse e-mail doit correspondre à une commande payée. Elle ne sera jamais affichée.</p>
-      <div class="review-form-grid">
-        <label
-          >Prénom
-          <input
-            name="reviewFirstName"
-            [(ngModel)]="reviewForm.firstName"
-            required
-            maxlength="100"
-          />
-        </label>
-        <label
-          >Nom (facultatif)
-          <input
-            name="reviewLastName"
-            [(ngModel)]="reviewForm.lastName"
-            maxlength="100"
-          />
-        </label>
-        <label class="wide"
-          >Adresse e-mail
-          <input
-            type="email"
-            name="reviewEmail"
-            [(ngModel)]="reviewForm.email"
-            required
-            maxlength="254"
-          />
-        </label>
-        <label
-          >Nombre d’étoiles
-          <select name="reviewRating" [(ngModel)]="reviewForm.rating" required>
-            @for (rating of [5, 4, 3, 2, 1]; track rating) {
-              <option [ngValue]="rating">
-                {{ rating }} étoile{{ rating > 1 ? "s" : "" }}
-              </option>
-            }
-          </select>
-        </label>
-        <label class="wide"
-          >Commentaire
-          <textarea
-            name="reviewComment"
-            [(ngModel)]="reviewForm.comment"
-            required
-            maxlength="500"
-            rows="4"
-          ></textarea>
-        </label>
-      </div>
-      @if (reviewMessage) {
-        <p class="review-success">{{ reviewMessage }}</p>
-      }
-      @if (reviewError) {
-        <p class="review-error">{{ reviewError }}</p>
-      }
-      <div class="review-dialog-actions">
-        <button class="btn btn-outline" type="button" [disabled]="isSubmittingReview"
-          (click)="closeReviewDialog()">Annuler</button>
-        <button class="btn" type="submit" [disabled]="isSubmittingReview">
-          {{ isSubmittingReview ? "Envoi…" : "Envoyer mon avis" }}
-        </button>
-      </div>
+      <div
+        class="review-backdrop"
+        role="presentation"
+        (click)="closeReviewDialog()"
+      >
+        <form
+          class="review-form review-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="review-dialog-title"
+          (click)="$event.stopPropagation()"
+          (ngSubmit)="submitReview()"
+        >
+          <h3 id="review-dialog-title">Donner un avis</h3>
+          <p>
+            Votre adresse e-mail doit correspondre à une commande payée. Elle ne
+            sera jamais affichée.
+          </p>
+          <div class="review-form-grid">
+            <label
+              >Prénom
+              <input
+                name="reviewFirstName"
+                [(ngModel)]="reviewForm.firstName"
+                required
+                maxlength="100"
+              />
+            </label>
+            <label
+              >Nom (facultatif)
+              <input
+                name="reviewLastName"
+                [(ngModel)]="reviewForm.lastName"
+                maxlength="100"
+              />
+            </label>
+            <label class="wide"
+              >Adresse e-mail
+              <input
+                type="email"
+                name="reviewEmail"
+                [(ngModel)]="reviewForm.email"
+                required
+                maxlength="254"
+              />
+            </label>
+            <label
+              >Nombre d’étoiles
+              <select
+                name="reviewRating"
+                [(ngModel)]="reviewForm.rating"
+                required
+              >
+                @for (rating of [5, 4, 3, 2, 1]; track rating) {
+                  <option [ngValue]="rating">
+                    {{ rating }} étoile{{ rating > 1 ? "s" : "" }}
+                  </option>
+                }
+              </select>
+            </label>
+            <label class="wide"
+              >Commentaire
+              <textarea
+                name="reviewComment"
+                [(ngModel)]="reviewForm.comment"
+                required
+                maxlength="500"
+                rows="4"
+              ></textarea>
+            </label>
+          </div>
+          @if (reviewMessage) {
+            <p class="review-success">{{ reviewMessage }}</p>
+          }
+          @if (reviewError) {
+            <p class="review-error">{{ reviewError }}</p>
+          }
+          <div class="review-dialog-actions">
+            <button
+              class="btn btn-outline"
+              type="button"
+              [disabled]="isSubmittingReview"
+              (click)="closeReviewDialog()"
+            >
+              Annuler
+            </button>
+            <button class="btn" type="submit" [disabled]="isSubmittingReview">
+              {{ isSubmittingReview ? "Envoi…" : "Envoyer mon avis" }}
+            </button>
+          </div>
         </form>
       </div>
     }
