@@ -55,6 +55,8 @@ create table if not exists public.collections (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(trim(name)) > 0),
   description text not null default '',
+  image_url text,
+  image_storage_path text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -65,6 +67,12 @@ create table if not exists public.collection_boxes (
   created_at timestamptz not null default now(),
   primary key (collection_id, box_id)
 );
+
+alter table public.collections
+add column if not exists image_url text;
+
+alter table public.collections
+add column if not exists image_storage_path text;
 
 create index if not exists collection_boxes_box_id_idx
 on public.collection_boxes(box_id);

@@ -694,13 +694,15 @@ export class AdminMockService {
   async getCollections(): Promise<BoxCollection[]> {
     const { data, error } = await supabase
       .from('collections')
-      .select('id, name, description, collection_boxes(box_id)')
+      .select('id, name, description, image_url, image_storage_path, collection_boxes(box_id)')
       .order('name');
     if (error) throw error;
     return (data ?? []).map((collection) => ({
       id: collection.id,
       name: collection.name,
       description: collection.description ?? '',
+      imageUrl: collection.image_url ?? null,
+      imageStoragePath: collection.image_storage_path ?? null,
       boxIds: (collection.collection_boxes ?? []).map((entry) => entry.box_id),
     }));
   }
@@ -723,9 +725,15 @@ export class AdminMockService {
     if (error) throw error;
   }
 
-  async deleteCollection(collectionId: string) {
+  async deleteCollection(collectionId: string, imageStoragePath?: string | null) {
     const { error } = await supabase.from('collections').delete().eq('id', collectionId);
     if (error) throw error;
+    if (imageStoragePath) {
+      const { error: storageError } = await supabase.storage
+        .from('box-images')
+        .remove([imageStoragePath]);
+      if (storageError) throw storageError;
+    }
   }
 
   async addBoxToCollection(collectionId: string, boxId: string) {
@@ -742,6 +750,39 @@ export class AdminMockService {
       .eq('collection_id', collectionId)
       .eq('box_id', boxId);
     if (error) throw error;
+  }
+
+  async uploadCollectionImage(
+    collectionId: string,
+    file: File,
+    previousStoragePath?: string | null,
+  ) {
+    const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const storagePath = `collections/${collectionId}/${Date.now()}-${this.generateId('cover')}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from('box-images')
+      .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('box-images')
+      .getPublicUrl(storagePath);
+    const { error } = await supabase
+      .from('collections')
+      .update({
+        image_url: publicUrl,
+        image_storage_path: storagePath,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', collectionId);
+    if (error) throw error;
+
+    if (previousStoragePath && previousStoragePath !== storagePath) {
+      const { error: removeError } = await supabase.storage
+        .from('box-images')
+        .remove([previousStoragePath]);
+      if (removeError) throw removeError;
+    }
   }
 
   async updateReviewPublication(reviewId: string, isPublished: boolean) {

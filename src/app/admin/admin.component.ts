@@ -65,6 +65,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   selectedCollectionId: string | null = null;
   collectionForm = { name: '', description: '' };
   collectionBoxId = '';
+  collectionImageFile: File | null = null;
   readonly orderStatuses: { value: OrderStatus; label: string }[] = [
     { value: 'pending_payment', label: 'En attente de paiement' },
     { value: 'paid', label: 'Payée' },
@@ -161,8 +162,15 @@ export class AdminComponent implements OnInit, OnDestroy {
         name,
         this.collectionForm.description.trim(),
       );
+      if (this.collectionImageFile) {
+        await this.adminMockService.uploadCollectionImage(
+          collectionId,
+          this.collectionImageFile,
+        );
+      }
     });
     this.collectionForm = { name: '', description: '' };
+    this.collectionImageFile = null;
     if (collectionId) this.selectCollection(collectionId);
   }
 
@@ -174,28 +182,49 @@ export class AdminComponent implements OnInit, OnDestroy {
       description: collection?.description ?? '',
     };
     this.collectionBoxId = '';
+    this.collectionImageFile = null;
   }
 
   async saveCollection() {
     if (!this.selectedCollectionId || !this.collectionForm.name.trim()) return;
     const collectionId = this.selectedCollectionId;
-    await this.runAction(() =>
-      this.adminMockService.updateCollection(
+    const previousStoragePath = this.selectedCollection?.imageStoragePath;
+    await this.runAction(async () => {
+      await this.adminMockService.updateCollection(
         collectionId,
         this.collectionForm.name.trim(),
         this.collectionForm.description.trim(),
-      ),
-    );
+      );
+      if (this.collectionImageFile) {
+        await this.adminMockService.uploadCollectionImage(
+          collectionId,
+          this.collectionImageFile,
+          previousStoragePath,
+        );
+      }
+    });
+    this.collectionImageFile = null;
     this.selectCollection(collectionId);
   }
 
   async deleteCollection() {
     if (!this.selectedCollectionId) return;
+    const collection = this.selectedCollection;
     await this.runAction(() =>
-      this.adminMockService.deleteCollection(this.selectedCollectionId!),
+      this.adminMockService.deleteCollection(
+        this.selectedCollectionId!,
+        collection?.imageStoragePath,
+      ),
     );
     this.selectedCollectionId = null;
     this.collectionForm = { name: '', description: '' };
+    this.collectionImageFile = null;
+  }
+
+  onCollectionImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.collectionImageFile = file?.type.startsWith('image/') ? file : null;
   }
 
   async addBoxToCollection() {

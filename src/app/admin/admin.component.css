@@ -460,6 +460,15 @@ td {
 
 .collection-composition { margin-top: 26px; }
 
+.collection-admin-cover {
+  display: block;
+  width: min(260px, 100%);
+  aspect-ratio: 16 / 10;
+  margin: 8px 0;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
 .collection-add-box {
   display: flex;
   gap: 10px;

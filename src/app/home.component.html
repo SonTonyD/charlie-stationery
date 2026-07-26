@@ -47,24 +47,25 @@
     @if (loadError) {
       <p>{{ loadError }}</p>
     }
-    @if (collections.length) {
-      <div class="collection-picker" aria-label="Filtrer les box par collection">
-        <button type="button" [class.active]="selectedCollectionId === null"
-          (click)="selectedCollectionId = null">
-          <span class="collection-cover collection-all">✨</span>
-          <span><strong>Toutes les box</strong><small>Voir toute la boutique</small></span>
-        </button>
-        @for (collection of collections; track collection.id) {
-          <button type="button" [class.active]="selectedCollectionId === collection.id"
-            (click)="selectedCollectionId = collection.id">
-            <img class="collection-cover" [src]="collectionCover(collection)" alt="" />
-            <span><strong>{{ collection.name }}</strong><small>{{ collection.description }}</small></span>
-          </button>
-        }
-      </div>
-    }
     <div class="grid grid-3">
-      @for (box of displayedBoxes; track box.id) {
+      @for (entry of catalogEntries; track entry.key) {
+        @if (entry.kind === "collection") {
+          <article class="card box-card collection-card"
+            [class.expanded]="expandedCollectionId === entry.collection.id">
+            <button type="button" class="collection-card-button"
+              [attr.aria-expanded]="expandedCollectionId === entry.collection.id"
+              (click)="toggleCollection(entry.collection.id)">
+              <img class="box-image" [src]="collectionCover(entry.collection)" alt="" />
+              <span class="collection-badge">Collection</span>
+              <h3>{{ entry.collection.name }}</h3>
+              <p>{{ entry.collection.description }}</p>
+              <strong>
+                {{ expandedCollectionId === entry.collection.id ? "Masquer les box" : "Découvrir les box" }}
+              </strong>
+            </button>
+          </article>
+        } @else {
+        @let box = entry.box;
         <div class="card box-card">
           <a [routerLink]="['/box', box.id]" class="card-link">
             <img class="box-image" [src]="box.image" alt="Box image" />
@@ -118,6 +119,7 @@
 
           <div class="stock">Plus que {{ box.stock }} disponibles</div>
         </div>
+        }
       } @empty {
         <p>Aucune box n'est affichee sur le front office pour le moment.</p>
       }

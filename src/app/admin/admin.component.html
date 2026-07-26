@@ -417,10 +417,14 @@
                 <textarea name="newCollectionDescription" rows="3"
                   [(ngModel)]="collectionForm.description"></textarea>
               </label>
+              <label>Image de présentation
+                <input type="file" name="newCollectionImage" accept="image/*"
+                  (change)="onCollectionImageSelected($event)" />
+              </label>
               <button class="btn-primary" type="submit">Créer la collection</button>
             </form>
           } @else {
-            <button class="btn-ghost" type="button" (click)="selectedCollectionId = null; collectionForm = { name: '', description: '' }">
+            <button class="btn-ghost" type="button" (click)="selectedCollectionId = null; collectionForm = { name: '', description: '' }; collectionImageFile = null">
               + Nouvelle collection
             </button>
           }
@@ -449,6 +453,15 @@
               <label>Description
                 <textarea name="collectionDescription" rows="3"
                   [(ngModel)]="collectionForm.description"></textarea>
+              </label>
+              <label>Image de présentation
+                @if (selectedCollection.imageUrl) {
+                  <img class="collection-admin-cover" [src]="selectedCollection.imageUrl"
+                    [alt]="'Couverture de ' + selectedCollection.name" />
+                }
+                <input type="file" name="collectionImage" accept="image/*"
+                  (change)="onCollectionImageSelected($event)" />
+                <small>Laissez vide pour conserver l’image actuelle.</small>
               </label>
               <button class="btn-primary" type="submit">Enregistrer</button>
             </form>

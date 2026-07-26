@@ -69,7 +69,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   boxes: BoxItem[] = [];
   collections: BoxCollection[] = [];
-  selectedCollectionId: string | null = null;
+  expandedCollectionId: string | null = null;
   upcomingSlides = ['/upcoming_slide_1.jpeg'];
   private upcomingSlideRatios: Record<string, string> = {};
   private nextUpcomingSlideChecked = false;
@@ -278,18 +278,46 @@ export class HomeComponent implements OnInit, OnDestroy {
     return `Entre ${Math.min(...prices).toFixed(2)}EUR et ${Math.max(...prices).toFixed(2)}EUR`;
   }
 
-  get displayedBoxes() {
-    if (!this.selectedCollectionId) return this.boxes;
-    const collection = this.collections.find(
-      (entry) => entry.id === this.selectedCollectionId,
-    );
-    return collection
-      ? this.boxes.filter((box) => collection.boxIds.includes(box.id))
-      : this.boxes;
+  get catalogEntries() {
+    const entries: (
+      | { kind: 'collection'; key: string; collection: BoxCollection }
+      | { kind: 'box'; key: string; box: BoxItem }
+    )[] = [];
+    const groupedBoxIds = new Set(this.collections.flatMap((entry) => entry.boxIds));
+
+    for (const collection of this.collections) {
+      entries.push({
+        kind: 'collection',
+        key: `collection:${collection.id}`,
+        collection,
+      });
+      if (this.expandedCollectionId === collection.id) {
+        for (const box of this.boxes.filter((entry) =>
+          collection.boxIds.includes(entry.id),
+        )) {
+          entries.push({
+            kind: 'box',
+            key: `collection:${collection.id}:box:${box.id}`,
+            box,
+          });
+        }
+      }
+    }
+
+    for (const box of this.boxes.filter((entry) => !groupedBoxIds.has(entry.id))) {
+      entries.push({ kind: 'box', key: `box:${box.id}`, box });
+    }
+    return entries;
+  }
+
+  toggleCollection(collectionId: string) {
+    this.expandedCollectionId =
+      this.expandedCollectionId === collectionId ? null : collectionId;
   }
 
   collectionCover(collection: BoxCollection) {
-    return this.boxes.find((box) => collection.boxIds.includes(box.id))?.image
+    return collection.imageUrl
+      ?? this.boxes.find((box) => collection.boxIds.includes(box.id))?.image
       ?? '/alien-box.jpeg';
   }
 

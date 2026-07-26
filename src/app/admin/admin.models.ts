@@ -55,6 +55,8 @@ export interface BoxCollection {
   id: string;
   name: string;
   description: string;
+  imageUrl: string | null;
+  imageStoragePath: string | null;
   boxIds: string[];
 }
 
