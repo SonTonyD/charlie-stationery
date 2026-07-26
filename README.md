@@ -237,6 +237,45 @@ Variables attendues cote Edge Function :
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SITE_URL` optionnelle, par defaut `http://localhost:4200`
 
+### Deployer ou redeployer une Edge Function Supabase
+
+Les commandes suivantes doivent etre executees depuis la racine du projet.
+Le CLI Supabase doit etre installe et accessible avec la commande `supabase`.
+
+Lors de la premiere utilisation sur un poste, se connecter a Supabase :
+
+```bash
+supabase login
+```
+
+Lier ensuite le depot local au projet Supabase de Charlies Stationery :
+
+```bash
+supabase link --project-ref vcnftcpsfedvonpbwmsd
+```
+
+Pour deployer la fonction de creation du checkout, ou redeployer une nouvelle
+version apres une modification :
+
+```bash
+supabase functions deploy create-checkout-session
+```
+
+La meme commande s'applique aux autres Edge Functions en remplacant le dernier
+argument par le nom du dossier present dans `supabase/functions/`. Par exemple :
+
+```bash
+supabase functions deploy boxtal-map-token
+supabase functions deploy stripe-webhook
+```
+
+`supabase login` et `supabase link` ne sont normalement necessaires qu'une fois
+par poste et par copie locale du depot. En revanche, la commande
+`supabase functions deploy <nom-fonction>` doit etre relancee apres chaque
+modification de la fonction concernee. Le deploiement ne met pas a jour le
+schema SQL : les changements de `supabase/schema.sql` doivent etre appliques
+separement au projet Supabase avant de deployer une fonction qui en depend.
+
 ## Assets publics
 
 Dossier :
