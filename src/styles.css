@@ -211,6 +211,148 @@ p {
   text-transform: uppercase;
 }
 
+.card.box-card.premium-box-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(145deg, #fff9ff 0%, #f4e5ff 45%, #fff2cc 100%) padding-box,
+    linear-gradient(115deg, #7b2dce, #ff62b0, #ffe070, #9d5bff, #ff62b0) border-box;
+  background-size: 100% 100%, 320% 320%;
+  box-shadow:
+    0 18px 45px rgba(122, 45, 206, 0.28),
+    0 0 24px rgba(255, 98, 176, 0.22);
+  animation: premiumAura 3.2s ease-in-out infinite;
+}
+
+.card.box-card.premium-box-card::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -70% -90%;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.12) 46%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(255, 226, 112, 0.38) 54%,
+    transparent 60%
+  );
+  transform: translateX(-36%) rotate(8deg);
+  animation: premiumShine 3.6s ease-in-out infinite;
+}
+
+.card.box-card.premium-box-card::after {
+  content: "✦  ·  ✧";
+  position: absolute;
+  z-index: 0;
+  top: 72px;
+  right: 15px;
+  pointer-events: none;
+  color: rgba(150, 69, 192, 0.34);
+  font-size: 1.25rem;
+  letter-spacing: 0.25rem;
+  animation: premiumFloat 2.5s ease-in-out infinite;
+}
+
+.card.box-card.premium-box-card:hover {
+  transform: translateY(-9px) scale(1.025);
+  box-shadow:
+    0 24px 56px rgba(122, 45, 206, 0.38),
+    0 0 34px rgba(255, 98, 176, 0.36),
+    0 0 48px rgba(255, 224, 112, 0.2);
+}
+
+.premium-box-card .card-link,
+.premium-box-card .box-actions,
+.premium-box-card .box-variant-select,
+.premium-box-card .stock {
+  position: relative;
+  z-index: 1;
+}
+
+.premium-box-card .box-image {
+  border: 2px solid rgba(157, 91, 255, 0.3);
+  background: linear-gradient(145deg, #fff, #fbf3ff);
+  box-shadow:
+    0 10px 26px rgba(112, 64, 159, 0.18),
+    inset 0 0 18px rgba(255, 224, 112, 0.16);
+}
+
+.premium-box-card .card-link h3 {
+  color: #7130a5;
+  text-shadow:
+    0 2px 0 #fff,
+    0 5px 16px rgba(139, 58, 187, 0.3);
+}
+
+.premium-box-card .price {
+  color: #8a3d73;
+  text-shadow: 0 2px 12px rgba(255, 98, 176, 0.2);
+}
+
+.premium-box-badge {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  right: 10px;
+  padding: 8px 13px;
+  border: 1px solid rgba(255, 242, 173, 0.9);
+  border-radius: 999px;
+  background: linear-gradient(120deg, #632393, #a946bb 48%, #d8799d);
+  box-shadow:
+    0 6px 18px rgba(89, 45, 126, 0.42),
+    inset 0 1px rgba(255, 255, 255, 0.42),
+    0 0 14px rgba(255, 224, 112, 0.36);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.premium-box-badge span {
+  display: inline-block;
+  color: #ffe29a;
+  animation: premiumSparkle 1.8s ease-in-out infinite;
+}
+
+@keyframes premiumAura {
+  0%, 100% {
+    background-position: 0 0, 0 50%;
+    filter: saturate(1);
+  }
+  50% {
+    background-position: 0 0, 100% 50%;
+    filter: saturate(1.22);
+  }
+}
+
+@keyframes premiumSparkle {
+  0%, 100% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.35) rotate(18deg); }
+}
+
+@keyframes premiumShine {
+  0%, 22% { transform: translateX(-36%) rotate(8deg); opacity: 0; }
+  42%, 55% { opacity: 1; }
+  78%, 100% { transform: translateX(36%) rotate(8deg); opacity: 0; }
+}
+
+@keyframes premiumFloat {
+  0%, 100% { transform: translateY(0) rotate(-4deg); opacity: 0.35; }
+  50% { transform: translateY(-7px) rotate(5deg); opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-box-card,
+  .premium-box-card::before,
+  .premium-box-card::after,
+  .premium-box-badge span { animation: none; }
+}
+
 /* Le composant Boxtal injecte l'iframe après le rendu Angular : ces règles
    doivent donc rester globales pour que la carte remplisse son conteneur. */
 #boxtal-parcel-map {

@@ -108,6 +108,10 @@
               <input type="checkbox" name="newBoxHasVariants" [(ngModel)]="newBoxForm.hasVariants" />
               Cette box possède plusieurs variantes
             </label>
+            <label class="checkbox-field">
+              <input type="checkbox" name="newBoxIsPremium" [(ngModel)]="newBoxForm.isPremium" />
+              Mettre cette box en avant comme Premium
+            </label>
             <label>
               Images
               <input
@@ -203,6 +207,11 @@
                 <input type="checkbox" name="selectedBoxHasVariants"
                   [(ngModel)]="selectedBoxForm.hasVariants" />
                 Cette box possède plusieurs variantes
+              </label>
+              <label class="checkbox-field">
+                <input type="checkbox" name="selectedBoxIsPremium"
+                  [(ngModel)]="selectedBoxForm.isPremium" />
+                Mettre cette box en avant comme Premium
               </label>
               <button
                 class="btn-ghost"

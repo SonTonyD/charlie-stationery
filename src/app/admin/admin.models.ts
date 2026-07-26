@@ -30,6 +30,7 @@ export interface AdminBox {
   purchasePrice: number | null;
   weightGrams: number;
   hasVariants: boolean;
+  isPremium: boolean;
   variants: BoxVariant[];
   stockQuantity: number;
   items: BoxProductLine[];

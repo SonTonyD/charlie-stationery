@@ -26,6 +26,7 @@ interface BoxItem {
   image: string;
   weightGrams: number;
   hasVariants: boolean;
+  isPremium: boolean;
   variants: BoxVariant[];
 }
 
@@ -336,6 +337,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         image: box.imageUrl || '/alien-box.jpeg',
         weightGrams: box.weightGrams,
         hasVariants: box.hasVariants,
+        isPremium: box.isPremium,
         variants: box.variants,
       }));
       this.selectedVariantIds = Object.fromEntries(

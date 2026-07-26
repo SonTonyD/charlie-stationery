@@ -17,6 +17,7 @@ create table if not exists public.boxes (
   purchase_price numeric(10,2) check (purchase_price is null or purchase_price >= 0),
   weight_grams integer not null default 1 check (weight_grams > 0),
   has_variants boolean not null default false,
+  is_premium boolean not null default false,
   stock_quantity integer not null default 0 check (stock_quantity >= 0),
   created_at timestamptz not null default now()
 );
@@ -38,6 +39,9 @@ add column if not exists weight_grams integer not null default 1;
 
 alter table public.boxes
 add column if not exists has_variants boolean not null default false;
+
+alter table public.boxes
+add column if not exists is_premium boolean not null default false;
 
 create table if not exists public.box_variants (
   id uuid primary key default gen_random_uuid(),

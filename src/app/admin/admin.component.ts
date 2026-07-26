@@ -90,6 +90,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     purchasePrice: null as number | null,
     weightGrams: 1,
     hasVariants: false,
+    isPremium: false,
     imageUrl: '/alien-box.jpeg',
   };
   newBoxImageFiles: File[] = [];
@@ -100,6 +101,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     purchasePrice: null as number | null,
     weightGrams: 1,
     hasVariants: false,
+    isPremium: false,
     imageUrl: '/alien-box.jpeg',
     showOnFrontOffice: false,
   };
@@ -359,6 +361,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       purchasePrice: this.normalizeOptionalPrice(this.newBoxForm.purchasePrice),
       weightGrams: Math.max(1, Math.floor(Number(this.newBoxForm.weightGrams) || 1)),
       hasVariants: this.newBoxForm.hasVariants,
+      isPremium: this.newBoxForm.isPremium,
       imageUrl: this.normalizeImageUrl(this.newBoxForm.imageUrl),
     };
 
@@ -383,6 +386,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         purchasePrice: null,
         weightGrams: 1,
         hasVariants: false,
+        isPremium: false,
         imageUrl: '/alien-box.jpeg',
       };
       this.newBoxImageFiles = [];
@@ -404,6 +408,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       purchasePrice: box?.purchasePrice ?? null,
       weightGrams: box?.weightGrams ?? 1,
       hasVariants: box?.hasVariants ?? false,
+      isPremium: box?.isPremium ?? false,
       imageUrl: box?.imageUrl ?? '/alien-box.jpeg',
       showOnFrontOffice: box?.showOnFrontOffice ?? false,
     };
@@ -422,6 +427,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       purchasePrice: this.normalizeOptionalPrice(this.selectedBoxForm.purchasePrice),
       weightGrams: Math.max(1, Math.floor(Number(this.selectedBoxForm.weightGrams) || 1)),
       hasVariants: this.selectedBoxForm.hasVariants,
+      isPremium: this.selectedBoxForm.isPremium,
       imageUrl: this.normalizeImageUrl(this.selectedBoxForm.imageUrl),
       showOnFrontOffice: this.selectedBoxForm.showOnFrontOffice,
     };
@@ -613,6 +619,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           purchasePrice: null,
           weightGrams: 1,
           hasVariants: false,
+          isPremium: false,
           imageUrl: '/alien-box.jpeg',
           showOnFrontOffice: false,
         };
@@ -636,6 +643,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         purchasePrice: box.purchasePrice,
         weightGrams: box.weightGrams,
         hasVariants: box.hasVariants,
+        isPremium: box.isPremium,
       }),
     );
     this.selectBox(box.id);

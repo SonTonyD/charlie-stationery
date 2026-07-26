@@ -24,6 +24,7 @@ interface AdminBoxPayload {
   purchasePrice: number | null;
   weightGrams: number;
   hasVariants?: boolean;
+  isPremium?: boolean;
   imageUrl?: string;
   showOnFrontOffice?: boolean;
 }
@@ -74,6 +75,7 @@ export class AdminMockService {
       purchasePrice: 15.4,
       weightGrams: 1000,
       hasVariants: false,
+      isPremium: false,
       variants: [],
       stockQuantity: 5,
       items: [
@@ -95,6 +97,7 @@ export class AdminMockService {
       purchasePrice: 4.3,
       weightGrams: 500,
       hasVariants: false,
+      isPremium: false,
       variants: [],
       stockQuantity: 8,
       items: [
@@ -115,6 +118,7 @@ export class AdminMockService {
       purchasePrice: 8.2,
       weightGrams: 750,
       hasVariants: false,
+      isPremium: false,
       variants: [],
       stockQuantity: 4,
       items: [
@@ -154,7 +158,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, sale_price, purchase_price, weight_grams, has_variants, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity), box_variants(id, name, price, sort_order)',
+        'id, name, description, image_url, show_on_front_office, sale_price, purchase_price, weight_grams, has_variants, is_premium, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity), box_variants(id, name, price, sort_order)',
       )
       .order('name', { ascending: true });
 
@@ -182,6 +186,7 @@ export class AdminMockService {
             : this.toMoney(Number(box.purchase_price) || 0),
         weightGrams: Math.max(1, Math.floor(Number(box.weight_grams) || 1)),
         hasVariants: Boolean(box.has_variants),
+        isPremium: Boolean(box.is_premium),
         variants: (box.box_variants ?? [])
           .map((variant) => ({
             id: variant.id,
@@ -267,6 +272,7 @@ export class AdminMockService {
       purchasePrice: payload.purchasePrice,
       weightGrams: payload.weightGrams,
       hasVariants: payload.hasVariants ?? false,
+      isPremium: payload.isPremium ?? false,
       variants: [],
       stockQuantity: 0,
       items: [],
@@ -282,6 +288,7 @@ export class AdminMockService {
       purchase_price: box.purchasePrice,
       weight_grams: box.weightGrams,
       has_variants: box.hasVariants,
+      is_premium: box.isPremium,
       stock_quantity: box.stockQuantity,
     });
 
@@ -294,7 +301,7 @@ export class AdminMockService {
 
   async updateBox(
     boxId: string,
-    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice' | 'weightGrams' | 'hasVariants'>,
+    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice' | 'weightGrams' | 'hasVariants' | 'isPremium'>,
   ) {
     const { error } = await supabase
       .from('boxes')
@@ -307,6 +314,7 @@ export class AdminMockService {
         purchase_price: payload.purchasePrice,
         weight_grams: payload.weightGrams,
         has_variants: payload.hasVariants,
+        is_premium: payload.isPremium,
       })
       .eq('id', boxId);
 
@@ -944,6 +952,7 @@ export class AdminMockService {
         purchase_price: box.purchasePrice,
         weight_grams: box.weightGrams,
         has_variants: box.hasVariants,
+        is_premium: box.isPremium,
         stock_quantity: box.stockQuantity,
       })),
     );
