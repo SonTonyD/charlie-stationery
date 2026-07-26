@@ -133,9 +133,10 @@ p {
 }
 
 .review-open-button {
-  display: block;
-  margin: 28px auto 0;
+  margin-top: 28px;
 }
+
+.review-button-wrap { text-align: center; }
 
 .review-dialog .btn.btn-outline {
   border: 2px solid #70409f;

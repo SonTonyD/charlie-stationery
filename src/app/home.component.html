@@ -164,12 +164,19 @@
           <div class="review-stars">{{ reviewStars(review.rating) }}</div>
           <p>« {{ review.comment }} » — {{ review.author }}</p>
         </div>
+      } @empty {
+        <div class="card reviews-empty">
+          <div class="review-stars">✏️ ✨ 📒</div>
+          <p>Cette page est encore toute blanche… Soyez la première personne à y griffonner un joli avis !</p>
+        </div>
       }
     </div>
 
-    <button class="btn review-open-button" type="button" (click)="openReviewDialog()">
-      Donner un avis
-    </button>
+    <div class="review-button-wrap">
+      <button class="btn review-open-button" type="button" (click)="openReviewDialog()">
+        Donner un avis
+      </button>
+    </div>
 
     @if (isReviewDialogOpen) {
       <div class="review-backdrop" role="presentation" (click)="closeReviewDialog()">
