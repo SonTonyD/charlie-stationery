@@ -262,22 +262,13 @@
                       <div class="box-image-card-body">
                         <span>{{ i === 0 ? "Principale" : "Secondaire" }}</span>
                         <div class="box-image-actions">
-                          <button
-                            class="btn-ghost"
-                            type="button"
-                            [disabled]="i === 0"
-                            (click)="moveSelectedBoxImage(i, -1)"
-                          >
-                            Monter
-                          </button>
-                          <button
-                            class="btn-ghost"
-                            type="button"
-                            [disabled]="i === selectedBox.images.length - 1"
-                            (click)="moveSelectedBoxImage(i, 1)"
-                          >
-                            Descendre
-                          </button>
+                          <label class="image-order-control">
+                            Ordre
+                            <input type="number" min="1" [max]="selectedBox.images.length"
+                              [ngModel]="i + 1" [ngModelOptions]="{ updateOn: 'blur' }"
+                              (ngModelChange)="setSelectedBoxImageOrder(i, $event)"
+                              name="gallery-image-order-{{ image.id }}" />
+                          </label>
                           <button
                             class="btn-danger"
                             type="button"
@@ -320,8 +311,13 @@
                       <div class="box-image-card-body">
                         <span>Image {{ i + 1 }}</span>
                         <div class="box-image-actions">
-                          <button class="btn-ghost" type="button" [disabled]="i === 0" (click)="moveSelectedBoxCompleteImage(i, -1)">Monter</button>
-                          <button class="btn-ghost" type="button" [disabled]="i === selectedBox.completeImages.length - 1" (click)="moveSelectedBoxCompleteImage(i, 1)">Descendre</button>
+                          <label class="image-order-control">
+                            Ordre
+                            <input type="number" min="1" [max]="selectedBox.completeImages.length"
+                              [ngModel]="i + 1" [ngModelOptions]="{ updateOn: 'blur' }"
+                              (ngModelChange)="setSelectedBoxCompleteImageOrder(i, $event)"
+                              name="complete-image-order-{{ image.id }}" />
+                          </label>
                           <button class="btn-danger" type="button" (click)="deleteSelectedBoxCompleteImage(image)">Supprimer</button>
                         </div>
                       </div>

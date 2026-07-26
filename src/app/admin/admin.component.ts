@@ -375,25 +375,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  moveSelectedBoxImage(imageIndex: number, direction: -1 | 1) {
+  setSelectedBoxImageOrder(imageIndex: number, order: number) {
     const box = this.selectedBox;
-    if (!box) {
-      return;
-    }
-
-    const targetIndex = imageIndex + direction;
-    if (targetIndex < 0 || targetIndex >= box.images.length) {
-      return;
-    }
-
-    const nextImages = [...box.images];
-    const [image] = nextImages.splice(imageIndex, 1);
-    nextImages.splice(targetIndex, 0, image);
-
-    this.replaceSelectedBoxImages(
-      nextImages.map((item, sortOrder) => ({ ...item, sortOrder })),
-      'images',
-    );
+    if (!box) return;
+    this.reorderSelectedBoxImages(box.images, imageIndex, order, 'images');
   }
 
   async uploadSelectedBoxCompleteImages() {
@@ -412,17 +397,34 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  moveSelectedBoxCompleteImage(imageIndex: number, direction: -1 | 1) {
+  setSelectedBoxCompleteImageOrder(imageIndex: number, order: number) {
     const box = this.selectedBox;
     if (!box) return;
-    const targetIndex = imageIndex + direction;
-    if (targetIndex < 0 || targetIndex >= box.completeImages.length) return;
-    const images = [...box.completeImages];
+    this.reorderSelectedBoxImages(
+      box.completeImages,
+      imageIndex,
+      order,
+      'completeImages',
+    );
+  }
+
+  private reorderSelectedBoxImages(
+    source: AdminBoxImage[],
+    imageIndex: number,
+    order: number,
+    field: 'images' | 'completeImages',
+  ) {
+    const targetIndex = Math.min(
+      source.length - 1,
+      Math.max(0, Math.floor(Number(order) || 1) - 1),
+    );
+    if (targetIndex === imageIndex) return;
+    const images = [...source];
     const [image] = images.splice(imageIndex, 1);
     images.splice(targetIndex, 0, image);
     this.replaceSelectedBoxImages(
       images.map((item, sortOrder) => ({ ...item, sortOrder })),
-      'completeImages',
+      field,
     );
   }
 
