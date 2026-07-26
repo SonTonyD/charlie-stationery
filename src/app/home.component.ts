@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
@@ -14,6 +15,7 @@ import { AdminBox } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
 import { SupabaseAuthService } from './supabase/auth.service';
+import { supabase } from './supabase/supabase.client';
 
 interface BoxItem {
   id: string;
@@ -26,8 +28,10 @@ interface BoxItem {
 }
 
 interface Review {
-  text: string;
+  id: string;
+  comment: string;
   author: string;
+  rating: number;
 }
 
 interface Faq {
@@ -39,7 +43,7 @@ interface Faq {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, LegalConsentComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LegalConsentComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -65,15 +69,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   private upcomingSlideRatios: Record<string, string> = {};
   private nextUpcomingSlideChecked = false;
 
-  reviews: Review[] = [
-    {
-      text: 'Qualite incroyable, livraison rapide, je recommande !',
-      author: 'Clara M.',
-    },
-    { text: 'Les stickers sont trop mignons', author: 'Emma L.' },
-    { text: 'Parfait pour offrir.', author: 'Sarah T.' },
-    { text: 'Tres belle surprise.', author: 'Julie R.' },
-  ];
+  reviews: Review[] = [];
+  reviewForm = { firstName: '', lastName: '', email: '', rating: 5, comment: '' };
+  reviewMessage = '';
+  reviewError = '';
+  isSubmittingReview = false;
+  isReviewDialogOpen = false;
 
   faqs: Faq[] = [
     {
@@ -112,6 +113,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
 
     await this.loadFrontOfficeBoxes();
+    await this.loadPublishedReviews();
     this.startUpcomingCarousel();
   }
 
@@ -134,6 +136,45 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.activeUpcomingIndex = index;
     this.updateUpcomingRatio();
     this.startUpcomingCarousel();
+  }
+
+  reviewStars(rating: number) {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }
+
+  openReviewDialog() {
+    this.reviewMessage = '';
+    this.reviewError = '';
+    this.isReviewDialogOpen = true;
+  }
+
+  closeReviewDialog() {
+    if (!this.isSubmittingReview) this.isReviewDialogOpen = false;
+  }
+
+  async submitReview() {
+    if (this.isSubmittingReview) return;
+    this.reviewMessage = '';
+    this.reviewError = '';
+    this.isSubmittingReview = true;
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-review', {
+        body: this.reviewForm,
+      });
+      if (error || !data?.success) {
+        this.reviewError =
+          data?.error ||
+          (await this.readFunctionError(error)) ||
+          'Impossible d’envoyer votre avis.';
+        return;
+      }
+      this.reviewMessage = 'Merci ! Votre avis sera visible après validation.';
+      this.reviewForm = { firstName: '', lastName: '', email: '', rating: 5, comment: '' };
+    } catch {
+      this.reviewError = 'Impossible d’envoyer votre avis.';
+    } finally {
+      this.isSubmittingReview = false;
+    }
   }
 
   onUpcomingImageLoad(index: number, event: Event) {
@@ -272,6 +313,35 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.updateUpcomingRatio();
       });
     }, 5000);
+  }
+
+  private async loadPublishedReviews() {
+    const { data, error } = await supabase
+      .from('public_reviews')
+      .select('id, first_name, last_name, rating, comment')
+      .order('created_at', { ascending: false });
+    if (error) {
+      this.reviews = [];
+      return;
+    }
+    this.reviews = (data ?? []).map((review) => ({
+      id: review.id,
+      comment: review.comment,
+      rating: Number(review.rating),
+      author: [review.first_name, review.last_name].filter(Boolean).join(' '),
+    }));
+  }
+
+  private async readFunctionError(error: unknown) {
+    if (!error || typeof error !== 'object' || !('context' in error)) return '';
+    const response = error.context;
+    if (!(response instanceof Response)) return '';
+    try {
+      const body = await response.json();
+      return typeof body?.error === 'string' ? body.error : '';
+    } catch {
+      return '';
+    }
   }
 
   private updateUpcomingRatio() {

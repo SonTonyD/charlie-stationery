@@ -828,6 +828,40 @@ footer {
 
 }
 
+.review-form {
+  max-width: 760px;
+  margin: 34px auto 0;
+  padding: 24px;
+  background: #fff;
+}
+
+.review-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.review-form-grid label { display: grid; gap: 6px; font-weight: 700; }
+.review-form-grid .wide { grid-column: 1 / -1; }
+.review-form-grid input,
+.review-form-grid select,
+.review-form-grid textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #d8cde2;
+  border-radius: 9px;
+  font: inherit;
+}
+.review-success { color: #157347; font-weight: 700; }
+.review-error { color: #b42318; font-weight: 700; }
+
+@media (max-width: 650px) {
+  .review-form-grid { grid-template-columns: 1fr; }
+  .review-form-grid .wide { grid-column: auto; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .upcoming-track {
     transition: none;

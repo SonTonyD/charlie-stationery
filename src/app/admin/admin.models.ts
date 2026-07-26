@@ -42,6 +42,17 @@ export interface ShippingRate {
   price: number;
 }
 
+export interface AdminReview {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  email: string;
+  rating: number;
+  comment: string;
+  isPublished: boolean;
+  createdAt: string;
+}
+
 export type OrderStatus =
   | 'pending_payment' | 'paid' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
 

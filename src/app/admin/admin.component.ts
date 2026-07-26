@@ -11,10 +11,11 @@ import {
   BoxProductLine,
   OrderStatus,
   ShippingRate,
+  AdminReview,
 } from './admin.models';
 import { SupabaseAuthService } from '../supabase/auth.service';
 
-type AdminTab = 'boxes' | 'stocks' | 'shipping' | 'orders';
+type AdminTab = 'boxes' | 'stocks' | 'shipping' | 'reviews' | 'orders';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -58,6 +59,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   boxes: AdminBox[] = [];
   orders: AdminOrder[] = [];
   shippingRates: ShippingRate[] = [];
+  reviews: AdminReview[] = [];
   readonly orderStatuses: { value: OrderStatus; label: string }[] = [
     { value: 'pending_payment', label: 'En attente de paiement' },
     { value: 'paid', label: 'Payée' },
@@ -138,6 +140,12 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   async updateOrderStatus(orderId: string, status: OrderStatus) {
     await this.runAction(() => this.adminMockService.updateOrderStatus(orderId, status));
+  }
+
+  async updateReviewPublication(reviewId: string, isPublished: boolean) {
+    await this.runAction(() =>
+      this.adminMockService.updateReviewPublication(reviewId, isPublished),
+    );
   }
 
   relayDescription(order: AdminOrder) {
@@ -717,10 +725,11 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      [this.boxes, this.orders, this.shippingRates] = await Promise.all([
+      [this.boxes, this.orders, this.shippingRates, this.reviews] = await Promise.all([
         this.adminMockService.getBoxes(),
         this.adminMockService.getOrders(),
         this.adminMockService.getShippingRates(),
+        this.adminMockService.getReviews(),
       ]);
       this.products = [];
     } catch (error) {
@@ -729,6 +738,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.boxes = [];
       this.orders = [];
       this.shippingRates = [];
+      this.reviews = [];
     } finally {
       this.isLoading = false;
     }

@@ -6,6 +6,7 @@ import {
   AdminBoxImage,
   AdminProduct,
   ShippingRate,
+  AdminReview,
 } from './admin.models';
 import { supabase } from '../supabase/supabase.client';
 
@@ -622,6 +623,32 @@ export class AdminMockService {
       weightMaxGrams: rate.weight_max_grams,
       price: this.toMoney(Number(rate.price)),
     }));
+  }
+
+  async getReviews(): Promise<AdminReview[]> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('id, first_name, last_name, email, rating, comment, is_published, created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((review) => ({
+      id: review.id,
+      firstName: review.first_name,
+      lastName: review.last_name,
+      email: review.email,
+      rating: Number(review.rating),
+      comment: review.comment,
+      isPublished: Boolean(review.is_published),
+      createdAt: review.created_at,
+    }));
+  }
+
+  async updateReviewPublication(reviewId: string, isPublished: boolean) {
+    const { error } = await supabase
+      .from('reviews')
+      .update({ is_published: isPublished, updated_at: new Date().toISOString() })
+      .eq('id', reviewId);
+    if (error) throw error;
   }
 
   private normalizeBoxImages(

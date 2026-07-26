@@ -171,6 +171,32 @@ create index if not exists orders_status_idx on public.orders(status);
 alter table public.orders
 add column if not exists total_weight_grams integer not null default 1;
 
+create table if not exists public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  first_name text not null,
+  last_name text,
+  email text not null,
+  rating smallint not null check (rating between 1 and 5),
+  comment text not null check (char_length(comment) between 1 and 500),
+  is_published boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists reviews_created_at_idx on public.reviews(created_at desc);
+create index if not exists reviews_is_published_idx on public.reviews(is_published);
+
+create or replace view public.public_reviews
+with (security_invoker = false)
+as
+select id, first_name, last_name, rating, comment, created_at
+from public.reviews
+where is_published = true;
+
+revoke all on public.reviews from anon;
+grant select, update on public.reviews to authenticated;
+grant select on public.public_reviews to anon, authenticated;
+
 alter table public.events
 alter column event_date drop not null;
 
@@ -182,6 +208,7 @@ alter table public.box_complete_images enable row level security;
 alter table public.box_items enable row level security;
 alter table public.events enable row level security;
 alter table public.orders enable row level security;
+alter table public.reviews enable row level security;
 
 insert into storage.buckets (id, name, public)
 values ('box-images', 'box-images', true)
@@ -288,6 +315,14 @@ on public.orders for select to authenticated using (true);
 drop policy if exists "orders_update_authenticated" on public.orders;
 create policy "orders_update_authenticated"
 on public.orders for update to authenticated using (true) with check (true);
+
+drop policy if exists "reviews_select_authenticated" on public.reviews;
+create policy "reviews_select_authenticated"
+on public.reviews for select to authenticated using (true);
+
+drop policy if exists "reviews_update_authenticated" on public.reviews;
+create policy "reviews_update_authenticated"
+on public.reviews for update to authenticated using (true) with check (true);
 
 drop policy if exists "box_images_storage_select_public" on storage.objects;
 create policy "box_images_storage_select_public"

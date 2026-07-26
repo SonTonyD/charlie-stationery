@@ -470,6 +470,30 @@ td {
   margin: 0 0 10px;
 }
 
+.reviews-panel td small {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+}
+
+.review-comment {
+  min-width: 260px;
+  white-space: normal;
+}
+
+.admin-review-stars {
+  color: #8b5a00;
+  font-weight: 800;
+}
+
+.publication-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 @media (max-width: 900px) {
   .shipping-grids { grid-template-columns: 1fr; }
 }

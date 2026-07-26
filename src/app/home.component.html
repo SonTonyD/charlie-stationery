@@ -159,13 +159,90 @@
     <h2>Avis Clients <span class="heading-emoji">✏️</span></h2>
 
     <div class="reviews-grid">
-      @for (review of reviews; track review.author) {
+      @for (review of reviews; track review.id) {
         <div class="card">
-          <div class="review-stars">★★★★★</div>
-          <p>"{{ review.text }}" - {{ review.author }}</p>
+          <div class="review-stars">{{ reviewStars(review.rating) }}</div>
+          <p>« {{ review.comment }} » — {{ review.author }}</p>
         </div>
       }
     </div>
+
+    <button class="btn review-open-button" type="button" (click)="openReviewDialog()">
+      Donner un avis
+    </button>
+
+    @if (isReviewDialogOpen) {
+      <div class="review-backdrop" role="presentation" (click)="closeReviewDialog()">
+        <form class="review-form review-dialog" role="dialog" aria-modal="true"
+          aria-labelledby="review-dialog-title" (click)="$event.stopPropagation()"
+          (ngSubmit)="submitReview()">
+      <h3 id="review-dialog-title">Donner un avis</h3>
+      <p>Votre adresse e-mail doit correspondre à une commande payée. Elle ne sera jamais affichée.</p>
+      <div class="review-form-grid">
+        <label
+          >Prénom
+          <input
+            name="reviewFirstName"
+            [(ngModel)]="reviewForm.firstName"
+            required
+            maxlength="100"
+          />
+        </label>
+        <label
+          >Nom (facultatif)
+          <input
+            name="reviewLastName"
+            [(ngModel)]="reviewForm.lastName"
+            maxlength="100"
+          />
+        </label>
+        <label class="wide"
+          >Adresse e-mail
+          <input
+            type="email"
+            name="reviewEmail"
+            [(ngModel)]="reviewForm.email"
+            required
+            maxlength="254"
+          />
+        </label>
+        <label
+          >Nombre d’étoiles
+          <select name="reviewRating" [(ngModel)]="reviewForm.rating" required>
+            @for (rating of [5, 4, 3, 2, 1]; track rating) {
+              <option [ngValue]="rating">
+                {{ rating }} étoile{{ rating > 1 ? "s" : "" }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="wide"
+          >Commentaire
+          <textarea
+            name="reviewComment"
+            [(ngModel)]="reviewForm.comment"
+            required
+            maxlength="500"
+            rows="4"
+          ></textarea>
+        </label>
+      </div>
+      @if (reviewMessage) {
+        <p class="review-success">{{ reviewMessage }}</p>
+      }
+      @if (reviewError) {
+        <p class="review-error">{{ reviewError }}</p>
+      }
+      <div class="review-dialog-actions">
+        <button class="btn btn-outline" type="button" [disabled]="isSubmittingReview"
+          (click)="closeReviewDialog()">Annuler</button>
+        <button class="btn" type="submit" [disabled]="isSubmittingReview">
+          {{ isSubmittingReview ? "Envoi…" : "Envoyer mon avis" }}
+        </button>
+      </div>
+        </form>
+      </div>
+    }
   </div>
 </section>
 

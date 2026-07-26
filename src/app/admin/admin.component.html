@@ -42,6 +42,10 @@
       <button type="button" [class.active]="activeTab === 'shipping'" (click)="setActiveTab('shipping')">
         Frais de livraison
       </button>
+      <button type="button" [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews')">
+        Avis
+        @if (reviews.length) { <span class="tab-count">{{ reviews.length }}</span> }
+      </button>
       <button type="button" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
         Commandes
         @if (orders.length) { <span class="tab-count">{{ orders.length }}</span> }
@@ -568,6 +572,41 @@
               </div>
             </article>
           }
+        </div>
+      </section>
+    } @else if (activeTab === "reviews") {
+      <section class="panel reviews-panel">
+        <h2>Avis clients</h2>
+        <p>Les nouveaux avis restent masqués jusqu’à leur validation.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Client</th><th>Note</th><th>Commentaire</th><th>Publication</th></tr>
+            </thead>
+            <tbody>
+              @for (review of reviews; track review.id) {
+                <tr>
+                  <td>{{ review.createdAt | date:"dd/MM/yyyy HH:mm" }}</td>
+                  <td>
+                    <strong>{{ review.firstName }} {{ review.lastName || "" }}</strong>
+                    <small>{{ review.email }}</small>
+                  </td>
+                  <td><span class="admin-review-stars">{{ review.rating }} / 5</span></td>
+                  <td class="review-comment">{{ review.comment }}</td>
+                  <td>
+                    <label class="publication-toggle">
+                      <input type="checkbox" [ngModel]="review.isPublished"
+                        (ngModelChange)="updateReviewPublication(review.id, $event)"
+                        name="published-{{ review.id }}" />
+                      {{ review.isPublished ? "Publié" : "Masqué" }}
+                    </label>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5">Aucun avis reçu.</td></tr>
+              }
+            </tbody>
+          </table>
         </div>
       </section>
     } @else if (activeTab === "orders") {

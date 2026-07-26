@@ -266,6 +266,7 @@ argument par le nom du dossier present dans `supabase/functions/`. Par exemple :
 
 ```bash
 supabase functions deploy boxtal-map-token
+supabase functions deploy submit-review
 supabase functions deploy stripe-webhook
 ```
 
