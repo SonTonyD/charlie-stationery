@@ -157,7 +157,11 @@ export class DeliveryFormComponent implements AfterViewInit, OnChanges, OnInit {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           legalAccepted: true,
-          items: this.items.map((item) => ({ boxId: item.boxId, quantity: item.quantity })),
+          items: this.items.map((item) => ({
+            boxId: item.boxId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+          })),
           delivery: {
             method: this.selectedMethodId,
             firstName: this.form.firstName.trim(),

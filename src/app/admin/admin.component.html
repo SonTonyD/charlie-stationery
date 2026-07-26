@@ -100,6 +100,10 @@
               <input type="number" name="newBoxWeightGrams" min="1" step="1"
                 [(ngModel)]="newBoxForm.weightGrams" required />
             </label>
+            <label class="checkbox-field">
+              <input type="checkbox" name="newBoxHasVariants" [(ngModel)]="newBoxForm.hasVariants" />
+              Cette box possède plusieurs variantes
+            </label>
             <label>
               Images
               <input
@@ -172,6 +176,7 @@
                   min="0"
                   step="0.01"
                   [(ngModel)]="selectedBoxForm.salePrice"
+                  [disabled]="selectedBoxForm.hasVariants"
                   required
                 />
               </label>
@@ -190,6 +195,11 @@
                 <input type="number" name="selectedBoxWeightGrams" min="1" step="1"
                   [(ngModel)]="selectedBoxForm.weightGrams" required />
               </label>
+              <label class="checkbox-field">
+                <input type="checkbox" name="selectedBoxHasVariants"
+                  [(ngModel)]="selectedBoxForm.hasVariants" />
+                Cette box possède plusieurs variantes
+              </label>
               <button
                 class="btn-ghost"
                 type="button"
@@ -203,6 +213,39 @@
               </button>
               <button class="btn-primary" type="submit">Sauvegarder</button>
             </form>
+
+            @if (selectedBoxForm.hasVariants) {
+              <section class="variants-manager">
+                <div>
+                  <h3>Variantes de la box</h3>
+                  <p>Chaque variante doit avoir un nom et un prix. Au moins une variante est nécessaire pour vendre cette box.</p>
+                </div>
+                <form class="variant-add-form" (ngSubmit)="addVariant()">
+                  <input name="newVariantName" placeholder="Nom de la variante"
+                    [(ngModel)]="newVariantForm.name" required />
+                  <input type="number" name="newVariantPrice" placeholder="Prix"
+                    min="0.01" step="0.01" [(ngModel)]="newVariantForm.price" required />
+                  <button class="btn-primary" type="submit">Ajouter</button>
+                </form>
+                <div class="variant-list">
+                  @for (variant of selectedBox.variants; track variant.id) {
+                    <div class="variant-row">
+                      <input #variantName [value]="variant.name" aria-label="Nom de la variante" />
+                      <input #variantPrice type="number" min="0.01" step="0.01"
+                        [value]="variant.price" aria-label="Prix de la variante" />
+                      <button class="btn-ghost" type="button"
+                        (click)="saveVariant(variant.id, variantName.value, +variantPrice.value)">
+                        Enregistrer
+                      </button>
+                      <button class="btn-danger" type="button"
+                        (click)="deleteVariant(variant.id)">Supprimer</button>
+                    </div>
+                  } @empty {
+                    <p>Aucune variante définie.</p>
+                  }
+                </div>
+              </section>
+            }
 
             <section class="box-images-manager">
               <div class="box-images-header">

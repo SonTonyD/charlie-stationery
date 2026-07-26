@@ -53,15 +53,12 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: 'Les informations de livraison sont incomplètes' }, 400);
     }
 
-    const boxIds = checkoutItems.map((item) => item.boxId);
-    const quantityByBoxId = new Map(
-      checkoutItems.map((item) => [item.boxId, item.quantity]),
-    );
+    const boxIds = [...new Set(checkoutItems.map((item) => item.boxId))];
 
     const { data: boxes, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, sale_price, weight_grams, box_images(image_url, sort_order)',
+        'id, name, description, image_url, show_on_front_office, sale_price, weight_grams, has_variants, box_images(image_url, sort_order), box_variants(id, name, price)',
       )
       .in('id', boxIds);
 
@@ -69,28 +66,47 @@ Deno.serve(async (request) => {
       throw error;
     }
 
-    if (!boxes || boxes.length !== checkoutItems.length) {
+    if (!boxes || boxes.length !== boxIds.length) {
       return jsonResponse({ error: 'One or more boxes are not available' }, 404);
     }
 
     let itemsTotalCents = 0;
     let totalWeightGrams = 0;
     const orderItems: Record<string, unknown>[] = [];
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = boxes.map((box) => {
+    const boxesById = new Map(boxes.map((box) => [box.id, box]));
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = checkoutItems.map((item) => {
+      const box = boxesById.get(item.boxId);
+      if (!box) throw new CheckoutValidationError('Box not available', 404);
       if (!box.show_on_front_office) {
         throw new CheckoutValidationError('Box not available', 404);
       }
 
-      const price = Number(box.sale_price ?? 0);
+      const variant = item.variantId
+        ? (box.box_variants ?? []).find((entry) => entry.id === item.variantId)
+        : null;
+      if (box.has_variants && !variant) {
+        throw new CheckoutValidationError('Une variante valide doit être sélectionnée', 400);
+      }
+      if (!box.has_variants && item.variantId) {
+        throw new CheckoutValidationError('Cette box ne possède pas de variante', 400);
+      }
+      const price = Number(variant?.price ?? box.sale_price ?? 0);
       const unitAmount = Math.round(price * 100);
 
       if (unitAmount <= 0) {
         throw new CheckoutValidationError('Box price is invalid', 400);
       }
-      const quantity = quantityByBoxId.get(box.id) ?? 1;
+      const quantity = item.quantity;
       itemsTotalCents += unitAmount * quantity;
       totalWeightGrams += Math.max(1, Math.floor(Number(box.weight_grams) || 0)) * quantity;
-      orderItems.push({ boxId: box.id, name: box.name, unitPrice: price, quantity });
+      orderItems.push({
+        boxId: box.id,
+        variantId: variant?.id ?? null,
+        variantName: variant?.name ?? null,
+        name: box.name,
+        unitPrice: price,
+        quantity,
+      });
 
       const primaryImage =
         [...(box.box_images ?? [])].sort(
@@ -101,7 +117,7 @@ Deno.serve(async (request) => {
         price_data: {
           currency: 'eur',
           product_data: {
-            name: box.name,
+            name: variant ? `${box.name} — ${variant.name}` : box.name,
             description: box.description || undefined,
             images: primaryImage?.startsWith('http') ? [primaryImage] : undefined,
           },
@@ -161,6 +177,7 @@ Deno.serve(async (request) => {
     const metadata: Record<string, string> = {
       box_ids: checkoutItems.map((item) => item.boxId).join(','),
       quantities: checkoutItems.map((item) => String(item.quantity)).join(','),
+      variant_ids: checkoutItems.map((item) => item.variantId ?? '').join(','),
       legal_accepted: 'true',
       legal_accepted_at: new Date().toISOString(),
       legal_documents: 'cgv,cgu,politique-confidentialite,mentions-legales',
@@ -215,7 +232,10 @@ function normalizeCheckoutItems(body: unknown) {
     return [];
   }
 
-  const quantityByBoxId = new Map<string, number>();
+  const quantityByItemKey = new Map<
+    string,
+    { boxId: string; variantId?: string; quantity: number }
+  >();
 
   for (const item of body.items) {
     if (
@@ -228,6 +248,10 @@ function normalizeCheckoutItems(body: unknown) {
     }
 
     const boxId = item.boxId.trim();
+    const variantId =
+      'variantId' in item && typeof item.variantId === 'string' && item.variantId.trim()
+        ? item.variantId.trim()
+        : undefined;
     const quantity =
       'quantity' in item ? Math.max(1, Math.floor(Number(item.quantity) || 1)) : 1;
 
@@ -235,13 +259,16 @@ function normalizeCheckoutItems(body: unknown) {
       continue;
     }
 
-    quantityByBoxId.set(boxId, (quantityByBoxId.get(boxId) ?? 0) + quantity);
+    const key = `${boxId}:${variantId ?? 'default'}`;
+    const existing = quantityByItemKey.get(key);
+    quantityByItemKey.set(key, {
+      boxId,
+      variantId,
+      quantity: (existing?.quantity ?? 0) + quantity,
+    });
   }
 
-  return [...quantityByBoxId.entries()].map(([boxId, quantity]) => ({
-    boxId,
-    quantity,
-  }));
+  return [...quantityByItemKey.values()];
 }
 
 const deliveryMethods = {

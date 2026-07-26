@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
-import { AdminBox } from './admin/admin.models';
+import { AdminBox, BoxVariant } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
 
@@ -17,13 +18,15 @@ interface BoxDetail {
   images: string[];
   completeImages: string[];
   weightGrams: number;
+  hasVariants: boolean;
+  variants: BoxVariant[];
   items: { productName: string; quantity: number; price: number }[];
 }
 
 @Component({
   selector: 'app-box-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, LegalConsentComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LegalConsentComponent],
   templateUrl: './box-detail.component.html',
   styleUrl: './box-detail.component.css',
 })
@@ -38,6 +41,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
   cartItemCount = 0;
   activeTab: 'info' | 'specs' | 'reviews' = 'info';
   selectedImageIndex = 0;
+  selectedVariantId = '';
 
   private cartSubscription: Subscription | null = null;
 
@@ -105,8 +109,13 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
             : [targetBox.imageUrl || '/alien-box.jpeg'],
         completeImages: targetBox.completeImages.map((image) => image.url),
         weightGrams: targetBox.weightGrams,
+        hasVariants: targetBox.hasVariants,
+        variants: targetBox.variants,
         items: items,
       };
+      this.selectedVariantId = targetBox.hasVariants
+        ? targetBox.variants[0]?.id ?? ''
+        : '';
       this.selectedImageIndex = 0;
     } catch {
       this.loadError = 'Erreur lors du chargement de la box';
@@ -136,7 +145,12 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
 
     const boxId = this.box.id;
     this.showLegalConsent = false;
-    await this.router.navigate(['/livraison'], { queryParams: { boxId } });
+    await this.router.navigate(['/livraison'], {
+      queryParams: {
+        boxId,
+        ...(this.selectedVariantId ? { variantId: this.selectedVariantId } : {}),
+      },
+    });
   }
 
   addToCart() {
@@ -144,12 +158,17 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const variant = this.selectedVariant;
+    if (this.box.hasVariants && !variant) return;
     this.cartService.addItem({
+      cartItemId: `${this.box.id}:${variant?.id ?? 'default'}`,
       boxId: this.box.id,
+      variantId: variant?.id,
+      variantName: variant?.name,
       name: this.box.name,
       description: this.box.description,
       image: this.box.image,
-      unitPrice: this.box.price,
+      unitPrice: variant?.price ?? this.box.price,
       weightGrams: this.box.weightGrams,
     });
 
@@ -177,6 +196,15 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
     }
 
     this.selectedImageIndex = index;
+  }
+
+  get selectedVariant() {
+    return this.box?.variants.find((variant) => variant.id === this.selectedVariantId);
+  }
+
+  get displayedPrice() {
+    if (!this.box) return 0;
+    return this.selectedVariant?.price ?? this.box.price;
   }
 
   showPreviousImage() {

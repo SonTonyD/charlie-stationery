@@ -56,15 +56,26 @@
             <h3>{{ box.name }}</h3>
             <p>{{ box.description }}</p>
 
-            <div class="price">{{ box.price | number: "1.2-2" }}EUR</div>
+            <div class="price">{{ boxPriceLabel(box) }}</div>
           </a>
+
+          @if (box.hasVariants) {
+            <label class="box-variant-select">
+              Choisir une variante
+              <select [(ngModel)]="selectedVariantIds[box.id]" name="variant-{{ box.id }}">
+                @for (variant of box.variants; track variant.id) {
+                  <option [value]="variant.id">{{ variant.name }} — {{ variant.price | number:"1.2-2" }}EUR</option>
+                }
+              </select>
+            </label>
+          }
 
           <div class="box-actions">
             <button
               class="btn"
               type="button"
-              [disabled]="box.stock <= 0 || checkoutBoxId === box.id"
-              (click)="requestBuyBox(box.id)"
+              [disabled]="box.stock <= 0 || checkoutBoxId === box.id || (box.hasVariants && !selectedVariantIds[box.id])"
+              (click)="requestBuyBox(box)"
             >
               {{
                 checkoutBoxId === box.id
@@ -78,7 +89,7 @@
             <button
               class="btn btn-cart"
               type="button"
-              [disabled]="box.stock <= 0"
+              [disabled]="box.stock <= 0 || (box.hasVariants && !selectedVariantIds[box.id])"
               (click)="addToCart(box)"
             >
               {{

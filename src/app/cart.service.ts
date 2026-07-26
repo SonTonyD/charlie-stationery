@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 export interface CartItem {
+  cartItemId: string;
   boxId: string;
+  variantId?: string;
+  variantName?: string;
   name: string;
   description: string;
   image: string;
@@ -40,12 +43,14 @@ export class CartService {
 
   addItem(item: Omit<CartItem, 'quantity'>) {
     const items = this.getItems();
-    const existingItem = items.find((cartItem) => cartItem.boxId === item.boxId);
+    const existingItem = items.find(
+      (cartItem) => cartItem.cartItemId === item.cartItemId,
+    );
 
     if (existingItem) {
       this.setItems(
         items.map((cartItem) =>
-          cartItem.boxId === item.boxId
+          cartItem.cartItemId === item.cartItemId
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem,
         ),
@@ -56,37 +61,37 @@ export class CartService {
     this.setItems([...items, { ...item, quantity: 1 }]);
   }
 
-  updateQuantity(boxId: string, quantity: number) {
+  updateQuantity(cartItemId: string, quantity: number) {
     const normalizedQuantity = Math.max(0, Math.floor(Number(quantity) || 0));
 
     if (normalizedQuantity === 0) {
-      this.removeItem(boxId);
+      this.removeItem(cartItemId);
       return;
     }
 
     this.setItems(
       this.getItems().map((item) =>
-        item.boxId === boxId ? { ...item, quantity: normalizedQuantity } : item,
+        item.cartItemId === cartItemId ? { ...item, quantity: normalizedQuantity } : item,
       ),
     );
   }
 
-  increment(boxId: string) {
-    const item = this.getItems().find((cartItem) => cartItem.boxId === boxId);
+  increment(cartItemId: string) {
+    const item = this.getItems().find((cartItem) => cartItem.cartItemId === cartItemId);
     if (item) {
-      this.updateQuantity(boxId, item.quantity + 1);
+      this.updateQuantity(cartItemId, item.quantity + 1);
     }
   }
 
-  decrement(boxId: string) {
-    const item = this.getItems().find((cartItem) => cartItem.boxId === boxId);
+  decrement(cartItemId: string) {
+    const item = this.getItems().find((cartItem) => cartItem.cartItemId === cartItemId);
     if (item) {
-      this.updateQuantity(boxId, item.quantity - 1);
+      this.updateQuantity(cartItemId, item.quantity - 1);
     }
   }
 
-  removeItem(boxId: string) {
-    this.setItems(this.getItems().filter((item) => item.boxId !== boxId));
+  removeItem(cartItemId: string) {
+    this.setItems(this.getItems().filter((item) => item.cartItemId !== cartItemId));
   }
 
   clear() {
@@ -136,7 +141,13 @@ export class CartService {
           }
 
           return {
+            cartItemId:
+              typeof item.cartItemId === 'string'
+                ? item.cartItemId
+                : `${item.boxId}:${typeof item.variantId === 'string' ? item.variantId : 'default'}`,
             boxId: item.boxId,
+            variantId: typeof item.variantId === 'string' ? item.variantId : undefined,
+            variantName: typeof item.variantName === 'string' ? item.variantName : undefined,
             name: item.name,
             description:
               typeof item.description === 'string' ? item.description : '',

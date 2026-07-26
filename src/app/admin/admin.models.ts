@@ -29,6 +29,8 @@ export interface AdminBox {
   salePrice: number;
   purchasePrice: number | null;
   weightGrams: number;
+  hasVariants: boolean;
+  variants: BoxVariant[];
   stockQuantity: number;
   items: BoxProductLine[];
 }
@@ -40,6 +42,13 @@ export interface ShippingRate {
   weightMinGrams: number;
   weightMaxGrams: number;
   price: number;
+}
+
+export interface BoxVariant {
+  id: string;
+  name: string;
+  price: number;
+  sortOrder: number;
 }
 
 export interface AdminReview {
@@ -71,7 +80,14 @@ export interface AdminOrder {
   deliveryPostalCode: string | null;
   deliveryCity: string | null;
   relayPoint: Record<string, unknown> | null;
-  items: { boxId: string; name: string; unitPrice: number; quantity: number }[];
+  items: {
+    boxId: string;
+    variantId?: string | null;
+    variantName?: string | null;
+    name: string;
+    unitPrice: number;
+    quantity: number;
+  }[];
   itemsTotal: number;
   total: number;
   createdAt: string;

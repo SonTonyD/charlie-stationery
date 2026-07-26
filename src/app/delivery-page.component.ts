@@ -14,7 +14,7 @@ import { DeliveryFormComponent } from './delivery-form.component';
     <header><h1>Finaliser ma commande</h1><p>Choisissez votre livraison avant le paiement sécurisé.</p></header>
     @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
     @if (item) {
-      <article class="item"><img [src]="item.image" [alt]="item.name"><div><h2>{{ item.name }}</h2><p>{{ item.description }}</p></div><strong>{{ item.unitPrice | number:"1.2-2" }} €</strong></article>
+      <article class="item"><img [src]="item.image" [alt]="item.name"><div><h2>{{ item.name }}</h2>@if(item.variantName){<p><strong>Variante : {{ item.variantName }}</strong></p>}<p>{{ item.description }}</p></div><strong>{{ item.unitPrice | number:"1.2-2" }} €</strong></article>
       <app-delivery-form [items]="[item]" [itemsTotal]="item.unitPrice" [legalAccepted]="legalAccepted" />
     }
   </main>`,
@@ -28,11 +28,27 @@ export class DeliveryPageComponent implements OnInit {
   constructor(private route: ActivatedRoute, private admin: AdminMockService) {}
   async ngOnInit() {
     const id = this.route.snapshot.queryParamMap.get('boxId');
+    const variantId = this.route.snapshot.queryParamMap.get('variantId');
     if (!id) { this.errorMessage = 'Aucun article à commander.'; return; }
     try {
       const box = (await this.admin.getBoxes()).find((entry) => entry.id === id);
       if (!box || !box.showOnFrontOffice || box.stockQuantity < 1) throw new Error();
-      this.item = { boxId: box.id, name: box.name, description: box.description, image: box.imageUrl, unitPrice: box.salePrice, weightGrams: box.weightGrams, quantity: 1 };
+      const variant = box.hasVariants
+        ? box.variants.find((entry) => entry.id === variantId)
+        : undefined;
+      if (box.hasVariants && !variant) throw new Error();
+      this.item = {
+        cartItemId: `${box.id}:${variant?.id ?? 'default'}`,
+        boxId: box.id,
+        variantId: variant?.id,
+        variantName: variant?.name,
+        name: box.name,
+        description: box.description,
+        image: box.imageUrl,
+        unitPrice: variant?.price ?? box.salePrice,
+        weightGrams: box.weightGrams,
+        quantity: 1,
+      };
     } catch { this.errorMessage = 'Cette box n’est plus disponible.'; }
   }
 }

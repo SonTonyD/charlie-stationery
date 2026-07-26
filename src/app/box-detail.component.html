@@ -73,7 +73,7 @@
 
             <!-- Prix et stock -->
             <div class="price-section">
-              <div class="price">{{ box.price | number: "1.2-2" }} EUR</div>
+              <div class="price">{{ displayedPrice | number: "1.2-2" }} EUR</div>
               <div
                 class="stock"
                 [class.low-stock]="box.stock > 0 && box.stock <= 3"
@@ -87,6 +87,17 @@
                 }
               </div>
             </div>
+
+            @if (box.hasVariants) {
+              <label class="variant-selector">
+                Choisir une variante
+                <select [(ngModel)]="selectedVariantId">
+                  @for (variant of box.variants; track variant.id) {
+                    <option [value]="variant.id">{{ variant.name }} — {{ variant.price | number:"1.2-2" }} EUR</option>
+                  }
+                </select>
+              </label>
+            }
 
             <p class="delivery-scope-note" role="note">
               Livraison disponible uniquement en France
@@ -104,7 +115,7 @@
             <div class="actions-primary">
               <button
                 class="btn btn-primary"
-                [disabled]="box.stock <= 0 || checkoutInProgress"
+                [disabled]="box.stock <= 0 || checkoutInProgress || (box.hasVariants && !selectedVariantId)"
                 (click)="requestBuyBox()"
               >
                 {{
@@ -114,7 +125,7 @@
 
               <button
                 class="btn primary"
-                [disabled]="box.stock <= 0"
+                [disabled]="box.stock <= 0 || (box.hasVariants && !selectedVariantId)"
                 (click)="addToCart()"
               >
                 {{ addedToCart ? "✓ Ajoutée" : "Ajouter au panier" }}

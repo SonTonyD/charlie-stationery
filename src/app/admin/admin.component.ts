@@ -83,6 +83,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     salePrice: 0,
     purchasePrice: null as number | null,
     weightGrams: 1,
+    hasVariants: false,
     imageUrl: '/alien-box.jpeg',
   };
   newBoxImageFiles: File[] = [];
@@ -92,12 +93,14 @@ export class AdminComponent implements OnInit, OnDestroy {
     salePrice: 0,
     purchasePrice: null as number | null,
     weightGrams: 1,
+    hasVariants: false,
     imageUrl: '/alien-box.jpeg',
     showOnFrontOffice: false,
   };
   selectedBoxImageFiles: File[] = [];
   selectedBoxCompleteImageFiles: File[] = [];
   addProductId = '';
+  newVariantForm = { name: '', price: 0 };
   restockTargets: Record<string, number> = {};
   private authSubscription: { unsubscribe: () => void } | null = null;
 
@@ -160,7 +163,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   orderItemsLabel(order: AdminOrder) {
-    return order.items.map((item) => `${item.name} × ${item.quantity}`).join(', ');
+    return order.items
+      .map((item) =>
+        `${item.name}${item.variantName ? ` (${item.variantName})` : ''} × ${item.quantity}`,
+      )
+      .join(', ');
   }
 
   setRestockTarget(boxId: string, value: number) {
@@ -238,6 +245,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       salePrice: Math.max(0, this.toMoney(Number(this.newBoxForm.salePrice) || 0)),
       purchasePrice: this.normalizeOptionalPrice(this.newBoxForm.purchasePrice),
       weightGrams: Math.max(1, Math.floor(Number(this.newBoxForm.weightGrams) || 1)),
+      hasVariants: this.newBoxForm.hasVariants,
       imageUrl: this.normalizeImageUrl(this.newBoxForm.imageUrl),
     };
 
@@ -261,6 +269,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         salePrice: 0,
         purchasePrice: null,
         weightGrams: 1,
+        hasVariants: false,
         imageUrl: '/alien-box.jpeg',
       };
       this.newBoxImageFiles = [];
@@ -281,6 +290,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       salePrice: box?.salePrice ?? 0,
       purchasePrice: box?.purchasePrice ?? null,
       weightGrams: box?.weightGrams ?? 1,
+      hasVariants: box?.hasVariants ?? false,
       imageUrl: box?.imageUrl ?? '/alien-box.jpeg',
       showOnFrontOffice: box?.showOnFrontOffice ?? false,
     };
@@ -298,6 +308,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       salePrice: Math.max(0, this.toMoney(Number(this.selectedBoxForm.salePrice) || 0)),
       purchasePrice: this.normalizeOptionalPrice(this.selectedBoxForm.purchasePrice),
       weightGrams: Math.max(1, Math.floor(Number(this.selectedBoxForm.weightGrams) || 1)),
+      hasVariants: this.selectedBoxForm.hasVariants,
       imageUrl: this.normalizeImageUrl(this.selectedBoxForm.imageUrl),
       showOnFrontOffice: this.selectedBoxForm.showOnFrontOffice,
     };
@@ -408,6 +419,33 @@ export class AdminComponent implements OnInit, OnDestroy {
     );
   }
 
+  async addVariant() {
+    if (!this.selectedBoxId) return;
+    const name = this.newVariantForm.name.trim();
+    const price = Math.max(0, this.toMoney(Number(this.newVariantForm.price) || 0));
+    if (!name || price <= 0) return;
+    await this.runAction(() =>
+      this.adminMockService.createBoxVariant(this.selectedBoxId!, name, price),
+    );
+    this.newVariantForm = { name: '', price: 0 };
+    this.selectBox(this.selectedBoxId);
+  }
+
+  async saveVariant(variantId: string, name: string, price: number) {
+    const normalizedName = name.trim();
+    const normalizedPrice = Math.max(0, this.toMoney(Number(price) || 0));
+    if (!normalizedName || normalizedPrice <= 0) return;
+    await this.runAction(() =>
+      this.adminMockService.updateBoxVariant(variantId, normalizedName, normalizedPrice),
+    );
+    if (this.selectedBoxId) this.selectBox(this.selectedBoxId);
+  }
+
+  async deleteVariant(variantId: string) {
+    await this.runAction(() => this.adminMockService.deleteBoxVariant(variantId));
+    if (this.selectedBoxId) this.selectBox(this.selectedBoxId);
+  }
+
   private reorderSelectedBoxImages(
     source: AdminBoxImage[],
     imageIndex: number,
@@ -461,6 +499,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           salePrice: 0,
           purchasePrice: null,
           weightGrams: 1,
+          hasVariants: false,
           imageUrl: '/alien-box.jpeg',
           showOnFrontOffice: false,
         };
@@ -483,6 +522,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         salePrice: box.salePrice,
         purchasePrice: box.purchasePrice,
         weightGrams: box.weightGrams,
+        hasVariants: box.hasVariants,
       }),
     );
     this.selectBox(box.id);

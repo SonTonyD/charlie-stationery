@@ -436,6 +436,35 @@ td {
   text-align: center;
 }
 
+.checkbox-field {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+}
+
+.checkbox-field input { width: auto; }
+
+.variants-manager {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid #ded2e8;
+  border-radius: 14px;
+  background: #faf7fd;
+}
+
+.variant-add-form,
+.variant-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 120px auto auto;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 760px) {
+  .variant-add-form,
+  .variant-row { grid-template-columns: 1fr; }
+}
+
 .box-image-actions button {
   padding: 7px 9px;
   font-size: 0.78rem;

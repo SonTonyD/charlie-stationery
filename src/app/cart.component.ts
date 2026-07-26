@@ -42,16 +42,16 @@ export class CartComponent implements OnInit, OnDestroy {
     return this.cartService.getTotalPrice();
   }
 
-  increment(boxId: string) {
-    this.cartService.increment(boxId);
+  increment(cartItemId: string) {
+    this.cartService.increment(cartItemId);
   }
 
-  decrement(boxId: string) {
-    this.cartService.decrement(boxId);
+  decrement(cartItemId: string) {
+    this.cartService.decrement(cartItemId);
   }
 
-  removeItem(boxId: string) {
-    this.cartService.removeItem(boxId);
+  removeItem(cartItemId: string) {
+    this.cartService.removeItem(cartItemId);
   }
 
   getLineTotal(item: CartItem) {

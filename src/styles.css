@@ -152,6 +152,26 @@ p {
   color: #3f205b;
 }
 
+.box-variant-select,
+.variant-selector {
+  display: grid;
+  gap: 7px;
+  margin: 14px 0;
+  color: #573078;
+  font-weight: 700;
+}
+
+.box-variant-select select,
+.variant-selector select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #a982c9;
+  border-radius: 10px;
+  background: #fff;
+  color: #3f205b;
+  font: inherit;
+}
+
 /* Le composant Boxtal injecte l'iframe après le rendu Angular : ces règles
    doivent donc rester globales pour que la carte remplisse son conteneur. */
 #boxtal-parcel-map {

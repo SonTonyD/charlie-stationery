@@ -16,20 +16,21 @@
   @if (items.length > 0) {
     <section class="cart-layout">
       <div class="cart-lines">
-        @for (item of items; track item.boxId) {
+        @for (item of items; track item.cartItemId) {
           <article class="cart-line">
             <img [src]="item.image" [alt]="item.name" />
 
             <div class="cart-line-main">
               <h2>{{ item.name }}</h2>
+              @if (item.variantName) { <p><strong>Variante : {{ item.variantName }}</strong></p> }
               <p>{{ item.description }}</p>
               <strong>{{ item.unitPrice | number: "1.2-2" }}EUR</strong>
             </div>
 
             <div class="quantity-controls" aria-label="Quantite">
-              <button type="button" (click)="decrement(item.boxId)">-</button>
+              <button type="button" (click)="decrement(item.cartItemId)">-</button>
               <span>{{ item.quantity }}</span>
-              <button type="button" (click)="increment(item.boxId)">+</button>
+              <button type="button" (click)="increment(item.cartItemId)">+</button>
             </div>
 
             <div class="line-total">
@@ -39,7 +40,7 @@
             <button
               class="remove-button"
               type="button"
-              (click)="removeItem(item.boxId)"
+              (click)="removeItem(item.cartItemId)"
             >
               Supprimer
             </button>

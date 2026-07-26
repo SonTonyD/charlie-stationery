@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 import { Subscription } from 'rxjs';
 import { AdminMockService } from './admin/admin-mock.service';
-import { AdminBox } from './admin/admin.models';
+import { AdminBox, BoxVariant } from './admin/admin.models';
 import { CartService } from './cart.service';
 import { LegalConsentComponent } from './legal-consent.component';
 import { SupabaseAuthService } from './supabase/auth.service';
@@ -25,6 +25,8 @@ interface BoxItem {
   stock: number;
   image: string;
   weightGrams: number;
+  hasVariants: boolean;
+  variants: BoxVariant[];
 }
 
 interface Review {
@@ -55,6 +57,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   pendingCheckoutBoxId: string | null = null;
   legalAccepted = false;
   addedCartBoxId: string | null = null;
+  selectedVariantIds: Record<string, string> = {};
   cartItemCount = 0;
   activeUpcomingIndex = 0;
   activeUpcomingRatio = '827 / 422';
@@ -189,8 +192,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.discoverNextUpcomingSlide(index);
   }
 
-  requestBuyBox(boxId: string) {
-    this.pendingCheckoutBoxId = boxId;
+  requestBuyBox(box: BoxItem) {
+    if (box.hasVariants && !this.selectedVariantIds[box.id]) return;
+    this.pendingCheckoutBoxId = box.id;
     this.legalAccepted = false;
   }
 
@@ -211,7 +215,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.pendingCheckoutBoxId = null;
     this.checkoutBoxId = null;
-    await this.router.navigate(['/livraison'], { queryParams: { boxId } });
+    const variantId = this.selectedVariantIds[boxId];
+    await this.router.navigate(['/livraison'], {
+      queryParams: { boxId, ...(variantId ? { variantId } : {}) },
+    });
   }
 
   addToCart(box: BoxItem) {
@@ -219,12 +226,19 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const variant = box.hasVariants
+      ? box.variants.find((entry) => entry.id === this.selectedVariantIds[box.id])
+      : undefined;
+    if (box.hasVariants && !variant) return;
     this.cartService.addItem({
+      cartItemId: `${box.id}:${variant?.id ?? 'default'}`,
       boxId: box.id,
+      variantId: variant?.id,
+      variantName: variant?.name,
       name: box.name,
       description: box.description,
       image: box.image,
-      unitPrice: box.price,
+      unitPrice: variant?.price ?? box.price,
       weightGrams: box.weightGrams,
     });
     this.addedCartBoxId = box.id;
@@ -253,6 +267,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.updateHeroScrollAnimation();
   }
 
+  boxPriceLabel(box: BoxItem) {
+    if (!box.hasVariants || box.variants.length === 0) {
+      return `${box.price.toFixed(2)}EUR`;
+    }
+    const prices = box.variants.map((variant) => variant.price);
+    return `Entre ${Math.min(...prices).toFixed(2)}EUR et ${Math.max(...prices).toFixed(2)}EUR`;
+  }
+
   private async loadFrontOfficeBoxes() {
     this.loadError = '';
     try {
@@ -267,7 +289,14 @@ export class HomeComponent implements OnInit, OnDestroy {
         stock: box.stockQuantity,
         image: box.imageUrl || '/alien-box.jpeg',
         weightGrams: box.weightGrams,
+        hasVariants: box.hasVariants,
+        variants: box.variants,
       }));
+      this.selectedVariantIds = Object.fromEntries(
+        frontBoxes
+          .filter((box) => box.hasVariants && box.variants.length)
+          .map((box) => [box.id, box.variants[0].id]),
+      );
     } catch {
       this.boxes = [];
       this.loadError = 'Les box ne sont pas disponibles pour le moment.';
