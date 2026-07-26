@@ -7,6 +7,7 @@ export interface CartItem {
   description: string;
   image: string;
   unitPrice: number;
+  weightGrams: number;
   quantity: number;
 }
 
@@ -141,6 +142,7 @@ export class CartService {
               typeof item.description === 'string' ? item.description : '',
             image: typeof item.image === 'string' ? item.image : '/alien-box.jpeg',
             unitPrice: this.toMoney(Number(item.unitPrice) || 0),
+            weightGrams: Math.max(1, Math.floor(Number(item.weightGrams) || 1)),
             quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
           };
         })

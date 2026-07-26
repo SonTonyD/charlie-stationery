@@ -22,6 +22,7 @@ interface BoxItem {
   price: number;
   stock: number;
   image: string;
+  weightGrams: number;
 }
 
 interface Review {
@@ -183,6 +184,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       description: box.description,
       image: box.image,
       unitPrice: box.price,
+      weightGrams: box.weightGrams,
     });
     this.addedCartBoxId = box.id;
 
@@ -223,6 +225,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         price: box.salePrice,
         stock: box.stockQuantity,
         image: box.imageUrl || '/alien-box.jpeg',
+        weightGrams: box.weightGrams,
       }));
     } catch {
       this.boxes = [];

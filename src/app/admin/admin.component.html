@@ -39,6 +39,9 @@
       >
         Stocks
       </button>
+      <button type="button" [class.active]="activeTab === 'shipping'" (click)="setActiveTab('shipping')">
+        Frais de livraison
+      </button>
       <button type="button" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
         Commandes
         @if (orders.length) { <span class="tab-count">{{ orders.length }}</span> }
@@ -87,6 +90,11 @@
                 step="0.01"
                 [(ngModel)]="newBoxForm.purchasePrice"
               />
+            </label>
+            <label>
+              Poids de la box (en grammes)
+              <input type="number" name="newBoxWeightGrams" min="1" step="1"
+                [(ngModel)]="newBoxForm.weightGrams" required />
             </label>
             <label>
               Images
@@ -172,6 +180,11 @@
                   step="0.01"
                   [(ngModel)]="selectedBoxForm.purchasePrice"
                 />
+              </label>
+              <label>
+                Poids de la box (en grammes)
+                <input type="number" name="selectedBoxWeightGrams" min="1" step="1"
+                  [(ngModel)]="selectedBoxForm.weightGrams" required />
               </label>
               <button
                 class="btn-ghost"
@@ -523,6 +536,39 @@
             </p>
           }
         }
+      </section>
+    } @else if (activeTab === "shipping") {
+      <section class="panel shipping-panel">
+        <h2>Grilles des frais de livraison</h2>
+        <p>Tarifs appliqués automatiquement selon le poids total des box du panier.</p>
+        <div class="shipping-grids">
+          @for (grid of [
+            { carrier: "mondial_relay", mode: "pickup", title: "Mondial Relay — Point relais" },
+            { carrier: "laposte", mode: "pickup", title: "La Poste — Point relais" },
+            { carrier: "mondial_relay", mode: "home", title: "Mondial Relay — À domicile" },
+            { carrier: "laposte", mode: "home", title: "La Poste — À domicile" }
+          ]; track grid.title) {
+            <article>
+              <h3>{{ grid.title }}</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Poids min.</th><th>Poids max.</th><th>Tarif</th></tr></thead>
+                  <tbody>
+                    @for (rate of shippingRatesFor($any(grid.carrier), $any(grid.mode)); track rate.id) {
+                      <tr>
+                        <td>{{ rate.weightMinGrams | number }} g</td>
+                        <td>{{ rate.weightMaxGrams | number }} g</td>
+                        <td>{{ rate.price | number:"1.2-2" }} €</td>
+                      </tr>
+                    } @empty {
+                      <tr><td colspan="3">Aucun tarif configuré.</td></tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          }
+        </div>
       </section>
     } @else if (activeTab === "orders") {
       <section class="panel orders-panel">

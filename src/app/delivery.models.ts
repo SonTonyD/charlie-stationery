@@ -21,16 +21,14 @@ export const DELIVERY_METHODS = [
     id: 'mondial_relay_pickup',
     carrier: 'Mondial Relay',
     mode: 'Point relais',
-    price: 4.9,
     network: 'MONR_NETWORK',
   },
   {
     id: 'laposte_pickup',
     carrier: 'La Poste',
     mode: 'Point relais',
-    price: 4.9,
     network: 'POFR_UP_TO_30_KG_NETWORK',
   },
-  { id: 'mondial_relay_home', carrier: 'Mondial Relay', mode: 'À domicile', price: 7.9 },
-  { id: 'laposte_home', carrier: 'La Poste', mode: 'À domicile', price: 7.9 },
+  { id: 'mondial_relay_home', carrier: 'Mondial Relay', mode: 'À domicile' },
+  { id: 'laposte_home', carrier: 'La Poste', mode: 'À domicile' },
 ] as const;

@@ -5,6 +5,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
@@ -33,7 +34,7 @@ interface BoxtalMap {
   templateUrl: './delivery-form.component.html',
   styleUrl: './delivery-form.component.css',
 })
-export class DeliveryFormComponent implements AfterViewInit, OnChanges {
+export class DeliveryFormComponent implements AfterViewInit, OnChanges, OnInit {
   @Input({ required: true }) items: CartItem[] = [];
   @Input() itemsTotal = 0;
   @Input() legalAccepted = false;
@@ -56,6 +57,11 @@ export class DeliveryFormComponent implements AfterViewInit, OnChanges {
   errorMessage = '';
   isCheckingOut = false;
   isMapLoading = false;
+  shippingPrice: number | null = null;
+  private shippingRates: {
+    carrier: string; delivery_mode: string; weight_min_grams: number;
+    weight_max_grams: number; price: number;
+  }[] = [];
   private map: BoxtalMap | null = null;
   private viewReady = false;
 
@@ -68,7 +74,11 @@ export class DeliveryFormComponent implements AfterViewInit, OnChanges {
   }
 
   get grandTotal() {
-    return Number((this.itemsTotal + this.selectedMethod.price).toFixed(2));
+    return Number((this.itemsTotal + (this.shippingPrice ?? 0)).toFixed(2));
+  }
+
+  get totalWeightGrams() {
+    return this.items.reduce((sum, item) => sum + item.weightGrams * item.quantity, 0);
   }
 
   get relayPointLabel() {
@@ -92,7 +102,8 @@ export class DeliveryFormComponent implements AfterViewInit, OnChanges {
         !!this.form.address.trim() &&
         /^\d{5}$/.test(this.form.postalCode.trim()) &&
         !!this.form.city.trim();
-    return identityValid && deliveryValid && this.legalAccepted && !this.isCheckingOut;
+    return identityValid && deliveryValid && this.legalAccepted &&
+      this.shippingPrice !== null && !this.isCheckingOut;
   }
 
   ngAfterViewInit() {
@@ -100,16 +111,30 @@ export class DeliveryFormComponent implements AfterViewInit, OnChanges {
     void this.prepareMap();
   }
 
+  async ngOnInit() {
+    const { data, error } = await supabase
+      .from('shipping_rates')
+      .select('carrier, delivery_mode, weight_min_grams, weight_max_grams, price');
+    if (error) {
+      this.errorMessage = 'Les frais de livraison sont indisponibles pour le moment.';
+      return;
+    }
+    this.shippingRates = data ?? [];
+    this.updateShippingPrice();
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['items'] && this.items.length === 0) {
       this.relayPoint = null;
     }
+    if (changes['items']) this.updateShippingPrice();
   }
 
   selectMethod(methodId: DeliveryMethodId) {
     this.selectedMethodId = methodId;
     this.errorMessage = '';
     this.relayPoint = null;
+    this.updateShippingPrice();
     if (this.isPickup && this.viewReady) {
       setTimeout(() => void this.prepareMap());
     }
@@ -188,6 +213,20 @@ export class DeliveryFormComponent implements AfterViewInit, OnChanges {
         'La carte sera disponible dès que la clé Boxtal sera configurée. Vous ne pouvez pas payer sans sélectionner un relais.';
     } finally {
       this.isMapLoading = false;
+    }
+  }
+
+  private updateShippingPrice() {
+    const carrier = this.selectedMethodId.startsWith('mondial_relay')
+      ? 'mondial_relay' : 'laposte';
+    const deliveryMode = this.selectedMethodId.endsWith('_pickup') ? 'pickup' : 'home';
+    const rate = this.shippingRates.find((entry) =>
+      entry.carrier === carrier && entry.delivery_mode === deliveryMode &&
+      this.totalWeightGrams >= entry.weight_min_grams &&
+      this.totalWeightGrams <= entry.weight_max_grams);
+    this.shippingPrice = rate ? Number(rate.price) : null;
+    if (this.shippingRates.length && !rate) {
+      this.errorMessage = 'Aucun tarif de livraison ne couvre le poids de cette commande.';
     }
   }
 

@@ -5,6 +5,7 @@ import {
   AdminBox,
   AdminBoxImage,
   AdminProduct,
+  ShippingRate,
 } from './admin.models';
 import { supabase } from '../supabase/supabase.client';
 
@@ -19,6 +20,7 @@ interface AdminBoxPayload {
   description: string;
   salePrice: number;
   purchasePrice: number | null;
+  weightGrams: number;
   imageUrl?: string;
   showOnFrontOffice?: boolean;
 }
@@ -67,6 +69,7 @@ export class AdminMockService {
       showOnFrontOffice: true,
       salePrice: 35.1,
       purchasePrice: 15.4,
+      weightGrams: 1000,
       stockQuantity: 5,
       items: [
         { productId: 'prd-1', quantity: 3 },
@@ -85,6 +88,7 @@ export class AdminMockService {
       showOnFrontOffice: false,
       salePrice: 10.8,
       purchasePrice: 4.3,
+      weightGrams: 500,
       stockQuantity: 8,
       items: [
         { productId: 'prd-1', quantity: 1 },
@@ -102,6 +106,7 @@ export class AdminMockService {
       showOnFrontOffice: false,
       salePrice: 18,
       purchasePrice: 8.2,
+      weightGrams: 750,
       stockQuantity: 4,
       items: [
         { productId: 'prd-2', quantity: 3 },
@@ -140,7 +145,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, sale_price, purchase_price, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity)',
+        'id, name, description, image_url, show_on_front_office, sale_price, purchase_price, weight_grams, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity)',
       )
       .order('name', { ascending: true });
 
@@ -166,6 +171,7 @@ export class AdminMockService {
           box.purchase_price === null
             ? null
             : this.toMoney(Number(box.purchase_price) || 0),
+        weightGrams: Math.max(1, Math.floor(Number(box.weight_grams) || 1)),
         stockQuantity: Math.max(0, Math.floor(Number(box.stock_quantity) || 0)),
         items: (box.box_items ?? []).map((item) => ({
           productId: item.product_id,
@@ -241,6 +247,7 @@ export class AdminMockService {
       showOnFrontOffice: payload.showOnFrontOffice ?? false,
       salePrice: payload.salePrice,
       purchasePrice: payload.purchasePrice,
+      weightGrams: payload.weightGrams,
       stockQuantity: 0,
       items: [],
     };
@@ -253,6 +260,7 @@ export class AdminMockService {
       show_on_front_office: box.showOnFrontOffice,
       sale_price: box.salePrice,
       purchase_price: box.purchasePrice,
+      weight_grams: box.weightGrams,
       stock_quantity: box.stockQuantity,
     });
 
@@ -265,7 +273,7 @@ export class AdminMockService {
 
   async updateBox(
     boxId: string,
-    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice'>,
+    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice' | 'weightGrams'>,
   ) {
     const { error } = await supabase
       .from('boxes')
@@ -276,6 +284,7 @@ export class AdminMockService {
         show_on_front_office: payload.showOnFrontOffice,
         sale_price: payload.salePrice,
         purchase_price: payload.purchasePrice,
+        weight_grams: payload.weightGrams,
       })
       .eq('id', boxId);
 
@@ -597,6 +606,24 @@ export class AdminMockService {
     if (error) throw error;
   }
 
+  async getShippingRates(): Promise<ShippingRate[]> {
+    const { data, error } = await supabase
+      .from('shipping_rates')
+      .select('id, carrier, delivery_mode, weight_min_grams, weight_max_grams, price')
+      .order('carrier')
+      .order('delivery_mode')
+      .order('weight_min_grams');
+    if (error) throw error;
+    return (data ?? []).map((rate) => ({
+      id: rate.id,
+      carrier: rate.carrier,
+      deliveryMode: rate.delivery_mode,
+      weightMinGrams: rate.weight_min_grams,
+      weightMaxGrams: rate.weight_max_grams,
+      price: this.toMoney(Number(rate.price)),
+    }));
+  }
+
   private normalizeBoxImages(
     images: {
       id: string;
@@ -746,6 +773,7 @@ export class AdminMockService {
         show_on_front_office: box.showOnFrontOffice,
         sale_price: box.salePrice,
         purchase_price: box.purchasePrice,
+        weight_grams: box.weightGrams,
         stock_quantity: box.stockQuantity,
       })),
     );

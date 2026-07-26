@@ -28,8 +28,18 @@ export interface AdminBox {
   showOnFrontOffice: boolean;
   salePrice: number;
   purchasePrice: number | null;
+  weightGrams: number;
   stockQuantity: number;
   items: BoxProductLine[];
+}
+
+export interface ShippingRate {
+  id: number;
+  carrier: 'mondial_relay' | 'laposte';
+  deliveryMode: 'pickup' | 'home';
+  weightMinGrams: number;
+  weightMaxGrams: number;
+  price: number;
 }
 
 export type OrderStatus =

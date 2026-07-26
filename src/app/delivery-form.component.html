@@ -10,7 +10,11 @@
         (click)="selectMethod(method.id)" [attr.aria-pressed]="selectedMethodId === method.id">
         <span class="method-icon">{{ method.mode === "Point relais" ? "⌖" : "⌂" }}</span>
         <span><strong>{{ method.carrier }}</strong><small>{{ method.mode }}</small></span>
-        <b>{{ method.price | number: "1.2-2" }} €</b>
+        <b>
+          @if (selectedMethodId === method.id && shippingPrice !== null) {
+            {{ shippingPrice | number: "1.2-2" }} €
+          } @else { Calculé selon le poids }
+        </b>
       </button>
     }
   </div>
@@ -46,7 +50,8 @@
 
   <div class="price-summary">
     <div><span>Sous-total articles</span><strong>{{ itemsTotal | number: "1.2-2" }} €</strong></div>
-    <div><span>Livraison — {{ selectedMethod.carrier }}, {{ selectedMethod.mode | lowercase }}</span><strong>{{ selectedMethod.price | number: "1.2-2" }} €</strong></div>
+    <div><span>Livraison — {{ selectedMethod.carrier }}, {{ selectedMethod.mode | lowercase }} ({{ totalWeightGrams | number }} g)</span>
+      <strong>{{ shippingPrice !== null ? (shippingPrice | number: "1.2-2") + " €" : "Indisponible" }}</strong></div>
     <div class="grand-total"><span>Total à payer</span><strong>{{ grandTotal | number: "1.2-2" }} €</strong></div>
   </div>
   <div class="delivery-legal">

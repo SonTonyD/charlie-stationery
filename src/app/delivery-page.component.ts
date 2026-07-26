@@ -32,7 +32,7 @@ export class DeliveryPageComponent implements OnInit {
     try {
       const box = (await this.admin.getBoxes()).find((entry) => entry.id === id);
       if (!box || !box.showOnFrontOffice || box.stockQuantity < 1) throw new Error();
-      this.item = { boxId: box.id, name: box.name, description: box.description, image: box.imageUrl, unitPrice: box.salePrice, quantity: 1 };
+      this.item = { boxId: box.id, name: box.name, description: box.description, image: box.imageUrl, unitPrice: box.salePrice, weightGrams: box.weightGrams, quantity: 1 };
     } catch { this.errorMessage = 'Cette box n’est plus disponible.'; }
   }
 }

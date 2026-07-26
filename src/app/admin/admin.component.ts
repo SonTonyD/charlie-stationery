@@ -10,10 +10,11 @@ import {
   AdminProduct,
   BoxProductLine,
   OrderStatus,
+  ShippingRate,
 } from './admin.models';
 import { SupabaseAuthService } from '../supabase/auth.service';
 
-type AdminTab = 'boxes' | 'stocks' | 'orders';
+type AdminTab = 'boxes' | 'stocks' | 'shipping' | 'orders';
 
 interface RestockBoxSummary {
   boxId: string;
@@ -56,6 +57,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   products: AdminProduct[] = [];
   boxes: AdminBox[] = [];
   orders: AdminOrder[] = [];
+  shippingRates: ShippingRate[] = [];
   readonly orderStatuses: { value: OrderStatus; label: string }[] = [
     { value: 'pending_payment', label: 'En attente de paiement' },
     { value: 'paid', label: 'Payée' },
@@ -78,6 +80,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     description: '',
     salePrice: 0,
     purchasePrice: null as number | null,
+    weightGrams: 1,
     imageUrl: '/alien-box.jpeg',
   };
   newBoxImageFiles: File[] = [];
@@ -86,6 +89,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     description: '',
     salePrice: 0,
     purchasePrice: null as number | null,
+    weightGrams: 1,
     imageUrl: '/alien-box.jpeg',
     showOnFrontOffice: false,
   };
@@ -225,6 +229,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       description: this.newBoxForm.description.trim(),
       salePrice: Math.max(0, this.toMoney(Number(this.newBoxForm.salePrice) || 0)),
       purchasePrice: this.normalizeOptionalPrice(this.newBoxForm.purchasePrice),
+      weightGrams: Math.max(1, Math.floor(Number(this.newBoxForm.weightGrams) || 1)),
       imageUrl: this.normalizeImageUrl(this.newBoxForm.imageUrl),
     };
 
@@ -247,6 +252,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         description: '',
         salePrice: 0,
         purchasePrice: null,
+        weightGrams: 1,
         imageUrl: '/alien-box.jpeg',
       };
       this.newBoxImageFiles = [];
@@ -266,6 +272,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       description: box?.description ?? '',
       salePrice: box?.salePrice ?? 0,
       purchasePrice: box?.purchasePrice ?? null,
+      weightGrams: box?.weightGrams ?? 1,
       imageUrl: box?.imageUrl ?? '/alien-box.jpeg',
       showOnFrontOffice: box?.showOnFrontOffice ?? false,
     };
@@ -282,6 +289,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       description: this.selectedBoxForm.description.trim(),
       salePrice: Math.max(0, this.toMoney(Number(this.selectedBoxForm.salePrice) || 0)),
       purchasePrice: this.normalizeOptionalPrice(this.selectedBoxForm.purchasePrice),
+      weightGrams: Math.max(1, Math.floor(Number(this.selectedBoxForm.weightGrams) || 1)),
       imageUrl: this.normalizeImageUrl(this.selectedBoxForm.imageUrl),
       showOnFrontOffice: this.selectedBoxForm.showOnFrontOffice,
     };
@@ -314,6 +322,15 @@ export class AdminComponent implements OnInit, OnDestroy {
       }
       await Promise.all(orderUpdates);
     });
+  }
+
+  shippingRatesFor(
+    carrier: ShippingRate['carrier'],
+    deliveryMode: ShippingRate['deliveryMode'],
+  ) {
+    return this.shippingRates.filter(
+      (rate) => rate.carrier === carrier && rate.deliveryMode === deliveryMode,
+    );
   }
 
   onNewBoxImagesSelected(event: Event) {
@@ -433,6 +450,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           description: '',
           salePrice: 0,
           purchasePrice: null,
+          weightGrams: 1,
           imageUrl: '/alien-box.jpeg',
           showOnFrontOffice: false,
         };
@@ -454,6 +472,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         showOnFrontOffice: !box.showOnFrontOffice,
         salePrice: box.salePrice,
         purchasePrice: box.purchasePrice,
+        weightGrams: box.weightGrams,
       }),
     );
     this.selectBox(box.id);
@@ -698,9 +717,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      [this.boxes, this.orders] = await Promise.all([
+      [this.boxes, this.orders, this.shippingRates] = await Promise.all([
         this.adminMockService.getBoxes(),
         this.adminMockService.getOrders(),
+        this.adminMockService.getShippingRates(),
       ]);
       this.products = [];
     } catch (error) {
@@ -708,6 +728,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.products = [];
       this.boxes = [];
       this.orders = [];
+      this.shippingRates = [];
     } finally {
       this.isLoading = false;
     }

@@ -16,6 +16,7 @@ interface BoxDetail {
   image: string;
   images: string[];
   completeImages: string[];
+  weightGrams: number;
   items: { productName: string; quantity: number; price: number }[];
 }
 
@@ -103,6 +104,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
             ? targetBox.images.map((image) => image.url)
             : [targetBox.imageUrl || '/alien-box.jpeg'],
         completeImages: targetBox.completeImages.map((image) => image.url),
+        weightGrams: targetBox.weightGrams,
         items: items,
       };
       this.selectedImageIndex = 0;
@@ -148,6 +150,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
       description: this.box.description,
       image: this.box.image,
       unitPrice: this.box.price,
+      weightGrams: this.box.weightGrams,
     });
 
     this.addedToCart = true;

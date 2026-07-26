@@ -61,7 +61,7 @@ Deno.serve(async (request) => {
     const { data: boxes, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, sale_price, box_images(image_url, sort_order)',
+        'id, name, description, image_url, show_on_front_office, sale_price, weight_grams, box_images(image_url, sort_order)',
       )
       .in('id', boxIds);
 
@@ -74,6 +74,7 @@ Deno.serve(async (request) => {
     }
 
     let itemsTotalCents = 0;
+    let totalWeightGrams = 0;
     const orderItems: Record<string, unknown>[] = [];
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = boxes.map((box) => {
       if (!box.show_on_front_office) {
@@ -88,6 +89,7 @@ Deno.serve(async (request) => {
       }
       const quantity = quantityByBoxId.get(box.id) ?? 1;
       itemsTotalCents += unitAmount * quantity;
+      totalWeightGrams += Math.max(1, Math.floor(Number(box.weight_grams) || 0)) * quantity;
       orderItems.push({ boxId: box.id, name: box.name, unitPrice: price, quantity });
 
       const primaryImage =
@@ -109,11 +111,28 @@ Deno.serve(async (request) => {
       };
     });
 
+    const { data: shippingRate, error: shippingRateError } = await supabase
+      .from('shipping_rates')
+      .select('price')
+      .eq('carrier', delivery.rateCarrier)
+      .eq('delivery_mode', delivery.mode)
+      .lte('weight_min_grams', totalWeightGrams)
+      .gte('weight_max_grams', totalWeightGrams)
+      .maybeSingle();
+    if (shippingRateError) throw shippingRateError;
+    if (!shippingRate) {
+      throw new CheckoutValidationError(
+        'Aucun tarif de livraison ne couvre le poids de cette commande',
+        400,
+      );
+    }
+    const deliveryPriceCents = Math.round(Number(shippingRate.price) * 100);
+
     lineItems.push({
       price_data: {
         currency: 'eur',
         product_data: { name: `Livraison — ${delivery.carrier} (${delivery.modeLabel})` },
-        unit_amount: delivery.priceCents,
+        unit_amount: deliveryPriceCents,
       },
       quantity: 1,
     });
@@ -127,14 +146,15 @@ Deno.serve(async (request) => {
       delivery_method: delivery.method,
       delivery_carrier: delivery.carrier,
       delivery_mode: delivery.mode,
-      delivery_price: delivery.priceCents / 100,
+      delivery_price: deliveryPriceCents / 100,
       delivery_address: delivery.address,
       delivery_postal_code: delivery.postalCode,
       delivery_city: delivery.city,
       relay_point: delivery.relayPoint,
       items: orderItems,
       items_total: itemsTotalCents / 100,
-      total: (itemsTotalCents + delivery.priceCents) / 100,
+      total_weight_grams: totalWeightGrams,
+      total: (itemsTotalCents + deliveryPriceCents) / 100,
     }).select('id').single();
     if (orderError || !order) throw orderError ?? new Error('Unable to create order');
 
@@ -225,10 +245,10 @@ function normalizeCheckoutItems(body: unknown) {
 }
 
 const deliveryMethods = {
-  mondial_relay_pickup: { carrier: 'Mondial Relay', mode: 'pickup', modeLabel: 'point relais', priceCents: 490 },
-  laposte_pickup: { carrier: 'La Poste', mode: 'pickup', modeLabel: 'point relais', priceCents: 490 },
-  mondial_relay_home: { carrier: 'Mondial Relay', mode: 'home', modeLabel: 'à domicile', priceCents: 790 },
-  laposte_home: { carrier: 'La Poste', mode: 'home', modeLabel: 'à domicile', priceCents: 790 },
+  mondial_relay_pickup: { carrier: 'Mondial Relay', rateCarrier: 'mondial_relay', mode: 'pickup', modeLabel: 'point relais' },
+  laposte_pickup: { carrier: 'La Poste', rateCarrier: 'laposte', mode: 'pickup', modeLabel: 'point relais' },
+  mondial_relay_home: { carrier: 'Mondial Relay', rateCarrier: 'mondial_relay', mode: 'home', modeLabel: 'à domicile' },
+  laposte_home: { carrier: 'La Poste', rateCarrier: 'laposte', mode: 'home', modeLabel: 'à domicile' },
 } as const;
 
 function normalizeDelivery(body: unknown) {
