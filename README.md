@@ -235,7 +235,17 @@ Variables attendues cote Edge Function :
 - `STRIPE_SECRET_KEY`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `SITE_URL` optionnelle, par defaut `http://localhost:4200`
+- `SITE_URL` recommandee en production ; repli sur l'origine de la requete,
+  puis `http://localhost:4200` en developpement
+
+En production, `SITE_URL` doit contenir l'origine publique du site, sans chemin
+final, par exemple `https://www.example.com`. La fonction utilise l'origine de
+la requete comme repli, mais configurer explicitement ce secret reste recommande :
+
+```bash
+supabase secrets set SITE_URL=https://www.example.com
+supabase functions deploy create-checkout-session
+```
 
 ### Deployer ou redeployer une Edge Function Supabase
 

@@ -8,8 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:4200';
-
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -35,6 +33,7 @@ Deno.serve(async (request) => {
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2024-12-18.acacia',
     });
+    const siteUrl = resolveSiteUrl(request);
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
     const body = await request.json();
@@ -320,6 +319,26 @@ function normalizeDelivery(body: unknown) {
 
 function text(value: unknown) {
   return typeof value === 'string' ? value.trim().slice(0, 300) : '';
+}
+
+function resolveSiteUrl(request: Request) {
+  const candidates = [
+    Deno.env.get('SITE_URL'),
+    request.headers.get('origin'),
+    'http://localhost:4200',
+  ];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === 'https:' || url.hostname === 'localhost') {
+        return url.origin;
+      }
+    } catch {
+      // Essaie la valeur suivante si le secret ou l'origine est invalide.
+    }
+  }
+  return 'http://localhost:4200';
 }
 
 function hasAcceptedLegalDocuments(body: unknown) {
