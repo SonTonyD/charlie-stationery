@@ -1,3 +1,11 @@
+.tax-notice {
+  margin: 16px 0 -8px;
+  color: #5d5665;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: left;
+}
+
 .legal-consent {
   display: flex;
   align-items: flex-start;
