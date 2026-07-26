@@ -58,7 +58,7 @@ Deno.serve(async (request) => {
     const { data: boxes, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, sale_price, weight_grams, has_variants, box_images(image_url, sort_order), box_variants(id, name, price)',
+        'id, name, description, image_url, show_on_front_office, sale_price, weight_grams, stock_quantity, has_variants, box_images(image_url, sort_order), box_variants(id, name, price)',
       )
       .in('id', boxIds);
 
@@ -74,6 +74,26 @@ Deno.serve(async (request) => {
     let totalWeightGrams = 0;
     const orderItems: Record<string, unknown>[] = [];
     const boxesById = new Map(boxes.map((box) => [box.id, box]));
+    const requestedQuantityByBoxId = new Map<string, number>();
+    for (const item of checkoutItems) {
+      requestedQuantityByBoxId.set(
+        item.boxId,
+        (requestedQuantityByBoxId.get(item.boxId) ?? 0) + item.quantity,
+      );
+    }
+    for (const box of boxes) {
+      const requestedQuantity = requestedQuantityByBoxId.get(box.id) ?? 0;
+      const stockQuantity = Math.max(
+        0,
+        Math.floor(Number(box.stock_quantity) || 0),
+      );
+      if (requestedQuantity > stockQuantity) {
+        throw new CheckoutValidationError(
+          `Stock insuffisant pour ${box.name} (${stockQuantity} disponible${stockQuantity > 1 ? 's' : ''})`,
+          409,
+        );
+      }
+    }
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = checkoutItems.map((item) => {
       const box = boxesById.get(item.boxId);
       if (!box) throw new CheckoutValidationError('Box not available', 404);
