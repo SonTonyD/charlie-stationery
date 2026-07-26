@@ -49,6 +49,9 @@
     <div><span>Livraison — {{ selectedMethod.carrier }}, {{ selectedMethod.mode | lowercase }}</span><strong>{{ selectedMethod.price | number: "1.2-2" }} €</strong></div>
     <div class="grand-total"><span>Total à payer</span><strong>{{ grandTotal | number: "1.2-2" }} €</strong></div>
   </div>
+  <div class="delivery-legal">
+    <ng-content select="[delivery-legal]" />
+  </div>
   @if (errorMessage) { <p class="form-error">{{ errorMessage }}</p> }
   <button type="button" class="pay-button" [disabled]="!canCheckout" (click)="checkout()">
     {{ isCheckingOut ? "Redirection vers Stripe…" : "Payer " + (grandTotal | number: "1.2-2") + " €" }}

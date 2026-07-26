@@ -60,11 +60,6 @@
         <p class="delivery-scope-note" role="note">
           Livraison disponible uniquement en France
         </p>
-        <app-legal-consent
-          [accepted]="legalAccepted"
-          [busy]="isCheckingOut"
-          (acceptedChange)="legalAccepted = $event"
-        />
       </aside>
     </section>
     <section class="cart-delivery">
@@ -74,7 +69,14 @@
         [legalAccepted]="legalAccepted"
         (checkoutStarted)="checkoutStarted()"
         (checkoutFinished)="checkoutFinished()"
-      />
+      >
+        <app-legal-consent
+          delivery-legal
+          [accepted]="legalAccepted"
+          [busy]="isCheckingOut"
+          (acceptedChange)="legalAccepted = $event"
+        />
+      </app-delivery-form>
     </section>
   } @else {
     <section class="empty-cart">
