@@ -137,7 +137,7 @@ Deno.serve(async (request) => {
           currency: 'eur',
           product_data: {
             name: variant ? `${box.name} — ${variant.name}` : box.name,
-            description: box.description || undefined,
+            description: stripeDescription(box.description),
             images: primaryImage?.startsWith('http') ? [primaryImage] : undefined,
           },
           unit_amount: unitAmount,
@@ -229,8 +229,14 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: error.message }, error.status);
     }
 
-    console.error(error);
-    return jsonResponse({ error: 'Unable to create checkout session' }, 500);
+    console.error('create-checkout-session failed', error);
+    return jsonResponse(
+      {
+        error: 'Unable to create checkout session',
+        errorCode: checkoutErrorCode(error),
+      },
+      500,
+    );
   }
 });
 
@@ -319,6 +325,33 @@ function normalizeDelivery(body: unknown) {
 
 function text(value: unknown) {
   return typeof value === 'string' ? value.trim().slice(0, 300) : '';
+}
+
+function stripeDescription(value: unknown) {
+  if (typeof value !== 'string') return undefined;
+  const description = value.trim();
+  return description ? description.slice(0, 500) : undefined;
+}
+
+function checkoutErrorCode(error: unknown) {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'type' in error &&
+    typeof error.type === 'string' &&
+    ('statusCode' in error || 'requestId' in error)
+  ) {
+    return 'stripe_error';
+  }
+  if (
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string'
+  ) {
+    return `database_${error.code}`;
+  }
+  return 'internal_error';
 }
 
 function resolveSiteUrl(request: Request) {
