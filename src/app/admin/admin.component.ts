@@ -86,6 +86,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   newBoxForm = {
     name: '',
     description: '',
+    technicalDescription: '',
     salePrice: 0,
     purchasePrice: null as number | null,
     weightGrams: 1,
@@ -97,6 +98,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   selectedBoxForm = {
     name: '',
     description: '',
+    technicalDescription: '',
     salePrice: 0,
     purchasePrice: null as number | null,
     weightGrams: 1,
@@ -357,6 +359,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.newBoxForm.name.trim(),
       description: this.newBoxForm.description.trim(),
+      technicalDescription: this.newBoxForm.technicalDescription,
       salePrice: Math.max(0, this.toMoney(Number(this.newBoxForm.salePrice) || 0)),
       purchasePrice: this.normalizeOptionalPrice(this.newBoxForm.purchasePrice),
       weightGrams: Math.max(1, Math.floor(Number(this.newBoxForm.weightGrams) || 1)),
@@ -382,6 +385,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.newBoxForm = {
         name: '',
         description: '',
+        technicalDescription: '',
         salePrice: 0,
         purchasePrice: null,
         weightGrams: 1,
@@ -404,6 +408,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.selectedBoxForm = {
       name: box?.name ?? '',
       description: box?.description ?? '',
+      technicalDescription: box?.technicalDescription ?? '',
       salePrice: box?.salePrice ?? 0,
       purchasePrice: box?.purchasePrice ?? null,
       weightGrams: box?.weightGrams ?? 1,
@@ -423,6 +428,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.selectedBoxForm.name.trim(),
       description: this.selectedBoxForm.description.trim(),
+      technicalDescription: this.selectedBoxForm.technicalDescription,
       salePrice: Math.max(0, this.toMoney(Number(this.selectedBoxForm.salePrice) || 0)),
       purchasePrice: this.normalizeOptionalPrice(this.selectedBoxForm.purchasePrice),
       weightGrams: Math.max(1, Math.floor(Number(this.selectedBoxForm.weightGrams) || 1)),
@@ -615,6 +621,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         this.selectedBoxForm = {
           name: '',
           description: '',
+          technicalDescription: '',
           salePrice: 0,
           purchasePrice: null,
           weightGrams: 1,
@@ -637,6 +644,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.adminMockService.updateBox(box.id, {
         name: box.name,
         description: box.description,
+        technicalDescription: box.technicalDescription,
         imageUrl: box.imageUrl,
         showOnFrontOffice: !box.showOnFrontOffice,
         salePrice: box.salePrice,

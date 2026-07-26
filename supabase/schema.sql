@@ -11,6 +11,7 @@ create table if not exists public.boxes (
   id text primary key,
   name text not null,
   description text not null default '',
+  technical_description text not null default '',
   image_url text not null default '/alien-box.jpeg',
   show_on_front_office boolean not null default false,
   sale_price numeric(10,2) not null default 0 check (sale_price >= 0),
@@ -24,6 +25,9 @@ create table if not exists public.boxes (
 
 alter table public.boxes
 add column if not exists image_url text not null default '/alien-box.jpeg';
+
+alter table public.boxes
+add column if not exists technical_description text not null default '';
 
 alter table public.boxes
 add column if not exists sale_price numeric(10,2) not null default 0;

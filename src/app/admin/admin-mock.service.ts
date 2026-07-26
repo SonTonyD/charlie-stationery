@@ -20,6 +20,7 @@ interface AdminProductPayload {
 interface AdminBoxPayload {
   name: string;
   description: string;
+  technicalDescription: string;
   salePrice: number;
   purchasePrice: number | null;
   weightGrams: number;
@@ -67,6 +68,7 @@ export class AdminMockService {
       id: 'box-1',
       name: 'Box Premium',
       description: 'Selection premium orientee ecriture et deco.',
+      technicalDescription: '',
       imageUrl: '/alien-box.jpeg',
       images: [],
       completeImages: [],
@@ -89,6 +91,7 @@ export class AdminMockService {
       id: 'box-2',
       name: 'Box Petite',
       description: 'Format compact pour petits cadeaux du quotidien.',
+      technicalDescription: '',
       imageUrl: '/alien-box.jpeg',
       images: [],
       completeImages: [],
@@ -110,6 +113,7 @@ export class AdminMockService {
       id: 'box-3',
       name: 'Box Fashion',
       description: 'Selection tendance orientee accessoires et deco.',
+      technicalDescription: '',
       imageUrl: '/alien-box.jpeg',
       images: [],
       completeImages: [],
@@ -158,7 +162,7 @@ export class AdminMockService {
     const { data, error } = await supabase
       .from('boxes')
       .select(
-        'id, name, description, image_url, show_on_front_office, sale_price, purchase_price, weight_grams, has_variants, is_premium, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity), box_variants(id, name, price, sort_order)',
+        'id, name, description, technical_description, image_url, show_on_front_office, sale_price, purchase_price, weight_grams, has_variants, is_premium, stock_quantity, box_images(id, image_url, storage_path, sort_order), box_complete_images(id, image_url, storage_path, sort_order), box_items(product_id, quantity), box_variants(id, name, price, sort_order)',
       )
       .order('name', { ascending: true });
 
@@ -175,6 +179,7 @@ export class AdminMockService {
         id: box.id,
         name: box.name,
         description: box.description ?? '',
+        technicalDescription: box.technical_description ?? '',
         imageUrl: images[0]?.url || box.image_url || '/alien-box.jpeg',
         images,
         completeImages,
@@ -264,6 +269,7 @@ export class AdminMockService {
       id: this.generateId('box'),
       name: payload.name,
       description: payload.description,
+      technicalDescription: payload.technicalDescription,
       imageUrl: payload.imageUrl || '/alien-box.jpeg',
       images: [],
       completeImages: [],
@@ -282,6 +288,7 @@ export class AdminMockService {
       id: box.id,
       name: box.name,
       description: box.description,
+      technical_description: box.technicalDescription,
       image_url: box.imageUrl,
       show_on_front_office: box.showOnFrontOffice,
       sale_price: box.salePrice,
@@ -301,13 +308,14 @@ export class AdminMockService {
 
   async updateBox(
     boxId: string,
-    payload: Pick<AdminBox, 'name' | 'description' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice' | 'weightGrams' | 'hasVariants' | 'isPremium'>,
+    payload: Pick<AdminBox, 'name' | 'description' | 'technicalDescription' | 'imageUrl' | 'showOnFrontOffice' | 'salePrice' | 'purchasePrice' | 'weightGrams' | 'hasVariants' | 'isPremium'>,
   ) {
     const { error } = await supabase
       .from('boxes')
       .update({
         name: payload.name,
         description: payload.description,
+        technical_description: payload.technicalDescription,
         image_url: payload.imageUrl || '/alien-box.jpeg',
         show_on_front_office: payload.showOnFrontOffice,
         sale_price: payload.salePrice,
@@ -946,6 +954,7 @@ export class AdminMockService {
         id: box.id,
         name: box.name,
         description: box.description,
+        technical_description: box.technicalDescription,
         image_url: box.imageUrl,
         show_on_front_office: box.showOnFrontOffice,
         sale_price: box.salePrice,

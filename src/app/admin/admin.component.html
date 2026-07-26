@@ -79,6 +79,12 @@
               ></textarea>
             </label>
             <label>
+              Description technique
+              <textarea rows="7" name="newBoxTechnicalDescription"
+                [(ngModel)]="newBoxForm.technicalDescription"
+                placeholder="Saisissez la description technique en conservant vos retours à la ligne"></textarea>
+            </label>
+            <label>
               Prix de vente de la box
               <input
                 type="number"
@@ -175,6 +181,12 @@
                   name="selectedBoxDescription"
                   [(ngModel)]="selectedBoxForm.description"
                 ></textarea>
+              </label>
+              <label class="wide-field">
+                Description technique
+                <textarea rows="9" name="selectedBoxTechnicalDescription"
+                  [(ngModel)]="selectedBoxForm.technicalDescription"
+                  placeholder="Les retours à la ligne et paragraphes seront conservés sur la fiche de la box"></textarea>
               </label>
               <label>
                 Prix de vente de la box

@@ -443,6 +443,7 @@ td {
 }
 
 .checkbox-field input { width: auto; }
+.wide-field { grid-column: 1 / -1; }
 
 .variants-manager {
   margin: 20px 0;

@@ -12,6 +12,7 @@ interface BoxDetail {
   id: string;
   name: string;
   description: string;
+  technicalDescription: string;
   price: number;
   stock: number;
   image: string;
@@ -100,6 +101,7 @@ export class BoxDetailComponent implements OnInit, OnDestroy {
         id: targetBox.id,
         name: targetBox.name,
         description: targetBox.description,
+        technicalDescription: targetBox.technicalDescription,
         price: price,
         stock: stock,
         image: targetBox.imageUrl || '/alien-box.jpeg',

@@ -22,6 +22,7 @@ export interface AdminBox {
   id: string;
   name: string;
   description: string;
+  technicalDescription: string;
   imageUrl: string;
   images: AdminBoxImage[];
   completeImages: AdminBoxImage[];

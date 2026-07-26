@@ -144,6 +144,13 @@
           </div>
         </div>
 
+        @if (box.technicalDescription) {
+          <section class="technical-description" aria-labelledby="technical-description-title">
+            <h2 id="technical-description-title">Description technique</h2>
+            <div>{{ box.technicalDescription }}</div>
+          </section>
+        }
+
         <!-- Onglets -->
         <div class="tabs-section">
           <div class="tabs-header">
